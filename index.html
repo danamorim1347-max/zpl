@@ -3,170 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZPL ZK47 | Dev. Benilson Amorim</title>
+    <title>ZK47 LOGISTIC PRO | Dev. Benilson Amorim</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
-        :root { --accent: #06b6d4; }
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
-        .glass-panel { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(6, 182, 212, 0.1); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); }
-        .input-std { background: #0f172a; border: 1px solid #1e293b; color: white; transition: all 0.2s; outline: none; font-family: 'JetBrains Mono', monospace; width: 100%; padding: 12px; border-radius: 8px; font-size: 1.1rem; }
-        .input-std:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2); }
-        .input-disabled { opacity: 0.15; cursor: not-allowed; pointer-events: none; filter: grayscale(1); }
-        .loader-overlay { position: absolute; inset: 0; background: rgba(2, 6, 23, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; }
-        .loader-overlay.hide { display: none; }
-        .btn-action { width: 100%; padding: 1rem; border-radius: 12px; font-weight: bold; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 1rem; border: 1px solid rgba(255,255,255,0.05); }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
         
-        /* Efeito Dev Benilson */
-        .dev-effect { background: linear-gradient(135deg, #0f172a, #0891b2); padding: 4px 16px; border-radius: 6px; color: #fff; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; box-shadow: 0 0 15px rgba(6, 182, 212, 0.3); border: 1px solid rgba(6, 182, 212, 0.4); font-size: 11px; }
+        :root { --accent: #06b6d4; --bg-dark: #020617; }
         
-        /* Switch */
-        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #1e293b; transition: .4s; border-radius: 20px; border: 1px solid #334155; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 2px; background-color: #64748b; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #0891b2; border-color: #06b6d4; }
-        input:checked + .slider:before { transform: translateX(20px); background-color: white; box-shadow: 0 0 8px #06b6d4; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--bg-dark); 
+            color: #f8fafc; 
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% -20%, #083344 0%, transparent 50%);
+        }
+        
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-cyan { border: 1px solid rgba(6, 182, 212, 0.2); box-shadow: 0 0 30px rgba(6, 182, 212, 0.05); }
+        
+        .input-pro { 
+            background: rgba(30, 41, 59, 0.5); 
+            border: 1px solid rgba(51, 65, 85, 1); 
+            color: white; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            outline: none; 
+            font-family: 'JetBrains Mono', monospace; 
+        }
+        .input-pro:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); background: rgba(30, 41, 59, 0.8); }
+        
+        .btn-primary { 
+            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(8, 145, 178, 0.3);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(8, 145, 178, 0.5); }
+        .btn-primary:active { transform: translateY(0); }
+
+        .dev-badge {
+            background: linear-gradient(135deg, #0f172a, #0891b2);
+            padding: 5px 15px;
+            border-radius: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.1);
+        }
+
+        .switch-pro input:checked + .slider-pro { background-color: var(--accent); }
+        .slider-pro { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .4s; border-radius: 34px; }
+        .slider-pro:before { position: absolute; content: ""; height: 14px; width: 14px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider-pro:before { transform: translateX(20px); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center pt-10 pb-4 px-4 relative">
+<body class="min-h-screen p-4 md:p-8">
 
-    <div id="statusBox" class="fixed top-0 left-0 w-full bg-slate-900 border-b border-cyan-900/50 text-cyan-400 text-center py-2 font-bold z-50 text-[10px] tracking-widest shadow-2xl">
-        <i class="fa-solid fa-signal fa-beat mr-2"></i> CONNECTED TO MOTHERSHIP | ZK47
+    <!-- OVERLAY LOADING -->
+    <div id="loader" class="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center hidden">
+        <div class="relative w-24 h-24">
+            <div class="absolute inset-0 border-4 border-cyan-500/20 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-t-cyan-500 rounded-full animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <svg viewBox="0 0 100 100" class="w-12 h-12 fill-cyan-400">
+                    <path d="M50,10 C30,10 15,30 15,55 C15,75 35,90 50,90 C65,90 85,75 85,55 C85,30 70,10 50,10 Z" />
+                </svg>
+            </div>
+        </div>
+        <p class="mt-6 text-cyan-400 font-bold tracking-[4px] animate-pulse">SYNCING WITH NEBULA...</p>
     </div>
 
-    <div id="appContent" class="w-full max-w-6xl pb-4 mt-8">
+    <div class="max-w-7xl mx-auto space-y-8">
         
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
-            <div class="text-center md:text-left">
-                <div class="flex items-center gap-5 justify-center md:justify-start">
-                    <!-- LOGO ET CLÁSSICO (SVG RE-DESENHADO) -->
-                    <div class="w-16 h-16 bg-slate-950 border-2 border-cyan-500/50 flex items-center justify-center rounded-full shadow-[0_0_30px_rgba(6,182,212,0.3)]">
-                        <svg viewBox="0 0 100 100" class="w-10 h-10 fill-cyan-400" xmlns="http://www.w3.org/2000/svg">
-                            <!-- Cabeça Alien triangular -->
+        <!-- HEADER PRO -->
+        <header class="flex flex-col md:flex-row justify-between items-center gap-6 glass glass-cyan p-6 rounded-[2rem]">
+            <div class="flex items-center gap-6">
+                <!-- LOGO ET -->
+                <div class="relative group">
+                    <div class="absolute inset-0 bg-cyan-500 blur-2xl opacity-20 group-hover:opacity-40 transition"></div>
+                    <div class="relative w-20 h-20 bg-slate-900 border-2 border-cyan-500 flex items-center justify-center rounded-3xl rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                        <svg viewBox="0 0 100 100" class="w-12 h-12 fill-cyan-400">
                             <path d="M50,10 C30,10 15,30 15,55 C15,75 35,90 50,90 C65,90 85,75 85,55 C85,30 70,10 50,10 Z" />
-                            <!-- Olhos Amendoados Pretos -->
                             <ellipse cx="32" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(-15 32 50)" />
                             <ellipse cx="68" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(15 68 50)" />
                         </svg>
                     </div>
-                    <div>
-                        <h1 class="text-4xl font-black text-white tracking-tighter italic">ZPL <span class="text-cyan-500">ZK47</span></h1>
-                        <div class="flex items-center gap-2 mt-1">
-                            <span class="dev-effect">Dev. Benilson Amorim</span>
-                            <span class="text-[9px] text-cyan-500/60 font-black tracking-widest">V30.0</span>
-                        </div>
+                </div>
+                <div>
+                    <h1 class="text-4xl font-extrabold tracking-tighter italic">ZK47 <span class="text-cyan-500">LOGISTIC PRO</span></h1>
+                    <div class="flex items-center gap-3 mt-2">
+                        <span class="dev-badge text-[10px] text-white">Dev. Benilson Amorim</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-[9px] font-bold text-slate-400 uppercase tracking-widest border border-slate-700">Enterprise V31.0</span>
                     </div>
                 </div>
             </div>
-            <button onclick="window.loadFromCloud()" class="bg-slate-900 hover:bg-slate-800 text-cyan-400 px-6 py-3 rounded-xl text-xs font-black transition border border-cyan-900/50 flex items-center gap-2 shadow-xl">
-                <i class="fa-solid fa-rocket"></i> LOAD NEBULA DATA
-            </button>
+            
+            <div class="flex gap-4">
+                <button onclick="window.loadFromCloud()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 px-6 py-3 rounded-2xl text-xs font-bold transition flex items-center gap-2 border border-slate-700">
+                    <i class="fa-solid fa-cloud-arrow-down"></i> PULL FROM CLOUD
+                </button>
+            </div>
         </header>
 
         <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
-            <div class="lg:col-span-5 space-y-6">
-                <!-- DATA INPUT -->
-                <section class="glass-panel rounded-3xl p-6 relative overflow-hidden">
-                    <div id="uploadLoader" class="loader-overlay hide"><i class="fa-solid fa-atom fa-spin text-4xl text-cyan-500"></i></div>
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xs font-black text-slate-500 uppercase tracking-[2px]"><i class="fa-solid fa-microchip mr-2"></i> Database Injector</h2>
-                        <span id="prodCount" class="bg-cyan-950 text-cyan-400 text-[10px] px-3 py-1 rounded-full font-black border border-cyan-800">0 ITEMS</span>
+            <!-- PAINEL DE CONTROLE (ESQUERDA) -->
+            <div class="lg:col-span-5 space-y-8">
+                
+                <!-- DATABASE MANAGEMENT -->
+                <section class="glass p-8 rounded-[2.5rem] space-y-6">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-sm font-extrabold uppercase tracking-widest text-slate-400">Data Management</h2>
+                        <div id="prodCount" class="text-[10px] font-bold bg-cyan-500/10 text-cyan-400 px-4 py-1 rounded-full border border-cyan-500/20 uppercase">No Data</div>
                     </div>
-                    <label class="flex items-center justify-center w-full p-6 border-2 border-dashed border-slate-800 rounded-2xl cursor-pointer hover:border-cyan-500 bg-slate-900/50 transition">
-                        <div class="text-center"><i class="fa-solid fa-file-excel text-3xl text-cyan-600 mb-2"></i><p class="text-xs text-slate-400 font-bold uppercase tracking-tighter">Choose Excel File</p></div>
-                        <input type="file" id="fileInput" class="hidden" onchange="window.handleFileUpload(this)">
-                    </label>
-                    <button id="cloudArea" onclick="window.saveToCloud()" class="hidden w-full bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-xl text-xs font-black mt-4 shadow-lg transition">SAVE TO SUPABASE</button>
+                    
+                    <div class="grid grid-cols-1 gap-4">
+                        <label class="group cursor-pointer">
+                            <div class="p-8 border-2 border-dashed border-slate-700 rounded-[2rem] hover:border-cyan-500 hover:bg-cyan-500/5 transition-all text-center">
+                                <i class="fa-solid fa-file-csv text-4xl text-slate-600 group-hover:text-cyan-500 mb-4 transition"></i>
+                                <p class="text-sm font-bold text-slate-400 group-hover:text-white transition">Import Logistics Master (.xlsx)</p>
+                            </div>
+                            <input type="file" id="fileInput" class="hidden" onchange="window.handleFileUpload(this)">
+                        </label>
+                        <button id="btnPushCloud" onclick="window.saveToCloud()" class="hidden w-full bg-cyan-600/10 hover:bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition">
+                            Sync Base to Nebula
+                        </button>
+                    </div>
                 </section>
 
-                <section class="glass-panel rounded-2xl p-1.5 flex gap-2 bg-slate-900/40">
-                    <button onclick="window.setMode('validade')" id="btnVal" class="flex-1 py-3 rounded-xl text-xs font-black bg-cyan-600 text-white shadow-lg transition">EXPIRY</button>
-                    <button onclick="window.setMode('endereco')" id="btnEnd" class="flex-1 py-3 rounded-xl text-xs font-black text-slate-500 transition">ADDRESS</button>
-                </section>
+                <!-- INPUT ENGINE -->
+                <section class="glass p-8 rounded-[2.5rem] relative overflow-hidden">
+                    <div id="lockOverlay" class="absolute inset-0 z-20 bg-slate-950/90 flex flex-col items-center justify-center text-center p-8 transition-opacity duration-500">
+                        <i class="fa-solid fa-shield-halved text-4xl text-cyan-900 mb-4"></i>
+                        <p class="text-xs font-black text-cyan-900 uppercase tracking-[4px]">Access Restricted</p>
+                    </div>
 
-                <!-- MAIN FORM -->
-                <section class="glass-panel rounded-3xl p-6 relative">
-                    <div id="lockScreen" class="absolute inset-0 z-20 bg-slate-950/90 rounded-3xl flex items-center justify-center text-cyan-900 font-black text-xs tracking-widest uppercase">System Locked</div>
+                    <!-- SELECTOR -->
+                    <div class="flex p-1.5 bg-slate-900/80 rounded-2xl mb-8 border border-slate-800">
+                        <button onclick="window.setMode('validade')" id="tabVal" class="flex-1 py-3 rounded-xl text-xs font-black transition-all bg-cyan-600 text-white">VALIDADE</button>
+                        <button onclick="window.setMode('endereco')" id="tabEnd" class="flex-1 py-3 rounded-xl text-xs font-black transition-all text-slate-500">ENDEREÇO</button>
+                    </div>
 
-                    <div class="space-y-4">
-                        <div>
-                            <label class="text-[9px] font-black text-slate-600 uppercase ml-1 tracking-widest">EAN Scan</label>
-                            <input type="tel" id="mainCode" class="input-std" placeholder="Aguardando Bipe..." oninput="window.handleScan(this)">
-                            <div id="previewName" class="h-4 text-xs font-bold text-cyan-400 truncate mt-1 uppercase"></div>
-                        </div>
-
-                        <div id="valDateRow" class="space-y-1">
-                            <label class="text-[9px] font-black text-slate-600 uppercase ml-1 tracking-widest">Expiry Date</label>
-                            <input type="tel" id="valDate" class="input-std text-center" placeholder="MMAAAA" oninput="window.maskDate(this)">
+                    <!-- MODO VALIDADE -->
+                    <div id="uiValidade" class="space-y-6">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Master Code (EAN)</label>
+                            <input type="tel" id="valCode" class="w-full input-pro p-4 rounded-2xl text-xl" placeholder="Aguardando Bipe..." oninput="window.handleScan(this, 'val')">
+                            <div id="valPreview" class="px-2 text-xs font-bold text-cyan-400 truncate min-h-[1rem]"></div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
-                            <div class="space-y-1">
-                                <label class="text-[9px] font-black text-slate-600 uppercase ml-1 tracking-widest">Labels Qty</label>
-                                <input type="number" id="qtyEtq" class="input-std text-center" value="1">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Expiry Date</label>
+                                <input type="tel" id="valDate" class="w-full input-pro p-4 rounded-2xl text-center" placeholder="MMAAAA" oninput="window.maskDate(this)">
                             </div>
-                            <div class="space-y-1">
-                                <div class="flex justify-between items-center px-1">
-                                    <label class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Items Qty</label>
-                                    <label class="switch">
-                                        <input type="checkbox" id="qtyToggle" checked onchange="window.toggleQtyInput()">
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-                                <input type="number" id="qtyItm" class="input-std text-center" value="1">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Labels Qty</label>
+                                <input type="number" id="valQtyEtq" class="w-full input-pro p-4 rounded-2xl text-center" value="1">
                             </div>
                         </div>
-                        <button onclick="window.addItem()" class="btn-action bg-cyan-600 hover:bg-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]">TRANSMIT TO QUEUE</button>
+
+                        <div class="flex items-center justify-between p-4 bg-slate-900/50 rounded-2xl border border-slate-800">
+                            <div>
+                                <p class="text-xs font-black text-white">PRINT ITEM QTY</p>
+                                <p class="text-[9px] text-slate-500 font-bold uppercase">Incluir quantidade na etiqueta</p>
+                            </div>
+                            <label class="switch-pro relative inline-block w-11 h-6">
+                                <input type="checkbox" id="valQtyToggle" checked onchange="window.toggleQtyInput('val')">
+                                <span class="slider-pro"></span>
+                            </label>
+                            <input type="number" id="valQtyItm" class="w-16 input-pro p-2 rounded-lg text-center font-bold" value="1">
+                        </div>
+
+                        <button onclick="window.addItem('val')" class="w-full btn-primary py-5 rounded-[1.5rem] text-sm font-black tracking-widest">COMMIT TO QUEUE</button>
+                    </div>
+
+                    <!-- MODO ENDEREÇO -->
+                    <div id="uiEndereco" class="hidden space-y-6">
+                        <div class="flex gap-2 p-1 bg-slate-800/50 rounded-xl mb-4">
+                            <button onclick="window.switchEndSubMode('single')" id="subS" class="flex-1 py-1.5 text-[10px] font-black rounded-lg bg-cyan-600 text-white transition">MANUAL</button>
+                            <button onclick="window.switchEndSubMode('mass')" id="subM" class="flex-1 py-1.5 text-[10px] font-black rounded-lg text-slate-500 transition">MODO MASSA</button>
+                        </div>
+
+                        <div id="endManual">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Address Scan</label>
+                                <input type="tel" id="endCode" class="w-full input-pro p-4 rounded-2xl text-xl" placeholder="Bipar Unidade..." oninput="window.handleScan(this, 'end')">
+                                <div id="endPreview" class="px-2 text-xs font-bold text-cyan-400 truncate min-h-[1rem]"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mt-6">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Labels</label>
+                                    <input type="number" id="endQtyEtq" class="w-full input-pro p-4 rounded-2xl text-center" value="1">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Qty/Itm</label>
+                                    <input type="number" id="endQtyItm" class="w-full input-pro p-4 rounded-2xl text-center" value="1">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="endMass" class="hidden space-y-4">
+                            <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Paste Multiple Codes</label>
+                            <textarea id="endMassList" class="w-full input-pro p-4 rounded-2xl h-40 text-xs" placeholder="Ex:&#10;7891010...&#10;7892020..."></textarea>
+                            <p class="text-[9px] text-slate-500 font-bold px-2 italic">* O sistema usará a quantidade salva no banco para cada item.</p>
+                        </div>
+
+                        <button id="btnCommitEnd" onclick="window.addItem('end')" class="w-full btn-primary py-5 rounded-[1.5rem] text-sm font-black tracking-widest">TRANSMIT DATA</button>
                     </div>
                 </section>
             </div>
 
-            <!-- QUEUE -->
+            <!-- FILA DE IMPRESSÃO (DIREITA) -->
             <div class="lg:col-span-7 flex flex-col h-full">
-                <section class="glass-panel rounded-3xl p-6 flex-grow flex flex-col min-h-[450px]">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="font-black text-white uppercase text-[11px] tracking-widest flex items-center gap-2">
-                            <i class="fa-solid fa-list-ol text-cyan-500"></i> Signal Queue (<span id="queueBadge">0</span>)
-                        </h2>
-                        <button onclick="window.clearQueue()" class="text-[10px] text-red-500 font-black hover:text-red-400 uppercase tracking-tighter transition">Clear Memory</button>
+                <section class="glass p-8 rounded-[3rem] flex-grow flex flex-col min-h-[500px]">
+                    <div class="flex justify-between items-center mb-8">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-slate-800 rounded-2xl flex items-center justify-center border border-slate-700">
+                                <i class="fa-solid fa-list-check text-cyan-500 text-sm"></i>
+                            </div>
+                            <h2 class="font-black text-white text-lg tracking-tight uppercase">Queue Buffer</h2>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span id="queueBadge" class="bg-cyan-500 text-slate-950 px-4 py-1 rounded-xl text-xs font-black">0</span>
+                            <button onclick="window.clearQueue()" class="text-[10px] font-black text-red-500 hover:text-red-400 transition uppercase tracking-widest">Wipe Data</button>
+                        </div>
                     </div>
                     
-                    <div class="flex-grow overflow-y-auto bg-slate-950/30 rounded-2xl border border-slate-800/50 h-96">
-                        <table class="w-full text-left text-sm text-slate-500">
-                            <tbody id="queueTable" class="divide-y divide-slate-900/50"></tbody>
+                    <div class="flex-grow overflow-y-auto bg-slate-950/40 rounded-[2rem] border border-slate-800/50 h-[30rem] custom-scrollbar">
+                        <table class="w-full text-left">
+                            <tbody id="queueTable" class="divide-y divide-slate-800/50"></tbody>
                         </table>
                     </div>
                     
-                    <div class="grid grid-cols-3 gap-3 mt-6">
-                        <button onclick="window.generateZPL()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-black py-4 rounded-xl shadow-xl transition active:scale-95 uppercase tracking-widest">Compile ZPL</button>
-                        <button onclick="window.copyZPL()" id="btnCopy" disabled class="bg-slate-900 text-slate-700 font-bold py-3 rounded-xl border border-slate-800">COPY</button>
-                        <button onclick="window.downloadFile()" id="btnDownload" disabled class="bg-slate-900 text-slate-700 font-bold py-3 rounded-xl border border-slate-800">SAVE</button>
+                    <div class="grid grid-cols-3 gap-4 mt-8">
+                        <button onclick="window.generateZPL()" class="bg-white hover:bg-slate-200 text-slate-950 font-black py-5 rounded-2xl transition active:scale-95 text-xs tracking-[2px] uppercase">Compile Engine</button>
+                        <button onclick="window.copyZPL()" id="btnCopy" disabled class="bg-slate-800 text-slate-600 font-bold py-3 rounded-2xl border border-slate-700 cursor-not-allowed transition uppercase text-[10px]">Copy</button>
+                        <button onclick="window.downloadFile()" id="btnDownload" disabled class="bg-slate-800 text-slate-600 font-bold py-3 rounded-2xl border border-slate-700 cursor-not-allowed transition uppercase text-[10px]">File</button>
                     </div>
-                    <textarea id="finalZPL" readonly class="mt-4 w-full h-24 bg-black text-cyan-500 font-mono text-[10px] p-4 rounded-xl border border-cyan-900/20 hidden"></textarea>
+                    
+                    <textarea id="finalZPL" readonly class="mt-6 w-full h-32 bg-black text-cyan-500/60 font-mono text-[10px] p-6 rounded-3xl border border-cyan-900/20 hidden shadow-inner"></textarea>
                 </section>
             </div>
         </main>
 
-        <footer class="mt-12 flex flex-col items-center justify-center gap-5 border-t border-slate-900 pt-8">
-            <!-- LOGO ET RODAPÉ -->
-            <svg viewBox="0 0 100 100" class="w-10 h-10 fill-slate-800" xmlns="http://www.w3.org/2000/svg">
+        <footer class="flex flex-col items-center justify-center py-10 gap-6 opacity-40 hover:opacity-100 transition duration-700">
+            <svg viewBox="0 0 100 100" class="w-12 h-12 fill-slate-700">
                 <path d="M50,10 C30,10 15,30 15,55 C15,75 35,90 50,90 C65,90 85,75 85,55 C85,30 70,10 50,10 Z" />
-                <ellipse cx="32" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(-15 32 50)" />
-                <ellipse cx="68" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(15 68 50)" />
             </svg>
-            <span class="dev-effect">Dev. Benilson Amorim</span>
-            <p class="text-[9px] text-slate-800 font-black uppercase tracking-[8px]">ZK47 GALACTIC INTERFACE</p>
+            <div class="text-center">
+                <p class="text-[10px] text-slate-400 font-black uppercase tracking-[8px]">Benilson Amorim</p>
+                <p class="text-[9px] text-slate-600 font-bold mt-1 uppercase">ZK47 Galactic Hardware & Software &copy; 2024</p>
+            </div>
         </footer>
     </div>
 
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-cyan-600 text-white px-10 py-4 rounded-full shadow-2xl font-black text-xs uppercase tracking-widest opacity-0 transition-all duration-500 z-[100] translate-y-10">
-        <span>Transmitting...</span>
+    <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-cyan-600 text-white px-12 py-4 rounded-full shadow-[0_0_50px_rgba(8,145,178,0.4)] font-black text-xs uppercase tracking-widest opacity-0 transition-all duration-500 z-[100] translate-y-10">
+        <span>Transmitting Signal...</span>
     </div>
 
     <script type="module">
@@ -179,20 +279,23 @@
         window.inventory = [];
         window.queue = [];
         window.mode = 'validade';
+        window.endSubMode = 'single';
 
         async function fetchQueue() {
-            const { data } = await supabase.from('print_queue').select('*').order('created_at', { ascending: true });
+            const { data } = await supabase.from('print_queue').order('created_at', { ascending: true });
             window.queue = data || [];
             window.updateUI();
         }
 
         supabase.channel('mothership').on('postgres_changes', { event: '*', schema: 'public', table: 'print_queue' }, fetchQueue).subscribe();
+        
         fetchQueue();
         setTimeout(() => document.getElementById('statusBox').classList.add('hidden'), 3000);
 
+        // EXCEL HANDLING
         window.handleFileUpload = async (input) => {
             const f = input.files[0]; if (!f) return;
-            document.getElementById('uploadLoader').classList.remove('hide');
+            document.getElementById('loader').classList.remove('hidden');
             const reader = new FileReader();
             reader.onload = function(e) {
                 const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
@@ -203,70 +306,81 @@
                     LIN: String(x[6]||"").trim(), COL: String(x[7]||"").trim(),
                     QTY_DEFAULT: '1'
                 })).filter(i => i.COD);
-                document.getElementById('lockScreen').classList.add('hidden');
-                document.getElementById('prodCount').innerText = `${window.inventory.length} ITEMS`;
-                document.getElementById('cloudArea').classList.remove('hidden');
-                document.getElementById('uploadLoader').classList.add('hide');
-                window.showToast("DATABASE INJECTED");
+                
+                document.getElementById('lockOverlay').classList.add('opacity-0', 'pointer-events-none');
+                document.getElementById('prodCount').innerText = `${window.inventory.length} MASTER ITEMS`;
+                document.getElementById('btnPushCloud').classList.remove('hidden');
+                document.getElementById('loader').classList.add('hidden');
+                window.showToast("DATABASE DEPLOYED");
             };
             reader.readAsArrayBuffer(f);
         };
 
         window.saveToCloud = async () => {
-            document.getElementById('uploadLoader').classList.remove('hide');
-            await supabase.from('products').delete().neq('COD', '0');
+            document.getElementById('loader').classList.remove('hidden');
+            await supabase.from('products').delete().neq('COD', 'X');
             await supabase.from('products').insert(window.inventory);
-            window.showToast("SYNCING NEBULA");
-            document.getElementById('uploadLoader').classList.add('hide');
+            window.showToast("NEBULA SYNCED");
+            document.getElementById('loader').classList.add('hidden');
         };
 
         window.loadFromCloud = async () => {
-            document.getElementById('uploadLoader').classList.remove('hide');
+            document.getElementById('loader').classList.remove('hidden');
             const { data } = await supabase.from('products').select('*');
             if(data?.length) {
                 window.inventory = data;
-                document.getElementById('lockScreen').classList.add('hidden');
-                document.getElementById('prodCount').innerText = `${data.length} ITEMS`;
-                window.showToast("SYNC COMPLETE");
+                document.getElementById('lockOverlay').classList.add('opacity-0', 'pointer-events-none');
+                document.getElementById('prodCount').innerText = `${data.length} CLOUD ITEMS`;
+                window.showToast("CLOUD ACCESS GRANTED");
             }
-            document.getElementById('uploadLoader').classList.add('hide');
+            document.getElementById('loader').classList.add('hidden');
         };
 
-        window.handleScan = (el) => {
+        // SCAN ENGINE
+        window.handleScan = (el, type) => {
             let full = el.value.replace(/\D/g,'');
             let short = window.extractShortCode(full);
             const p = window.inventory.find(i => String(i.COD) === String(short));
-            const pr = document.getElementById('previewName');
-            const qr = document.getElementById('qtyItm');
+            const pr = document.getElementById(type + 'Preview');
+            const qr = document.getElementById(type + 'QtyItm');
 
             if(p) { 
                 pr.innerText = p.NOM; 
-                pr.className = "h-4 text-xs font-bold text-cyan-400 mt-1 truncate uppercase";
+                pr.classList.replace('text-slate-700', 'text-cyan-400');
                 qr.value = p.QTY_DEFAULT || '1';
             } else { 
-                pr.innerText = "NOT FOUND (" + short + ")"; 
-                pr.className = "h-4 text-xs font-bold text-slate-700 mt-1 truncate"; 
+                pr.innerText = "NO SIGNAL RECORD (" + short + ")"; 
+                pr.classList.replace('text-cyan-400', 'text-slate-700'); 
             }
         };
 
-        window.toggleQtyInput = () => {
-            const isOff = !document.getElementById('qtyToggle').checked;
-            document.getElementById('qtyItm').classList.toggle('input-disabled', isOff);
+        window.toggleQtyInput = (type) => {
+            const isOff = !document.getElementById(type + 'QtyToggle').checked;
+            document.getElementById(type + 'QtyItm').classList.toggle('opacity-20', isOff);
+            document.getElementById(type + 'QtyItm').readOnly = isOff;
         };
 
-        window.addItem = async () => {
-            const fullCode = document.getElementById('mainCode').value;
-            const shortCode = window.extractShortCode(fullCode);
-            const qtyEtq = parseInt(document.getElementById('qtyEtq').value) || 1;
-            const qtyItm = document.getElementById('qtyItm').value;
-            const printQty = document.getElementById('qtyToggle').checked;
-            const validade = window.mode === 'validade' ? document.getElementById('valDate').value : "";
-
-            if(!fullCode) return;
-            if(window.mode === 'validade' && validade.length < 7) return alert("Check Expiry Date");
-
-            const p = window.inventory.find(i => String(i.COD) === String(shortCode)) || { NOM: 'UNKNOWN' };
+        // ADD LOGIC (SINGLE & MASS)
+        window.addItem = async (m) => {
+            document.getElementById('loader').classList.remove('hidden');
             
+            if (m === 'end' && window.endSubMode === 'mass') {
+                await window.addMassItems();
+                document.getElementById('loader').classList.add('hidden');
+                return;
+            }
+
+            const prefix = m === 'val' ? 'val' : 'end';
+            const fullCode = document.getElementById(prefix + 'Code').value;
+            const shortCode = window.extractShortCode(fullCode);
+            const qtyEtq = parseInt(document.getElementById(prefix + 'QtyEtq').value) || 1;
+            const qtyItm = document.getElementById(prefix + 'QtyItm').value;
+            const printQty = m === 'val' ? document.getElementById('valQtyToggle').checked : true;
+            const validade = m === 'val' ? document.getElementById('valDate').value : "";
+
+            if(!fullCode) { document.getElementById('loader').classList.add('hidden'); return; }
+
+            const p = window.inventory.find(i => String(i.COD) === String(shortCode)) || { NOM: 'UNKNOWN OBJECT' };
             if(printQty) await supabase.from('products').update({ QTY_DEFAULT: qtyItm }).eq('COD', shortCode);
 
             const batch = [];
@@ -280,14 +394,41 @@
                 });
             }
             await supabase.from('print_queue').insert(batch);
-            document.getElementById('mainCode').value = "";
-            document.getElementById('previewName').innerText = "";
-            document.getElementById('mainCode').focus();
-            window.showToast("SIGNAL SENT");
+            document.getElementById(prefix + 'Code').value = "";
+            document.getElementById(prefix + 'Preview').innerText = "";
+            document.getElementById(prefix + 'Code').focus();
+            document.getElementById('loader').classList.add('hidden');
+            window.showToast("BUFFERED");
         };
 
-        window.removeItem = async (id) => await supabase.from('print_queue').delete().eq('id', id);
-        window.clearQueue = async () => { if(confirm("DELETE PRINT MEMORY?")) await supabase.from('print_queue').delete().neq('codigo', 'X'); };
+        window.addMassItems = async () => {
+            const raw = document.getElementById('endMassList').value;
+            const lines = raw.split(/[\n,;\s]+/).filter(c => c.trim().length > 0);
+            
+            if (lines.length === 0) return;
+
+            const batch = [];
+            lines.forEach((fullCode, i) => {
+                const shortCode = window.extractShortCode(fullCode);
+                const p = window.inventory.find(item => String(item.COD) === String(shortCode)) || { NOM: 'UNKNOWN' };
+                batch.push({
+                    codigo: fullCode,
+                    validade: "",
+                    tempName: p.NOM,
+                    fullData: { ...p, qtyItm: p.QTY_DEFAULT || "1" },
+                    created_at: Date.now() + i
+                });
+            });
+
+            const { error } = await supabase.from('print_queue').insert(batch);
+            if (!error) {
+                document.getElementById('endMassList').value = "";
+                window.showToast(`${lines.length} OBJECTS PROCESSED`);
+            }
+        };
+
+        window.removeItem = async (id) => { await supabase.from('print_queue').delete().eq('id', id); };
+        window.clearQueue = async () => { if(confirm("Wipe print memory?")) await supabase.from('print_queue').delete().neq('codigo', 'X'); };
 
         window.extractShortCode = (v) => {
             let clean = v.replace(/\D/g,'');
@@ -302,32 +443,49 @@
         window.updateUI = () => {
             const tb = document.getElementById('queueTable');
             document.getElementById('queueBadge').innerText = window.queue.length;
-            tb.innerHTML = window.queue.map((i, idx) => `
-                <tr class="border-b border-slate-900/50 hover:bg-cyan-500/5 transition group">
-                    <td class="p-4 text-[10px] text-slate-800 font-black">${idx+1}</td>
-                    <td class="p-4">
-                        <div class="font-black text-slate-300 text-xs">${i.codigo}</div>
-                        <div class="text-[9px] text-slate-600 truncate w-32 font-bold uppercase">${i.tempName}</div>
-                    </td>
-                    <td class="p-4 text-cyan-600 font-mono text-[10px] text-center font-black">
-                        ${i.validade ? i.validade : (i.fullData.qtyItm ? 'Q:'+i.fullData.qtyItm : '--')}
-                    </td>
-                    <td class="p-4 text-right">
-                        <button onclick="window.removeItem(${i.id})" class="text-slate-800 hover:text-red-600 transition"><i class="fa-solid fa-circle-x"></i></button>
-                    </td>
-                </tr>`).join('');
             
-            const hasItems = window.queue.length > 0;
-            document.getElementById('btnCopy').disabled = document.getElementById('btnDownload').disabled = !hasItems;
-            document.getElementById('btnCopy').className = hasItems ? "bg-slate-900 text-cyan-400 font-black py-3 rounded-xl border border-cyan-900/30 shadow-lg" : "bg-slate-900 text-slate-800 font-bold py-3 rounded-xl border border-slate-800";
-            document.getElementById('btnDownload').className = hasItems ? "bg-slate-900 text-cyan-400 font-black py-3 rounded-xl border border-cyan-900/30 shadow-lg" : "bg-slate-900 text-slate-800 font-bold py-3 rounded-xl border border-slate-800";
+            if (window.queue.length === 0) {
+                tb.innerHTML = `<tr><td colspan="4" class="p-20 text-center text-slate-800 font-black uppercase tracking-[10px]">No Signal</td></tr>`;
+            } else {
+                tb.innerHTML = window.queue.map((i, idx) => `
+                    <tr class="hover:bg-cyan-500/5 transition group">
+                        <td class="p-6 text-[10px] text-slate-800 font-black w-10">${String(idx+1).padStart(2,'0')}</td>
+                        <td class="p-6">
+                            <div class="font-black text-slate-200 text-sm tracking-tight">${i.codigo}</div>
+                            <div class="text-[9px] text-slate-600 font-bold uppercase mt-1 tracking-wider">${i.tempName}</div>
+                        </td>
+                        <td class="p-6 text-cyan-600 font-mono text-[10px] text-center font-black">
+                            ${i.validade ? i.validade : (i.fullData.qtyItm ? 'Q:'+i.fullData.qtyItm : '--')}
+                        </td>
+                        <td class="p-6 text-right">
+                            <button onclick="window.removeItem(${i.id})" class="w-10 h-10 rounded-full hover:bg-red-500/10 text-slate-800 hover:text-red-500 transition active:scale-90"><i class="fa-solid fa-xmark"></i></button>
+                        </td>
+                    </tr>`).join('');
+            }
+            
+            const has = window.queue.length > 0;
+            ['btnCopy', 'btnDownload'].forEach(b => {
+                const el = document.getElementById(b);
+                el.disabled = !has;
+                el.className = has ? "bg-slate-900 text-cyan-400 font-black py-4 rounded-2xl border border-cyan-900/30 shadow-lg transition hover:bg-slate-800" : "bg-slate-900 text-slate-800 font-bold py-4 rounded-2xl border border-slate-800";
+            });
         };
 
         window.setMode = (m) => {
             window.mode = m;
-            document.getElementById('valDateRow').classList.toggle('hidden', m!=='validade');
-            document.getElementById('btnVal').className = m==='validade' ? "flex-1 py-3 rounded-xl text-xs font-black bg-cyan-600 text-white shadow-lg transition" : "flex-1 py-3 rounded-xl text-xs font-black text-slate-500 transition";
-            document.getElementById('btnEnd').className = m==='endereco' ? "flex-1 py-3 rounded-xl text-xs font-black bg-cyan-600 text-white shadow-lg transition" : "flex-1 py-3 rounded-xl text-xs font-black text-slate-500 transition";
+            document.getElementById('uiValidade').classList.toggle('hidden', m!=='validade');
+            document.getElementById('uiEndereco').classList.toggle('hidden', m!=='endereco');
+            document.getElementById('tabVal').className = m==='validade' ? "flex-1 py-3 rounded-xl text-xs font-black bg-cyan-600 text-white shadow-lg transition" : "flex-1 py-3 rounded-xl text-xs font-black text-slate-500 transition";
+            document.getElementById('tabEnd').className = m==='endereco' ? "flex-1 py-3 rounded-xl text-xs font-black bg-cyan-600 text-white shadow-lg transition" : "flex-1 py-3 rounded-xl text-xs font-black text-slate-500 transition";
+        };
+
+        window.switchEndSubMode = (sm) => {
+            window.endSubMode = sm;
+            document.getElementById('endManual').classList.toggle('hidden', sm!=='single');
+            document.getElementById('endMass').classList.toggle('hidden', sm!=='mass');
+            document.getElementById('subS').className = sm==='single' ? "flex-1 py-1.5 text-[10px] font-black rounded-lg bg-cyan-600 text-white" : "flex-1 py-1.5 text-[10px] font-black rounded-lg text-slate-500";
+            document.getElementById('subM').className = sm==='mass' ? "flex-1 py-1.5 text-[10px] font-black rounded-lg bg-cyan-600 text-white" : "flex-1 py-1.5 text-[10px] font-black rounded-lg text-slate-500";
+            document.getElementById('btnCommitEnd').innerText = sm==='single' ? 'TRANSMIT DATA' : 'BATCH INJECTION';
         };
 
         window.generateZPL = () => {
@@ -371,7 +529,7 @@
         };
 
         window.copyZPL = () => { const a = document.getElementById('finalZPL'); a.select(); navigator.clipboard.writeText(a.value); window.showToast("COPIED"); };
-        window.downloadFile = () => { const blob = new Blob([document.getElementById('finalZPL').value], {type: 'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `zk47_${Date.now()}.zpl`; a.click(); };
+        window.downloadFile = () => { const blob = new Blob([document.getElementById('finalZPL').value], {type: 'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `zk47_out_${Date.now()}.zpl`; a.click(); };
         window.showToast = (msg) => { const t = document.getElementById('toast'); t.querySelector('span').innerText = msg; t.classList.remove('translate-y-10', 'opacity-0'); setTimeout(() => t.classList.add('translate-y-10', 'opacity-0'), 2500); };
     </script>
 </body>
