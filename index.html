@@ -1,379 +1,464 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Master Pizza Pro | Gestão Automática</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZK47 LOGISTIC PRO | Dev. Benilson Amorim</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .hidden { display: none !important; }
-        .tab-active { background-color: #ef4444 !important; color: white !important; font-weight: 800; }
-        .cat-active { background-color: #000 !important; color: #fff !important; }
-
-        /* STATUS COLORS */
-        .status-Novo { border-left: 10px solid #ef4444 !important; background-color: #fef2f2; }
-        .status-Preparando { border-left: 10px solid #f59e0b !important; background-color: #fffbeb; }
-        .status-Pronto { border-left: 10px solid #a855f7 !important; background-color: #faf5ff; }
-        .status-Saiu { border-left: 10px solid #3b82f6 !important; background-color: #eff6ff; }
-        .status-Finalizado { border-left: 10px solid #10b981 !important; background-color: #f0fdf4; opacity: 0.6; }
-
-        .badge-Novo { background: #ef4444; color: white; }
-        .badge-Preparando { background: #f59e0b; color: white; }
-        .badge-Pronto { background: #a855f7; color: white; }
-        .badge-Saiu { background: #3b82f6; color: white; }
-        .badge-Finalizado { background: #10b981; color: white; }
-
-        @media print {
-            header, nav, main, #cart-fixed, #modal-checkout, #modal-montador, #view-admin, button, select { display: none !important; }
-            #secao-impressao { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-            body { background: white !important; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
+        :root { --accent: #06b6d4; --bg-dark: #020617; }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--bg-dark); 
+            color: #f8fafc; 
+            overflow-x: hidden; 
+            background-image: radial-gradient(circle at 50% -20%, #083344 0%, transparent 50%); 
         }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-cyan { border: 1px solid rgba(6, 182, 212, 0.2); box-shadow: 0 0 30px rgba(6, 182, 212, 0.05); }
+        .input-pro { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(51, 65, 85, 1); color: white; transition: all 0.3s ease; outline: none; font-family: 'JetBrains Mono', monospace; }
+        .input-pro:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); }
+        .input-disabled { opacity: 0.1 !important; pointer-events: none !important; filter: grayscale(1); }
+        .btn-primary { background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); transition: all 0.3s; box-shadow: 0 4px 15px rgba(8, 145, 178, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(8, 145, 178, 0.5); }
+        .dev-badge { background: linear-gradient(135deg, #0f172a, #0891b2); padding: 5px 15px; border-radius: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border: 1px solid rgba(6, 182, 212, 0.3); box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+        .switch-pro input:checked + .slider-pro { background-color: var(--accent); }
+        .slider-pro { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .4s; border-radius: 34px; }
+        .slider-pro:before { position: absolute; content: ""; height: 14px; width: 14px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider-pro:before { transform: translateX(20px); }
+        .alien-logo { filter: drop-shadow(0 0 15px rgba(6, 182, 212, 0.5)); animation: float 4s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
     </style>
 </head>
-<body>
+<body class="min-h-screen p-4 md:p-8">
 
-    <audio id="alerta-som" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
-
-    <!-- [PÁGINA RASTREIO] -->
-    <div id="view-rastreio" class="hidden max-w-md mx-auto min-h-screen p-6 text-center">
-        <div class="bg-white p-8 rounded-[40px] shadow-xl border">
-            <h2 class="text-2xl font-black italic text-red-600 mb-6 uppercase">Acompanhar Pedido</h2>
-            <div id="box-status-cliente" class="py-12 px-4 rounded-3xl border-4 border-double mb-6 transition-all duration-500">
-                <h3 id="rastreio-status" class="text-3xl font-black italic uppercase">---</h3>
-            </div>
-            <button onclick="window.location.reload()" class="w-full bg-black text-white p-5 rounded-2xl font-black shadow-lg">ATUALIZAR STATUS</button>
-            <button onclick="window.location.href=window.location.pathname" class="mt-6 text-gray-400 font-bold text-xs underline uppercase">Voltar ao Cardápio</button>
-        </div>
+    <div id="loader" class="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center hidden">
+        <div class="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
+        <p class="mt-4 text-cyan-400 font-black tracking-widest animate-pulse uppercase">Syncing Galactic Cloud...</p>
     </div>
 
-    <!-- [VISÃO CLIENTE] -->
-    <div id="view-cliente" class="max-w-md mx-auto min-h-screen pb-32">
-        <header class="bg-white p-6 rounded-b-[45px] shadow-sm text-center relative border-b">
-            <h1 id="cli-nome" class="text-xl font-black italic uppercase text-gray-800">SUA PIZZARIA</h1>
-            <div id="cli-status-loja" class="inline-block px-4 py-1 rounded-full text-[9px] font-black mt-2 border uppercase italic tracking-widest"></div>
-            <button onclick="abrirAdmin()" class="absolute top-4 right-4 text-gray-200 text-xl">⚙️</button>
-        </header>
-
-        <div class="px-4 mt-6">
-            <button onclick="abrirMontador()" class="w-full bg-orange-500 text-white p-5 rounded-[25px] font-black text-xs uppercase shadow-xl flex justify-between items-center active:scale-95 transition">
-                <span>🍕 Pizza 2 Sabores</span>
-                <span class="bg-white/20 px-3 py-1 rounded-lg">MONTAR</span>
-            </button>
-        </div>
-
-        <nav id="filtros" class="flex gap-2 p-4 overflow-x-auto no-scrollbar sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-gray-100 mt-2"></nav>
-        <main id="cardapio" class="p-4 space-y-4"></main>
-
-        <div id="cart-fixed" class="fixed bottom-6 left-0 right-0 px-6 hidden z-30">
-            <button onclick="abrirCheckout()" class="max-w-md mx-auto w-full bg-red-600 text-white py-5 rounded-[25px] font-black flex justify-between px-8 shadow-2xl items-center border-b-4 border-red-800">
-                <span>REVISAR PEDIDO</span>
-                <span id="cart-total-display" class="bg-white/20 px-3 py-1 rounded-lg text-sm">R$ 0,00</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- [MODAL MEIO A MEIO] -->
-    <div id="modal-montador" class="fixed inset-0 bg-black/80 z-50 hidden flex items-end">
-        <div class="bg-white w-full max-w-md mx-auto rounded-t-[40px] p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center"><h2 class="font-black italic uppercase">Meio a Meio</h2><button onclick="fecharMontador()" class="text-2xl">✕</button></div>
-            <div class="grid grid-cols-2 gap-2 text-center">
-                <div class="bg-gray-50 p-3 rounded-2xl border"><p class="text-[8px] font-bold text-gray-400 uppercase">Lado 1</p><span id="txt-m1" class="font-bold text-[10px] text-red-600 truncate block">---</span></div>
-                <div class="bg-gray-50 p-3 rounded-2xl border"><p class="text-[8px] font-bold text-gray-400 uppercase">Lado 2</p><span id="txt-m2" class="font-bold text-[10px] text-red-600 truncate block">---</span></div>
-            </div>
-            <div id="lista-sabores-montador" class="space-y-2"></div>
-            <button id="btn-confirm-meio" onclick="confirmarMeioAMeio()" class="w-full bg-green-600 text-white py-5 rounded-[25px] font-black uppercase disabled:opacity-30" disabled>Confirmar</button>
-        </div>
-    </div>
-
-    <!-- [MODAL CHECKOUT] -->
-    <div id="modal-checkout" class="fixed inset-0 bg-black/70 z-50 hidden flex items-end">
-        <div class="bg-white w-full max-w-md mx-auto rounded-t-[40px] p-6 space-y-4 max-h-[94vh] overflow-y-auto shadow-2xl">
-            <div class="flex justify-between items-center"><h2 class="font-black italic uppercase">Finalizar</h2><button onclick="fecharCheckout()" class="text-2xl">✕</button></div>
-            
-            <div class="grid grid-cols-3 gap-2 p-1 bg-gray-100 rounded-2xl">
-                <button onclick="setModoConsumo('delivery')" id="btn-m-delivery" class="p-3 text-[9px] font-black rounded-xl bg-white shadow-sm">DELIVERY</button>
-                <button onclick="setModoConsumo('retirada')" id="btn-m-retirada" class="p-3 text-[9px] font-black rounded-xl text-gray-400">RETIRADA</button>
-                <button onclick="setModoConsumo('local')" id="btn-m-local" class="p-3 text-[9px] font-black rounded-xl text-gray-400">NO LOCAL</button>
-            </div>
-
-            <div id="checkout-itens-list" class="bg-gray-50 p-4 rounded-3xl border space-y-1 text-[11px] font-bold"></div>
-
-            <div class="space-y-3">
-                <input id="f-nome" type="text" placeholder="Nome Completo" class="w-full p-4 bg-gray-50 rounded-2xl border outline-none">
-                <div id="area-endereco-gps" class="space-y-3">
-                    <button id="btn-gps-cli" onclick="obterGPSCliente()" class="w-full bg-black text-white p-4 rounded-2xl text-[10px] font-black uppercase">📍 Calcular Frete por GPS *</button>
-                    <div id="res-km" class="hidden bg-green-50 p-4 rounded-2xl flex justify-between text-[10px] font-black text-green-700">
-                        <span id="dist-txt">0.0 km</span><span id="taxa-txt">R$ 0,00</span>
-                    </div>
-                    <div class="grid grid-cols-4 gap-2">
-                        <input id="f-rua" type="text" placeholder="Rua" class="col-span-3 p-4 bg-gray-50 rounded-2xl border outline-none">
-                        <input id="f-num" type="text" placeholder="Nº" class="col-span-1 p-4 bg-gray-50 rounded-2xl border outline-none text-center">
-                    </div>
-                    <input id="f-bairro" type="text" placeholder="Bairro" class="w-full p-4 bg-gray-50 rounded-2xl border outline-none">
+    <div class="max-w-7xl mx-auto space-y-8 pb-20">
+        
+        <header class="flex flex-col md:flex-row justify-between items-center gap-6 glass glass-cyan p-8 rounded-[2.5rem]">
+            <div>
+                <h1 class="text-4xl font-extrabold tracking-tighter italic">ZK47 <span class="text-cyan-500">LOGISTIC PRO</span></h1>
+                <div class="flex items-center gap-3 mt-2">
+                    <span class="dev-badge text-[10px] text-white">Dev. Benilson Amorim</span>
+                    <span class="text-[9px] font-bold text-slate-500 tracking-widest uppercase">System V35.0 Stable</span>
                 </div>
-                <input id="f-comp" type="text" placeholder="Ponto de Referência" class="w-full p-4 bg-gray-50 rounded-2xl border outline-none">
-                <select id="f-pag" onchange="document.getElementById('div-troco').classList.toggle('hidden', this.value!='Dinheiro')" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border shadow-sm">
-                    <option value="Pix">Pix</option><option value="Cartão">Cartão</option><option value="Dinheiro">Dinheiro</option>
-                </select>
-                <div id="div-troco" class="hidden"><input id="f-troco" type="number" placeholder="Troco para quanto?" class="w-full p-4 bg-orange-50 border-2 border-orange-100 rounded-2xl font-bold"></div>
+            </div>
+            <button onclick="window.loadFromCloud()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 px-8 py-3 rounded-2xl text-xs font-black transition border border-slate-700 shadow-xl active:scale-95">
+                <i class="fa-solid fa-satellite-dish mr-2"></i> CONNECT TO NEBULA
+            </button>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- ESQUERDA -->
+            <div class="lg:col-span-5 space-y-8">
+                <section class="glass p-8 rounded-[2.5rem] space-y-6">
+                    <div class="flex justify-between items-center text-xs font-black uppercase text-slate-500 tracking-widest">
+                        <span>Database Node</span>
+                        <div id="prodCount" class="bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-full border border-cyan-500/20">Offline</div>
+                    </div>
+                    <label class="group cursor-pointer block">
+                        <div class="p-8 border-2 border-dashed border-slate-800 rounded-3xl hover:border-cyan-500 hover:bg-cyan-500/5 transition-all text-center">
+                            <i class="fa-solid fa-file-excel text-3xl text-slate-700 group-hover:text-cyan-500 mb-2 transition"></i>
+                            <p class="text-xs font-black text-slate-600 uppercase">Inject master_list.xlsx</p>
+                        </div>
+                        <input type="file" id="fileInput" class="hidden" onchange="window.handleFileUpload(this)">
+                    </label>
+                    <button id="btnPushCloud" onclick="window.saveToCloud()" class="hidden w-full bg-cyan-600/10 hover:bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 py-4 rounded-2xl text-[10px] font-black uppercase">Sync Local to Nebula</button>
+                </section>
+
+                <section class="glass p-8 rounded-[2.5rem] relative min-h-[450px]">
+                    <div id="lockOverlay" class="absolute inset-0 z-20 bg-slate-950/95 flex items-center justify-center rounded-[2.5rem] text-cyan-950 font-black uppercase tracking-[6px] text-[10px]">Access Locked</div>
+
+                    <div class="flex p-1.5 bg-slate-900 rounded-2xl mb-8 border border-slate-800">
+                        <button onclick="window.setMode('validade')" id="tabVal" class="flex-1 py-3 rounded-xl text-[10px] font-black transition-all bg-cyan-600 text-white shadow-lg">VALIDADE</button>
+                        <button onclick="window.setMode('endereco')" id="tabEnd" class="flex-1 py-3 rounded-xl text-[10px] font-black transition-all text-slate-500">ENDEREÇO</button>
+                    </div>
+
+                    <!-- INTERFACE VALIDADE -->
+                    <div id="uiValidade" class="space-y-6">
+                        <input type="tel" id="valCode" class="w-full input-pro p-4 rounded-2xl text-xl" placeholder="Bipar Código..." oninput="window.handleScan(this, 'val')">
+                        <div id="valPreview" class="px-2 text-xs font-bold text-cyan-400 truncate uppercase min-h-[1rem]"></div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black text-slate-600 uppercase ml-2">Validade</label>
+                                <input type="tel" id="valDate" class="input-pro p-4 w-full rounded-2xl text-center" placeholder="MMAAAA" oninput="window.maskDate(this)">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black text-slate-600 uppercase ml-2">Etiquetas</label>
+                                <input type="number" id="valQtyEtq" class="input-pro p-4 w-full rounded-2xl text-center" value="1">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-slate-900/50 rounded-2xl border border-slate-800">
+                            <div class="flex items-center gap-3">
+                                <label class="switch-pro relative inline-block w-11 h-6">
+                                    <input type="checkbox" id="valQtyToggle" checked onchange="window.toggleQty('val')">
+                                    <span class="slider-pro"></span>
+                                </label>
+                                <span class="text-[10px] font-black text-slate-400 uppercase">Print Qty?</span>
+                            </div>
+                            <input type="number" id="valQtyItm" class="w-20 input-pro p-2 rounded-xl text-center font-bold" value="1">
+                        </div>
+                        <button onclick="window.addItem('val')" class="w-full btn-primary py-5 rounded-2xl text-xs font-black tracking-widest uppercase shadow-xl">Transmit to Buffer</button>
+                    </div>
+
+                    <!-- INTERFACE ENDEREÇO -->
+                    <div id="uiEndereco" class="hidden space-y-6">
+                        <div class="flex gap-2 p-1 bg-slate-800 rounded-xl mb-4">
+                            <button onclick="window.switchSub('single')" id="subS" class="flex-1 py-2 text-[9px] font-black rounded-lg bg-cyan-600 text-white transition">MANUAL</button>
+                            <button onclick="window.switchSub('mass')" id="subM" class="flex-1 py-2 text-[9px] font-black rounded-lg text-slate-500 transition">MASS PROTOCOL</button>
+                        </div>
+
+                        <div id="endManual" class="space-y-4">
+                            <input type="tel" id="endCode" class="w-full input-pro p-4 rounded-2xl text-xl" placeholder="Bipar Unidade..." oninput="window.handleScan(this, 'end')">
+                            <div id="endPreview" class="px-2 text-xs font-bold text-cyan-400 truncate min-h-[1rem]"></div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-1">
+                                    <label class="text-[9px] font-black text-slate-600 uppercase ml-2">Etiquetas</label>
+                                    <input type="number" id="endQtyEtq" class="input-pro p-4 w-full rounded-2xl text-center" value="1">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[9px] font-black text-slate-600 uppercase ml-2">Qtd Itens</label>
+                                    <input type="number" id="endQtyItm" class="input-pro p-4 w-full rounded-2xl text-center" value="1">
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between p-4 bg-slate-900/50 rounded-2xl border border-slate-800">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Incluir Qtd na Impressão?</span>
+                                <label class="switch-pro relative inline-block w-11 h-6">
+                                    <input type="checkbox" id="endQtyToggle" checked onchange="window.toggleQty('end')">
+                                    <span class="slider-pro"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="endMass" class="hidden space-y-3">
+                            <textarea id="endMassList" class="w-full input-pro p-4 rounded-2xl h-44 text-[10px]" placeholder="Cole os EANs completos aqui..."></textarea>
+                            <p class="text-[9px] text-cyan-500 font-bold px-2 italic uppercase">A Qtd será recuperada do banco para cada item.</p>
+                        </div>
+
+                        <button id="btnCommitEnd" onclick="window.addItem('end')" class="w-full btn-primary py-5 rounded-2xl text-xs font-black tracking-widest uppercase">Process Sequence</button>
+                    </div>
+                </section>
             </div>
 
-            <div class="bg-gray-900 text-white p-5 rounded-[30px] shadow-xl"><div class="flex justify-between text-2xl font-black text-red-500 italic uppercase"><span>Total:</span><span id="res-total">R$ 0,00</span></div></div>
-            <button onclick="enviarPedido()" class="w-full bg-green-600 text-white py-6 rounded-[25px] font-black uppercase tracking-widest border-b-4 border-green-800 transition-all">🚀 ENVIAR NO WHATSAPP</button>
-        </div>
-    </div>
-
-    <!-- [ADM] -->
-    <div id="view-admin" class="hidden bg-gray-50 min-h-screen pb-20">
-        <header class="bg-black text-white p-4 flex justify-between items-center sticky top-0 z-50">
-            <h1 class="font-black italic text-red-500 uppercase">PAINEL ADM</h1>
-            <button onclick="location.reload()" class="text-[10px] font-bold border px-3 py-1 rounded-full uppercase">Sair</button>
-        </header>
-        <div class="flex bg-white border-b sticky top-14 z-40 overflow-x-auto no-scrollbar">
-            <button onclick="switchTab('pedidos')" id="tab-pedidos" class="flex-1 p-4 font-bold text-[10px] tab-active uppercase">Pedidos</button>
-            <button onclick="switchTab('produtos')" id="tab-produtos" class="flex-1 p-4 font-bold text-[10px] uppercase">Cardápio</button>
-            <button onclick="switchTab('config')" id="tab-config" class="flex-1 p-4 font-bold text-[10px] uppercase">Configuração</button>
-        </div>
-        <div id="adm-content" class="p-4 max-w-md mx-auto space-y-4">
-            <div id="sec-pedidos" class="space-y-4"></div>
-            <div id="sec-produtos" class="hidden space-y-4"></div>
-            <div id="sec-config" class="hidden space-y-4"></div>
-        </div>
-    </div>
-
-    <!-- [SEÇÃO IMPRESSÃO] -->
-    <div id="secao-impressao" class="hidden font-mono text-[13px] leading-tight text-black bg-white p-4">
-        <center>
-            <h2 id="p-loja" style="font-size: 18px; font-weight: bold; margin-bottom: 2px;">---</h2>
-            <p id="p-modo" style="font-weight: bold; font-size: 14px; text-decoration: underline; margin-bottom: 5px;"></p>
-            <p>===============================</p>
-            <p id="p-data"></p>
-            <p>===============================</p>
-        </center>
-        <div style="margin: 10px 0;">
-            <p id="p-cliente" style="font-weight: bold; font-size: 15px;"></p>
-            <p id="p-endereco"></p>
-            <p id="p-bairro"></p>
-            <p id="p-comp"></p>
-        </div>
-        <p>===============================</p>
-        <div id="p-itens" style="margin: 10px 0; font-weight: bold;"></div>
-        <p>===============================</p>
-        <div style="text-align: right;">
-            <p id="p-taxa"></p>
-            <h3 id="p-total" style="font-size: 17px; font-weight: bold; margin-top: 5px;"></h3>
-        </div>
-        <p>===============================</p>
-        <p id="p-pag" style="font-weight: bold; font-size: 14px;"></p>
-        <p id="p-troco"></p>
-        <br><center><p>Obrigado pela preferência!</p></center>
-    </div>
-
-    <script>
-        const SB_URL = "https://psqssqfyqqlumdllmosg.supabase.co";
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXNzcWZ5cXFsdW1kbGxtb3NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMjEwNzMsImV4cCI6MjA4MjY5NzA3M30.fzrGu0P0gSjP3SDoNiM3qnceSKyuMngry42zGqlJRpQ";
-        const _sb = supabase.createClient(SB_URL, SB_KEY);
-
-        let PRODS = [], CATS = [], CARRINHO = [], CONFIG = {}, curCat = 'todos';
-        let dKM = 0, tFRETE = 0, latCli = 0, lngCli = 0, gpsOk = false, modoConsumo = 'delivery';
-        let s1 = null, s2 = null;
-
-        async function init() {
-            const params = new URLSearchParams(window.location.search);
-            if(params.has('pedido')) return carregarPaginaRastreio(params.get('pedido'));
-
-            const { data: c } = await _sb.from('configuracoes').select('*').single();
-            CONFIG = c;
-            
-            document.getElementById('cli-nome').innerText = c.nome_pizzaria;
-            document.getElementById('cli-status-loja').innerText = c.loja_aberta ? '● ABERTO' : '○ FECHADO';
-            document.getElementById('cli-status-loja').className += c.loja_aberta ? ' text-green-600 bg-green-50' : ' text-gray-400 bg-gray-50';
-            
-            loadData();
-            
-            _sb.channel('db').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, () => {
-                document.getElementById('alerta-som').play();
-                if(!document.getElementById('view-admin').classList.contains('hidden')) loadPedidos();
-            }).subscribe();
-        }
-
-        // --- SALVAR/CARREGAR MEMÓRIA ---
-        function salvarMemoria() {
-            const m = {
-                nome: document.getElementById('f-nome').value,
-                rua: document.getElementById('f-rua').value,
-                num: document.getElementById('f-num').value,
-                bairro: document.getElementById('f-bairro').value,
-                comp: document.getElementById('f-comp').value,
-                troco: document.getElementById('f-troco').value
-            };
-            localStorage.setItem('pizzaria_memoria', JSON.stringify(m));
-        }
-
-        function carregarMemoria() {
-            const m = JSON.parse(localStorage.getItem('pizzaria_memoria'));
-            if(m) {
-                document.getElementById('f-nome').value = m.nome || "";
-                document.getElementById('f-rua').value = m.rua || "";
-                document.getElementById('f-num').value = m.num || "";
-                document.getElementById('f-bairro').value = m.bairro || "";
-                document.getElementById('f-comp').value = m.comp || "";
-                document.getElementById('f-troco').value = m.troco || "";
-            }
-        }
-
-        // --- MODO CONSUMO ---
-        function setModoConsumo(modo) {
-            modoConsumo = modo;
-            ['delivery', 'retirada', 'local'].forEach(m => {
-                const btn = document.getElementById(`btn-m-${m}`);
-                btn.className = m === modo ? "p-3 text-[9px] font-black rounded-xl bg-white shadow-sm border border-gray-200 text-black" : "p-3 text-[9px] font-black rounded-xl text-gray-400";
-            });
-            document.getElementById('area-endereco-gps').classList.toggle('hidden', modo !== 'delivery');
-            if(modo !== 'delivery') { tFRETE = 0; gpsOk = true; } else { gpsOk = false; }
-            renderCheckoutTotal();
-        }
-
-        // --- GPS CLIENTE ---
-        function obterGPSCliente() {
-            const btn = document.getElementById('btn-gps-cli'); btn.innerText = "⏳ LOCALIZANDO...";
-            navigator.geolocation.getCurrentPosition(pos => {
-                latCli = pos.coords.latitude; lngCli = pos.coords.longitude;
-                const lat1 = Number(CONFIG.lat_pizzaria), lon1 = Number(CONFIG.lng_pizzaria);
-                const R = 6371; const dLat = (latCli-lat1)*Math.PI/180; const dLon = (lngCli-lon1)*Math.PI/180;
-                const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(latCli*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
-                dKM = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-                tFRETE = Number(CONFIG.taxa_base) + (dKM * Number(CONFIG.preco_km));
-                document.getElementById('res-km').classList.remove('hidden');
-                document.getElementById('dist-txt').innerText = `${dKM.toFixed(1)} km`;
-                document.getElementById('taxa-txt').innerText = `R$ ${tFRETE.toFixed(2)}`;
-                btn.innerText = "✅ FRETE CALCULADO"; btn.className = "w-full bg-green-600 text-white p-4 rounded-2xl text-[10px] font-black uppercase";
-                gpsOk = true; renderCheckoutTotal();
-            }, () => alert("Ative o GPS para calcular o frete!"));
-        }
-
-        // --- FINALIZAR PEDIDO ---
-        async function enviarPedido() {
-            salvarMemoria(); // Salva quantidades e dados digitados
-            const n = document.getElementById('f-nome').value, r = document.getElementById('f-rua').value, num = document.getElementById('f-num').value;
-            const b = document.getElementById('f-bairro').value, comp = document.getElementById('f-comp').value, pag = document.getElementById('f-pag').value;
-            const totalStr = document.getElementById('res-total').innerText;
-            const troco = document.getElementById('f-troco').value || "Não precisa";
-
-            if(!gpsOk && modoConsumo === 'delivery') return alert("📍 Calcule o frete via GPS!");
-            if(!n) return alert("Digite seu nome!");
-
-            const { data: ped } = await _sb.from('pedidos').insert([{
-                cliente_nome: n, rua: modoConsumo === 'delivery' ? r : modoConsumo.toUpperCase(), numero: num, bairro: b, complemento: comp, 
-                distancia_km: dKM, taxa_entrega: tFRETE, total: Number(totalStr.replace('R$ ', '').replace(',','.')), 
-                pagamento: pag, troco: troco, lat_cliente: latCli.toString(), lng_cliente: lngCli.toString()
-            }]).select();
-
-            if(ped) {
-                await _sb.from('itens_pedido').insert(CARRINHO.map(i => ({ pedido_id: ped[0].id, produto_nome: i.nome, preco: i.preco })));
-                const agrupados = agruparItens(CARRINHO);
-                let itensTxt = "";
-                for (const [nome, qtd] of Object.entries(agrupados)) { itensTxt += `• ${qtd}x *${nome}*\n`; }
-
-                const url = `${window.location.origin}${window.location.pathname}?pedido=${ped[0].id}`;
-                const msg = `*NOVO PEDIDO: ${modoConsumo.toUpperCase()}*\n*Cliente:* ${n}\n*Itens:*\n${itensTxt}\n*TOTAL:* ${totalStr}\n🛰️ *Rastreio:* ${url}`;
-
-                window.open(`https://api.whatsapp.com/send?phone=${CONFIG.whatsapp.replace(/\D/g, '')}&text=${encodeURIComponent(msg)}`);
-                window.location.href = url;
-            }
-        }
-
-        // --- IMPRESSÃO ---
-        async function imprimirPedido(id) {
-            const { data: p } = await _sb.from('pedidos').select('*, itens_pedido(*)').eq('id', id).single();
-            if(!p) return;
-            
-            document.getElementById('p-loja').innerText = CONFIG.nome_pizzaria;
-            document.getElementById('p-modo').innerText = `MODO: ${p.rua}`;
-            document.getElementById('p-data').innerText = `DATA: ${new Date(p.created_at).toLocaleString('pt-BR')}`;
-            document.getElementById('p-cliente').innerText = `CLIENTE: ${p.cliente_nome}`;
-            document.getElementById('p-endereco').innerText = p.distancia_km > 0 ? `END: ${p.rua}, ${p.numero}` : "";
-            document.getElementById('p-bairro').innerText = p.distancia_km > 0 ? `BAIRRO: ${p.bairro}` : "";
-            document.getElementById('p-comp').innerText = `REF: ${p.complemento || '---'}`;
-            
-            const agrupados = agruparItens(p.itens_pedido.map(it => ({ nome: it.produto_nome })));
-            document.getElementById('p-itens').innerHTML = Object.entries(agrupados).map(([nome, qtd]) => `<div style="display:flex;justify-content:space-between"><span>${qtd}x ${nome}</span></div>`).join('');
-            
-            document.getElementById('p-taxa').innerText = `TAXA: R$ ${p.taxa_entrega.toFixed(2)}`;
-            document.getElementById('p-total').innerText = `TOTAL: R$ ${p.total.toFixed(2)}`;
-            document.getElementById('p-pag').innerText = `PAGAM: ${p.pagamento}`;
-            document.getElementById('p-troco').innerText = p.troco !== "Não precisa" ? `TROCO PARA: R$ ${p.troco}` : "";
-            
-            setTimeout(() => { window.print(); }, 800);
-        }
-
-        // --- RASTREIO CLIENTE ---
-        async function carregarPaginaRastreio(id) {
-            document.getElementById('view-cliente').classList.add('hidden');
-            document.getElementById('view-rastreio').classList.remove('hidden');
-            const { data } = await _sb.from('pedidos').select('status').eq('id', id).single();
-            const s = data ? data.status : "Novo";
-            document.getElementById('rastreio-status').innerText = s.toUpperCase();
-            document.getElementById('box-status-cliente').className = `py-12 px-4 rounded-3xl border-4 border-double mb-6 status-${s.replace(/ /g, '')}`;
-        }
-
-        // --- ADMIN GESTÃO ---
-        async function loadPedidos() {
-            const { data } = await _sb.from('pedidos').select('*, itens_pedido(*)').order('created_at', { ascending: false }).limit(20);
-            const div = document.getElementById('sec-pedidos');
-            div.innerHTML = `<h2 class="text-[10px] font-black text-gray-400 uppercase mb-4 tracking-widest text-center italic">Painel de Comandas</h2>`;
-            data.forEach(p => {
-                const ag = agruparItens(p.itens_pedido.map(it => ({ nome: it.produto_nome })));
-                div.innerHTML += `<div class="bg-white p-5 rounded-[35px] shadow-sm mb-4 border-l-[12px] status-${p.status.replace(/ /g, '')}">
-                    <div class="flex justify-between font-black text-[10px] mb-2"><span>${p.cliente_nome}</span><span class="badge-${p.status.replace(/ /g, '')} px-3 py-1 rounded-full text-[8px]">${p.status}</span></div>
-                    <div class="text-[9px] text-red-600 font-bold uppercase mb-2">${p.rua} ${p.numero || ''}</div>
-                    <div class="text-[9px] font-bold border-y border-dashed py-3 my-2 text-gray-700 italic">${Object.entries(ag).map(([n, q]) => `${q}x ${n}`).join(', ')}</div>
-                    <div class="flex justify-between items-center mt-3">
-                        <span class="font-black text-sm text-gray-900">R$ ${p.total.toFixed(2)}</span>
-                        <div class="flex gap-2">
-                            <button onclick="imprimirPedido('${p.id}')" class="bg-gray-100 p-2 rounded-xl text-xl">🖨️</button>
-                            <select onchange="updateStatus('${p.id}', this.value)" class="text-[9px] bg-black text-white p-2 rounded-xl font-bold">
-                                <option value="">Status</option><option value="Preparando">Preparando</option><option value="Pronto">Pronto</option><option value="Saiu">Saiu</option><option value="Finalizado">✅ Finalizado</option>
-                            </select>
+            <!-- BUFFER -->
+            <div class="lg:col-span-7 flex flex-col h-full">
+                <section class="glass p-8 rounded-[3rem] flex-grow flex flex-col min-h-[550px]">
+                    <div class="flex justify-between items-center mb-8 border-b border-slate-800 pb-6">
+                        <h2 class="font-black text-white text-sm tracking-[3px] uppercase flex items-center gap-3">
+                            <i class="fa-solid fa-bolt-lightning text-cyan-500"></i> Signal Buffer
+                        </h2>
+                        <div class="flex items-center gap-4">
+                            <span id="queueBadge" class="bg-cyan-500 text-slate-950 px-3 py-1 rounded-lg font-black text-xs">0</span>
+                            <button onclick="window.clearQueue()" class="text-[10px] font-black text-red-500 hover:text-red-400 uppercase transition tracking-widest">Wipe Memory</button>
                         </div>
                     </div>
-                </div>`;
+                    
+                    <div class="flex-grow overflow-y-auto bg-slate-950/40 rounded-[2rem] border border-slate-800 h-[32rem]">
+                        <table class="w-full text-left">
+                            <tbody id="queueTable" class="divide-y divide-slate-900"></tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-4 mt-8">
+                        <button onclick="window.generateZPL()" class="bg-white text-slate-950 font-black py-5 rounded-2xl hover:bg-cyan-400 transition uppercase tracking-widest text-[11px] active:scale-95 shadow-2xl">Compile Engine</button>
+                        <button onclick="window.copyZPL()" id="btnCopy" disabled class="bg-slate-900 text-slate-700 font-black py-3 rounded-2xl border border-slate-800 uppercase text-[10px]">Copy</button>
+                        <button onclick="window.downloadFile()" id="btnDownload" disabled class="bg-slate-900 text-slate-700 font-black py-3 rounded-2xl border border-slate-800 uppercase text-[10px]">File</button>
+                    </div>
+                    <textarea id="finalZPL" readonly class="mt-6 w-full h-32 bg-black text-cyan-500 font-mono text-[9px] p-6 rounded-3xl border border-cyan-900/20 hidden shadow-inner"></textarea>
+                </section>
+            </div>
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="flex flex-col items-center justify-center py-20 gap-8 border-t border-slate-900 mt-12">
+            <div class="alien-logo w-24 h-24 bg-slate-950 border border-cyan-500/20 flex items-center justify-center rounded-full">
+                <svg viewBox="0 0 100 100" class="w-14 h-14 fill-cyan-500">
+                    <path d="M50,10 C30,10 15,30 15,55 C15,75 35,90 50,90 C65,90 85,75 85,55 C85,30 70,10 50,10 Z" />
+                    <ellipse cx="32" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(-15 32 50)" />
+                    <ellipse cx="68" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(15 68 50)" />
+                </svg>
+            </div>
+            <div class="text-center">
+                <p class="text-cyan-500/60 font-black uppercase tracking-[8px] text-xs">Dev. Benilson Amorim</p>
+                <p class="text-[10px] text-slate-700 font-bold uppercase mt-2 tracking-[4px]">ZK47 Galactic Hardware & Software &copy; 2026</p>
+            </div>
+        </footer>
+    </div>
+
+    <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-cyan-600 text-white px-12 py-4 rounded-full shadow-2xl font-black text-[10px] uppercase tracking-widest opacity-0 transition-all duration-500 z-[100] translate-y-10">
+        <span>Signal Processed</span>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+        const SUPABASE_URL = "https://sypxyzbqbwzizkrlxhvm.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5cHh5emJxYnd6aXprcmx4aHZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5ODcyNTksImV4cCI6MjA4MjU2MzI1OX0.VklEmQH9lonsXujpxA9jp0GJNUDXGDJbD5TotqpVcjc";
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        window.inventory = [];
+        window.queue = [];
+        window.mode = 'validade';
+        window.subMode = 'single';
+
+        async function fetchQueue() {
+            const { data } = await supabase.from('print_queue').select('*').order('created_at', { ascending: true });
+            window.queue = data || [];
+            window.updateUI();
+        }
+
+        supabase.channel('mothership').on('postgres_changes', { event: '*', schema: 'public', table: 'print_queue' }, fetchQueue).subscribe();
+        fetchQueue();
+
+        window.handleFileUpload = async (input) => {
+            const f = input.files[0]; if (!f) return;
+            document.getElementById('loader').classList.remove('hidden');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+                window.inventory = json.slice(1).map(x => ({
+                    COD: String(x[0]||"").trim(), NOM: String(x[1]||"").trim(),
+                    RUA: String(x[4]||"").trim(), RCK: String(x[5]||"").trim(),
+                    LIN: String(x[6]||"").trim(), COL: String(x[7]||"").trim(),
+                    QTY_DEFAULT: '1'
+                })).filter(i => i.COD);
+                document.getElementById('lockOverlay').classList.add('hidden');
+                document.getElementById('prodCount').innerText = `${window.inventory.length} MASTER ITEMS`;
+                document.getElementById('btnPushCloud').classList.remove('hidden');
+                document.getElementById('loader').classList.add('hidden');
+                window.showToast("DATABASE LOADED");
+            };
+            reader.readAsArrayBuffer(f);
+        };
+
+        window.saveToCloud = async () => {
+            document.getElementById('loader').classList.remove('hidden');
+            await supabase.from('products').delete().neq('COD', 'X');
+            await supabase.from('products').insert(window.inventory);
+            window.showToast("CLOUD UPDATED");
+            document.getElementById('loader').classList.add('hidden');
+        };
+
+        window.loadFromCloud = async () => {
+            document.getElementById('loader').classList.remove('hidden');
+            const { data } = await supabase.from('products').select('*');
+            if(data?.length) {
+                window.inventory = data;
+                document.getElementById('lockOverlay').classList.add('hidden');
+                document.getElementById('prodCount').innerText = `${data.length} CLOUD ITEMS`;
+                window.showToast("SYNC SUCCESS");
+            }
+            document.getElementById('loader').classList.add('hidden');
+        };
+
+        // SCAN ENGINE COM MEMÓRIA DE QUANTIDADE
+        window.handleScan = (el, type) => {
+            let full = el.value.replace(/\D/g,'');
+            let short = window.extractShortCode(full);
+            const p = window.inventory.find(i => String(i.COD) === String(short));
+            const pr = document.getElementById(type + 'Preview');
+            const qr = document.getElementById(type + 'QtyItm');
+
+            if(p) { 
+                pr.innerText = p.NOM; 
+                // RECUPERA A QUANTIDADE SALVA NO BANCO/LOCAL
+                qr.value = p.QTY_DEFAULT || '1';
+                pr.classList.replace('text-slate-700', 'text-cyan-400');
+            } else { 
+                pr.innerText = "SIGNAL NOT FOUND (" + short + ")"; 
+                pr.classList.replace('text-cyan-400', 'text-slate-700'); 
+            }
+        };
+
+        window.toggleQty = (t) => {
+            const isOff = !document.getElementById(t + 'QtyToggle').checked;
+            document.getElementById(t + 'QtyItm').classList.toggle('input-disabled', isOff);
+        };
+
+        window.switchSub = (s) => {
+            window.subMode = s;
+            document.getElementById('endManual').classList.toggle('hidden', s !== 'single');
+            document.getElementById('endMass').classList.toggle('hidden', s !== 'mass');
+            document.getElementById('subS').className = s === 'single' ? "flex-1 py-2 text-[9px] font-black rounded-lg bg-cyan-600 text-white" : "flex-1 py-2 text-[9px] font-black rounded-lg text-slate-500";
+            document.getElementById('subM').className = s === 'mass' ? "flex-1 py-2 text-[9px] font-black rounded-lg bg-cyan-600 text-white" : "flex-1 py-2 text-[9px] font-black rounded-lg text-slate-500";
+        };
+
+        // ADD ENGINE (UNITÁRIO E MASSA)
+        window.addItem = async (m) => {
+            document.getElementById('loader').classList.remove('hidden');
+            
+            // Modo Massa: Puxa quantidades individuais salvas
+            if (m === 'end' && window.subMode === 'mass') {
+                const raw = document.getElementById('endMassList').value;
+                const lines = raw.split(/[\n,;\s]+/).filter(c => c.trim().length > 0);
+                const printQtyEnabled = document.getElementById('endQtyToggle').checked;
+                
+                if (lines.length === 0) { document.getElementById('loader').classList.add('hidden'); return; }
+
+                const batch = lines.map((fullCode, i) => {
+                    const shortCode = window.extractShortCode(fullCode);
+                    const p = window.inventory.find(item => String(item.COD) === String(shortCode)) || { NOM: 'UNKNOWN' };
+                    return {
+                        codigo: fullCode, validade: "", tempName: p.NOM,
+                        fullData: { ...p, qtyItm: printQtyEnabled ? (p.QTY_DEFAULT || "1") : "" },
+                        created_at: Date.now() + i
+                    };
+                });
+                await supabase.from('print_queue').insert(batch);
+                document.getElementById('endMassList').value = "";
+                document.getElementById('loader').classList.add('hidden');
+                return;
+            }
+
+            // Modo Unitário
+            const prefix = m === 'val' ? 'val' : 'end';
+            const fullCode = document.getElementById(prefix + 'Code').value;
+            const shortCode = window.extractShortCode(fullCode);
+            const qtyEtq = parseInt(document.getElementById(prefix + 'QtyEtq').value) || 1;
+            const qtyItm = document.getElementById(prefix + 'QtyItm').value;
+            const printQtyEnabled = document.getElementById(prefix + 'QtyToggle').checked;
+            const validade = m === 'val' ? document.getElementById('valDate').value : "";
+
+            if(!fullCode) { document.getElementById('loader').classList.add('hidden'); return; }
+            const p = window.inventory.find(i => String(i.COD) === String(shortCode)) || { NOM: 'UNKNOWN' };
+            
+            // PERSISTÊNCIA: SALVA A QUANTIDADE DIGITADA NO BANCO DE PRODUTOS
+            if(printQtyEnabled) {
+                await supabase.from('products').update({ QTY_DEFAULT: qtyItm }).eq('COD', shortCode);
+                const localIdx = window.inventory.findIndex(i => i.COD === shortCode);
+                if(localIdx > -1) window.inventory[localIdx].QTY_DEFAULT = qtyItm;
+            }
+
+            const batch = [];
+            for(let i=0; i < qtyEtq; i++) {
+                batch.push({
+                    codigo: fullCode, validade: validade, tempName: p.NOM,
+                    fullData: { ...p, qtyItm: printQtyEnabled ? qtyItm : "" },
+                    created_at: Date.now() + i
+                });
+            }
+            await supabase.from('print_queue').insert(batch);
+            document.getElementById(prefix + 'Code').value = "";
+            document.getElementById(prefix + 'Preview').innerText = "";
+            document.getElementById(prefix + 'Code').focus();
+            document.getElementById('loader').classList.add('hidden');
+            window.showToast("TRANSMITTED");
+        };
+
+        window.removeItem = async (id) => await supabase.from('print_queue').delete().eq('id', id);
+        window.clearQueue = async () => { if(confirm("Wipe all buffered signals?")) await supabase.from('print_queue').delete().neq('codigo', 'X'); };
+
+        window.extractShortCode = (v) => {
+            let clean = v.replace(/\D/g,'');
+            return clean.length >= 12 ? clean.slice(-6, -1) : clean;
+        };
+        window.maskDate = (el) => { 
+            let v=el.value.replace(/\D/g,''); 
+            if(v.length>2) v = v.substring(0,2)+'/'+v.substring(2,6); 
+            el.value=v; 
+        };
+
+        window.updateUI = () => {
+            const tb = document.getElementById('queueTable');
+            document.getElementById('queueBadge').innerText = window.queue.length;
+            if (window.queue.length === 0) {
+                tb.innerHTML = `<tr><td colspan="4" class="p-20 text-center text-slate-800 font-black uppercase tracking-[15px]">Silent Void</td></tr>`;
+            } else {
+                tb.innerHTML = window.queue.map((i, idx) => `
+                    <tr class="hover:bg-cyan-500/5 transition group">
+                        <td class="p-6 text-[9px] text-slate-800 font-black w-10">${String(idx+1).padStart(2,'0')}</td>
+                        <td class="p-6">
+                            <div class="font-black text-slate-200 text-sm tracking-tight">${i.codigo}</div>
+                            <div class="text-[9px] text-slate-600 font-bold uppercase mt-1 tracking-widest">${i.tempName}</div>
+                        </td>
+                        <td class="p-6 text-cyan-600 font-mono text-[10px] text-center font-black uppercase">
+                            ${i.validade ? i.validade : (i.fullData.qtyItm ? 'Q:'+i.fullData.qtyItm : '--')}
+                        </td>
+                        <td class="p-6 text-right">
+                            <button onclick="window.removeItem(${i.id})" class="w-10 h-10 rounded-xl hover:bg-red-500/10 text-slate-800 hover:text-red-500 transition active:scale-90"><i class="fa-solid fa-xmark"></i></button>
+                        </td>
+                    </tr>`).join('');
+            }
+            const has = window.queue.length > 0;
+            ['btnCopy', 'btnDownload'].forEach(b => {
+                const el = document.getElementById(b);
+                el.disabled = !has;
+                el.className = has ? "bg-slate-900 text-cyan-400 font-black py-4 rounded-2xl border border-cyan-900/30 shadow-lg transition hover:bg-slate-800 cursor-pointer" : "bg-slate-900 text-slate-800 font-bold py-4 rounded-2xl border border-slate-800 cursor-not-allowed";
             });
-        }
+        };
 
-        async function updateStatus(id, s) { await _sb.from('pedidos').update({ status: s }).eq('id', id); loadPedidos(); }
+        window.setMode = (m) => {
+            window.mode = m;
+            document.getElementById('uiValidade').classList.toggle('hidden', m !== 'validade');
+            document.getElementById('uiEndereco').classList.toggle('hidden', m !== 'endereco');
+            document.getElementById('tabVal').className = m === 'validade' ? "flex-1 py-3 rounded-xl text-[10px] font-black transition-all bg-cyan-600 text-white shadow-lg" : "flex-1 py-3 rounded-xl text-[10px] font-black transition-all text-slate-500";
+            document.getElementById('tabEnd').className = m === 'endereco' ? "flex-1 py-3 rounded-xl text-[10px] font-black transition-all bg-cyan-600 text-white shadow-lg" : "flex-1 py-3 rounded-xl text-[10px] font-black transition-all text-slate-500";
+        };
 
-        // --- UI AUXILIAR ---
-        function agruparItens(l) { return l.reduce((acc, i) => { acc[i.nome] = (acc[i.nome] || 0) + 1; return acc; }, {}); }
-        async function loadData() {
-            const [{ data: cats }, { data: prods }] = await Promise.all([ _sb.from('categorias').select('*').order('ordem'), _sb.from('produtos').select('*').order('nome') ]);
-            CATEGORIAS = cats || []; PRODUTOS = prods || []; renderFiltros(); renderCardapio('todos');
-        }
-        function renderFiltros() {
-            const div = document.getElementById('filtros');
-            div.innerHTML = `<button onclick="renderCardapio('todos')" class="${curCat === 'todos' ? 'cat-active' : 'bg-white text-gray-400 border'} px-6 py-2 rounded-full font-black text-[10px] italic">TODOS</button>`;
-            CATS.forEach(c => div.innerHTML += `<button onclick="renderCardapio('${c.id}')" class="${curCat === c.id ? 'cat-active' : 'bg-white text-gray-400 border'} px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-sm transition-all whitespace-nowrap">${c.nome}</button>`);
-        }
-        function renderCardapio(cid) {
-            curCat = cid; renderFiltros();
-            const div = document.getElementById('cardapio'); div.innerHTML = "";
-            const f = cid === 'todos' ? PRODUTOS : PRODUTOS.filter(p => p.categoria_id === cid);
-            f.forEach(p => { if(!p.disponivel) return; div.innerHTML += `<div class="bg-white rounded-[35px] shadow-sm p-4 flex gap-4 border items-center">
-                    <img src="${p.imagem_url || ''}" class="w-14 h-14 object-contain rounded-2xl">
-                    <div class="flex-1"><h3 class="font-black text-[11px] uppercase italic text-gray-800">${p.nome}</h3><div class="flex justify-between items-center mt-2"><span class="text-red-600 font-black text-md italic font-extrabold">R$ ${Number(p.preco).toFixed(2)}</span><button onclick="addCartSimple('${p.id}')" class="bg-yellow-400 text-black w-8 h-8 rounded-xl font-black text-xl shadow active:scale-95 transition">+</button></div></div></div>`;
-            });
-        }
-        function addCartSimple(id) { if(id) CARRINHO.push(PRODUTOS.find(p => p.id === id)); const total = CARRINHO.reduce((a, b) => a + Number(b.preco), 0); document.getElementById('cart-total-display').innerText = `R$ ${total.toFixed(2)}`; document.getElementById('cart-fixed').classList.toggle('hidden', CARRINHO.length === 0); }
-        function abrirCheckout() { document.getElementById('modal-checkout').classList.remove('hidden'); carregarMemoria(); const ag = agruparItens(CARRINHO); document.getElementById('checkout-itens-list').innerHTML = Object.entries(ag).map(([nome, qtd]) => `<div class="flex justify-between border-b pb-1"><span>${qtd}x ${nome}</span></div>`).join(''); setModoConsumo(modoConsumo); }
-        function fecharCheckout() { document.getElementById('modal-checkout').classList.add('hidden'); }
-        function switchTab(t) { ['pedidos', 'produtos', 'config'].forEach(x => { document.getElementById(`sec-${x}`).classList.toggle('hidden', x !== t); const btn = document.getElementById(`tab-${x}`); if(tab === t) btn.classList.add('tab-active'); else btn.classList.remove('tab-active'); }); if(t === 'pedidos') loadPedidos(); if(t === 'produtos') loadAdmProds(); if(t === 'config') loadAdmConfig(); }
-        function abrirAdmin() { if(prompt("Senha:") === "123") { document.getElementById('view-cliente').classList.add('hidden'); document.getElementById('view-admin').classList.remove('hidden'); switchTab('pedidos'); } }
+        window.generateZPL = () => {
+            if(!window.queue.length) return;
+            let full = "";
+            const clean = (t, type) => {
+                if (!t) return "";
+                let s = String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+                if (type === 'R') s = s.replace(/^RUA[:\s]*/g, "");
+                if (type === 'K') s = s.replace(/^(RACK|RCK)[:\s]*/g, "");
+                if (type === 'L') s = s.replace(/^(LINHA|LIN)[:\s]*/g, "");
+                if (type === 'C') s = s.replace(/^(COLUNA|COL)[:\s]*/g, "");
+                return s.trim().substring(0, 28);
+            };
 
-        init();
+            for(let i=0; i<window.queue.length; i+=2) {
+                let t = window.queue[i], b = window.queue[i+1];
+                const render = (item, y) => {
+                    if(!item) return "";
+                    const d = item.fullData || {};
+                    const fullCod = String(item.codigo); 
+                    const shortCod = window.extractShortCode(fullCod);
+                    const qtyItm = d.qtyItm || ""; 
+                    
+                    let z = `^FO20,${y+30}^A0N,100,90^FD${shortCod}^FS\n`;
+                    if(item.validade) z += `^FO235,${y+20}^GB550,65,75^FS\n^FO250,${y+30}^A0N,95,90^FR^FDVAL: ${item.validade}^FS\n`;
+                    z += `^FO20,${y+140}^A0N,70,70^FB770,2,0,L,0^FD${clean(item.tempName)}^FS\n`;
+                    z += `^FO20,${y+300}^A0N,45,45^FDRUA: ${clean(d.RUA,'R')} - RCK: ${clean(d.RCK,'K')}^FS\n`;
+                    z += `^FO20,${y+350}^A0N,45,45^FDLIN: ${clean(d.LIN,'L')} - COL: ${clean(d.COL,'C')}^FS\n`;
+                    
+                    // SÓ ADICIONA AO ZPL SE A QTD NÃO FOR VAZIA (SÓ É VAZIA SE O BOTÃO ESTIVER DESATIVADO)
+                    if(qtyItm !== "") {
+                        z += `^FO580,${y+310}^A0N,80,80^FDQ:${qtyItm}^FS\n`;
+                    }
+
+                    z += `^BY4,3,100^FO20,${y+410}^BCN,130,Y,N,N^FD${fullCod}^FS\n`;
+                    return z;
+                };
+                let l = `^XA\n^CI28^PW812^LL1218^LH0,0\n`;
+                l += render(t, 0);
+                if(b) l += render(b, 600);
+                l += `^XZ\n`; full += l;
+            }
+            document.getElementById('finalZPL').value = full;
+            document.getElementById('finalZPL').classList.remove('hidden');
+            window.showToast("ZPL ENGINE READY");
+        };
+
+        window.copyZPL = () => { const a = document.getElementById('finalZPL'); a.select(); navigator.clipboard.writeText(a.value); window.showToast("COPIED"); };
+        window.downloadFile = () => { const blob = new Blob([document.getElementById('finalZPL').value], {type: 'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `zk47_out_${Date.now()}.zpl`; a.click(); };
+        window.showToast = (msg) => { const t = document.getElementById('toast'); t.querySelector('span').innerText = msg; t.classList.remove('translate-y-10', 'opacity-0'); setTimeout(() => t.classList.add('translate-y-10', 'opacity-0'), 2500); };
     </script>
 </body>
 </html>
