@@ -17,7 +17,6 @@
         .glass-cyan { border: 1px solid rgba(6, 182, 212, 0.2); box-shadow: 0 0 40px rgba(6, 182, 212, 0.1); }
         .input-pro { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(51, 65, 85, 1); color: white; transition: all 0.3s ease; outline: none; font-family: 'JetBrains Mono', monospace; }
         .input-pro:focus { border-color: var(--accent); box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); }
-        .input-disabled { opacity: 0.1 !important; pointer-events: none !important; filter: grayscale(1); }
         .btn-primary { background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); transition: all 0.3s; box-shadow: 0 4px 15px rgba(8, 145, 178, 0.3); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(8, 145, 178, 0.5); }
         .dev-badge { background: linear-gradient(135deg, #0f172a, #0891b2); padding: 6px 18px; border-radius: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; border: 1px solid rgba(6, 182, 212, 0.4); }
@@ -26,26 +25,23 @@
         .slider-pro:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider-pro:before { transform: translateX(20px); }
         .alien-logo { filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.6)); animation: float 4s ease-in-out infinite; }
-        @keyframes float { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-10px) scale(1.05); } }
-        .status-ready { color: #10b981; text-shadow: 0 0 15px rgba(16, 185, 129, 0.5); font-weight: 900; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .status-ready { color: #10b981; text-shadow: 0 0 15px rgba(16, 185, 129, 0.5); }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8 flex flex-col items-center">
 
     <div id="loader" class="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-xl flex flex-col items-center justify-center hidden text-center px-6">
-        <div class="relative w-24 h-24 mb-6">
-            <div class="absolute inset-0 border-4 border-cyan-500/10 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-t-cyan-500 rounded-full animate-spin"></div>
-        </div>
-        <p id="loaderText" class="text-cyan-400 font-black tracking-[4px] uppercase text-sm mb-2">Syncing Nebula...</p>
+        <div class="w-20 h-20 border-4 border-cyan-500/10 border-t-cyan-500 rounded-full animate-spin"></div>
+        <p id="loaderText" class="mt-4 text-cyan-400 font-black tracking-[4px] uppercase text-sm">Processing...</p>
     </div>
 
     <div class="w-full max-w-7xl space-y-8 pb-20">
         
+        <!-- HEADER -->
         <header class="flex flex-col md:flex-row justify-between items-center gap-8 glass glass-cyan p-10 rounded-[3rem]">
             <div class="flex items-center gap-8">
-                <!-- LOGO ALIEN TOP -->
-                <div class="w-24 h-24 bg-slate-900 border-2 border-cyan-500/40 flex items-center justify-center rounded-[2rem] shadow-[0_0_50px_rgba(6,182,212,0.2)] alien-logo">
+                <div class="w-24 h-24 bg-slate-900 border-2 border-cyan-500 flex items-center justify-center rounded-[2rem] alien-logo">
                     <svg viewBox="0 0 100 100" class="w-14 h-14 fill-cyan-400">
                         <path d="M50,10 C30,10 15,30 15,55 C15,75 35,90 50,90 C65,90 85,75 85,55 C85,30 70,10 50,10 Z" />
                         <ellipse cx="32" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(-15 32 50)" />
@@ -53,55 +49,45 @@
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-5xl font-black tracking-tighter italic text-white leading-none uppercase">ZK47 <span class="text-cyan-500">Logistic</span></h1>
-                    <div class="flex flex-wrap items-center gap-4 mt-3">
+                    <h1 class="text-5xl font-black tracking-tighter italic text-white uppercase">ZK47 <span class="text-cyan-500">Logistic</span></h1>
+                    <div class="flex items-center gap-3 mt-3">
                         <span class="dev-badge text-[11px] text-white">Dev. Benilson Amorim</span>
-                        <span id="printerStatus" class="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-900/80 px-4 py-1.5 rounded-full border border-slate-700">Com: Offline</span>
+                        <span id="bridgeStatus" class="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-800 px-4 py-1.5 rounded-full border border-slate-700">Bridge: Offline</span>
                     </div>
                 </div>
             </div>
-            <div class="flex flex-wrap justify-center gap-4">
-                <button onclick="window.connectUSB()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-4 rounded-2xl text-xs font-black transition shadow-lg flex items-center gap-3">
-                    <i class="fa-solid fa-link"></i> ATIVAR USB
-                </button>
-                <button onclick="window.loadFromCloud()" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 px-8 py-4 rounded-2xl text-xs font-black transition border border-slate-700 active:scale-95">
-                    <i class="fa-solid fa-cloud-arrow-down"></i> SYNC NEBULA
+            <div class="flex gap-4">
+                <button onclick="window.setupBrowserPrint()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-4 rounded-2xl text-xs font-black transition shadow-lg active:scale-95">
+                    CONECTAR BRIDGE
                 </button>
             </div>
         </header>
 
         <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <!-- ESQUERDA -->
+            <!-- ESQUERDA: ENTRADA -->
             <div class="lg:col-span-5 space-y-8">
                 <section class="glass p-8 rounded-[2.5rem] space-y-6">
-                    <div class="flex justify-between items-center text-[10px] font-black uppercase text-slate-500 tracking-[3px]">
-                        <span>Mass Storage Node</span>
-                        <div id="prodCount" class="bg-cyan-500/10 text-cyan-400 px-4 py-1 rounded-full border border-cyan-500/20">0 Items</div>
+                    <div class="flex justify-between items-center text-[10px] font-black uppercase text-slate-500">
+                        <span>Database Node</span>
+                        <div id="prodCount" class="bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-full border border-cyan-500/20">0 Items</div>
                     </div>
                     <label class="group cursor-pointer block border-2 border-dashed border-slate-800 rounded-[2rem] p-10 hover:border-cyan-500 hover:bg-cyan-500/5 transition-all text-center">
                         <i class="fa-solid fa-file-excel text-4xl text-slate-700 group-hover:text-cyan-500 mb-4 transition"></i>
-                        <p class="text-xs font-black text-slate-600 group-hover:text-white uppercase tracking-widest">Inject Master Database</p>
+                        <p class="text-xs font-black text-slate-600 group-hover:text-white uppercase">Inject .xlsx master</p>
                         <input type="file" id="fileInput" class="hidden" onchange="window.handleFileUpload(this)">
                     </label>
-                    <button id="btnPushCloud" onclick="window.saveToCloud()" class="hidden w-full bg-cyan-600/10 text-cyan-400 border border-cyan-500/30 py-4 rounded-2xl text-[10px] font-black uppercase hover:bg-cyan-600/20 transition">Update Cloud</button>
+                    <button id="btnPushCloud" onclick="window.saveToCloud()" class="hidden w-full bg-cyan-600/10 text-cyan-400 border border-cyan-500/30 py-4 rounded-2xl text-[10px] font-black uppercase">Sync Cloud</button>
                 </section>
 
-                <!-- INPUT ENGINE -->
-                <section class="glass p-8 rounded-[3rem] relative min-h-[500px]">
-                    <div id="lockOverlay" class="absolute inset-0 z-20 bg-slate-950/98 flex flex-col items-center justify-center text-center rounded-[3rem] p-6">
-                        <i class="fa-solid fa-triangle-exclamation text-cyan-900 text-3xl mb-4"></i>
-                        <p class="text-[10px] font-black text-cyan-900 uppercase tracking-[4px]">Access Restricted</p>
-                        <p class="text-[8px] text-slate-700 mt-2">Open via HTTPS or Localhost</p>
+                <section class="glass p-8 rounded-[3rem] relative min-h-[450px]">
+                    <div class="flex p-2 bg-slate-900 rounded-[1.5rem] mb-10 border border-slate-800">
+                        <button onclick="window.setMode('validade')" id="tabVal" class="flex-1 py-4 rounded-xl text-[11px] font-black bg-cyan-600 text-white">VALIDADE</button>
+                        <button onclick="window.setMode('endereco')" id="tabEnd" class="flex-1 py-4 rounded-xl text-[11px] font-black text-slate-500">ENDEREÇO</button>
                     </div>
 
-                    <div class="flex p-2 bg-slate-900 rounded-[1.5rem] mb-10 border border-slate-800 shadow-2xl">
-                        <button onclick="window.setMode('validade')" id="tabVal" class="flex-1 py-4 rounded-xl text-[11px] font-black transition-all bg-cyan-600 text-white shadow-xl uppercase">Validade</button>
-                        <button onclick="window.setMode('endereco')" id="tabEnd" class="flex-1 py-4 rounded-xl text-[11px] font-black transition-all text-slate-500 hover:text-white uppercase">Endereço</button>
-                    </div>
-
-                    <div id="uiValidade" class="space-y-8">
+                    <div id="uiValidade" class="space-y-6">
                         <input type="tel" id="valCode" class="w-full input-pro p-5 rounded-2xl text-2xl font-bold" placeholder="Scan Barcode..." oninput="window.handleScan(this, 'val')">
-                        <div id="valPreview" class="px-4 text-xs font-extrabold text-cyan-400 truncate min-h-[1.5rem] italic uppercase"></div>
+                        <div id="valPreview" class="px-4 text-xs font-extrabold text-cyan-400 truncate uppercase min-h-[1.5rem]"></div>
                         <div class="grid grid-cols-2 gap-6">
                             <input type="tel" id="valDate" class="input-pro p-5 rounded-2xl text-center text-xl font-bold" placeholder="MMAAAA" oninput="window.maskDate(this)">
                             <input type="number" id="valQtyEtq" class="input-pro p-5 rounded-2xl text-center text-xl font-bold" value="1">
@@ -114,20 +100,20 @@
                             <span class="text-[11px] font-black text-slate-400 uppercase">Print Qty?</span>
                             <input type="number" id="valQtyItm" class="w-24 input-pro p-3 rounded-xl text-center text-xl font-black text-cyan-400" value="1">
                         </div>
-                        <button onclick="window.addItem('val')" class="w-full btn-primary py-6 rounded-3xl text-sm font-black uppercase active:scale-95 shadow-2xl">Transmit</button>
+                        <button onclick="window.addItem('val')" class="w-full btn-primary py-6 rounded-3xl text-sm font-black uppercase">Add to Queue</button>
                     </div>
 
-                    <div id="uiEndereco" class="hidden space-y-8">
+                    <div id="uiEndereco" class="hidden space-y-6">
                         <div class="flex gap-3 p-1.5 bg-slate-800 rounded-2xl">
-                            <button onclick="window.switchSub('single')" id="subS" class="flex-1 py-3 text-[10px] font-black rounded-xl bg-cyan-600 text-white shadow-lg uppercase">Manual</button>
-                            <button onclick="window.switchSub('mass')" id="subM" class="flex-1 py-3 text-[10px] font-black rounded-xl text-slate-500 hover:text-white transition uppercase">Massa</button>
+                            <button onclick="window.switchSub('single')" id="subS" class="flex-1 py-3 text-[10px] font-black rounded-xl bg-cyan-600 text-white">Manual</button>
+                            <button onclick="window.switchSub('mass')" id="subM" class="flex-1 py-3 text-[10px] font-black rounded-xl text-slate-500">Massa</button>
                         </div>
                         <div id="endManual" class="space-y-6">
                             <input type="tel" id="endCode" class="w-full input-pro p-5 rounded-2xl text-2xl font-bold" placeholder="Scan Unit..." oninput="window.handleScan(this, 'end')">
-                            <div id="endPreview" class="px-4 text-xs font-extrabold text-cyan-400 truncate uppercase min-h-[1.5rem] italic"></div>
+                            <div id="endPreview" class="px-4 text-xs font-extrabold text-cyan-400 truncate uppercase min-h-[1.5rem]"></div>
                             <div class="grid grid-cols-2 gap-6">
-                                <input type="number" id="endQtyEtq" class="input-pro p-5 rounded-2xl text-center text-xl" placeholder="Etq" value="1">
-                                <input type="number" id="endQtyItm" class="input-pro p-5 rounded-2xl text-center text-xl" placeholder="Qty" value="1">
+                                <input type="number" id="endQtyEtq" class="input-pro p-5 rounded-2xl text-center text-xl font-bold" value="1">
+                                <input type="number" id="endQtyItm" class="input-pro p-5 rounded-2xl text-center text-xl font-bold" value="1">
                             </div>
                             <div class="flex items-center justify-between p-6 bg-slate-900/80 rounded-3xl border border-slate-800">
                                 <span class="text-[11px] font-black text-slate-400 uppercase">Include Qty?</span>
@@ -140,56 +126,48 @@
                         <div id="endMass" class="hidden">
                             <textarea id="endMassList" class="w-full input-pro p-6 rounded-3xl h-56 text-xs uppercase" placeholder="Paste full codes list..."></textarea>
                         </div>
-                        <button onclick="window.addItem('end')" class="w-full btn-primary py-6 rounded-3xl text-sm font-black uppercase">Execute Node</button>
+                        <button onclick="window.addItem('end')" class="w-full btn-primary py-6 rounded-3xl text-sm font-black uppercase">Process</button>
                     </div>
                 </section>
             </div>
 
-            <!-- BUFFER -->
+            <!-- DIREITA: FILA -->
             <div class="lg:col-span-7 flex flex-col h-full">
                 <section class="glass p-10 rounded-[4rem] flex-grow flex flex-col min-h-[600px]">
-                    <div class="flex justify-between items-center mb-10 border-b border-slate-800 pb-8 font-black uppercase text-xs text-white tracking-[4px]">
-                        <div><i class="fa-solid fa-server text-cyan-500 mr-3"></i> Buffer Signal</div>
+                    <div class="flex justify-between items-center mb-10 border-b border-slate-800 pb-8 font-black uppercase text-xs tracking-[4px]">
+                        <div>Signal Buffer</div>
                         <div class="flex items-center gap-6">
                             <span id="queueBadge" class="bg-cyan-500 text-slate-950 px-4 py-1.5 rounded-xl font-black text-sm">0</span>
-                            <button onclick="window.clearQueue()" class="text-red-600 hover:text-red-400 transition tracking-tighter uppercase">Wipe</button>
+                            <button onclick="window.clearQueue()" class="text-red-600 hover:text-red-400 uppercase">Wipe</button>
                         </div>
                     </div>
                     
-                    <div class="flex-grow overflow-y-auto bg-slate-950/40 rounded-[3rem] border border-slate-800 h-[35rem] shadow-inner custom-scrollbar">
+                    <div class="flex-grow overflow-y-auto bg-slate-950/40 rounded-[3rem] border border-slate-800 h-[35rem] shadow-inner">
                         <table class="w-full text-left">
                             <tbody id="queueTable" class="divide-y divide-slate-900"></tbody>
                         </table>
                     </div>
                     
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10">
-                        <button onclick="window.generateZPL()" class="col-span-2 bg-white text-slate-950 font-black py-6 rounded-[2rem] hover:bg-cyan-400 transition uppercase tracking-[5px] text-[12px] active:scale-95 shadow-2xl">Compile Engine</button>
-                        <button id="btnPrint" onclick="window.printDirect()" disabled class="bg-slate-800 text-slate-700 font-black py-4 rounded-2xl border border-slate-700 uppercase text-[10px] cursor-not-allowed">Direct Print</button>
-                        <button id="btnDownload" onclick="window.downloadFile()" disabled class="bg-slate-800 text-slate-700 font-black py-4 rounded-2xl border border-slate-700 uppercase text-[10px]">Save .ZPL</button>
+                    <div class="grid grid-cols-2 gap-6 mt-10">
+                        <button onclick="window.generateZPL()" class="bg-white text-slate-950 font-black py-6 rounded-[2rem] hover:bg-cyan-400 transition uppercase tracking-[5px] text-[12px] active:scale-95">Compile ZPL</button>
+                        <button id="btnPrint" onclick="window.printViaBridge()" disabled class="bg-slate-800 text-slate-700 font-black py-6 rounded-[2rem] border border-slate-700 uppercase text-[12px] cursor-not-allowed">Direct Print</button>
                     </div>
                     <textarea id="finalZPL" readonly class="mt-8 w-full h-40 bg-black text-cyan-500 font-mono text-[9px] p-8 rounded-[2.5rem] border border-cyan-900/20 hidden"></textarea>
                 </section>
             </div>
         </main>
 
-        <!-- FOOTER -->
-        <footer class="flex flex-col items-center justify-center py-20 gap-10 border-t border-slate-900 mt-20 relative">
-            <div class="alien-logo w-24 h-24 bg-slate-950 border border-cyan-500/30 flex items-center justify-center rounded-full shadow-[0_0_80px_rgba(6,182,212,0.2)]">
-                <svg viewBox="0 0 100 100" class="w-14 h-14 fill-cyan-500">
-                    <path d="M50,10 C30,10 15,30 15,55 C15,75 35,90 50,90 C65,90 85,75 85,55 C85,30 70,10 50,10 Z" />
-                    <ellipse cx="32" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(-15 32 50)" />
-                    <ellipse cx="68" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(15 68 50)" />
-                </svg>
-            </div>
-            <div class="text-center space-y-4">
+        <footer class="flex flex-col items-center justify-center py-20 gap-10 border-t border-slate-900 mt-20">
+            <svg viewBox="0 0 100 100" class="w-16 h-16 fill-slate-800">
+                <path d="M50,10 C30,10 15,30 15,55 C15,75 35,90 50,90 C65,90 85,75 85,55 C85,30 70,10 50,10 Z" />
+                <ellipse cx="32" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(-15 32 50)" />
+                <ellipse cx="68" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(15 68 50)" />
+            </svg>
+            <div class="text-center">
                 <p class="text-cyan-500 font-black uppercase tracking-[12px] text-sm">Dev. Benilson Amorim</p>
-                <p class="text-[11px] text-slate-700 font-bold uppercase mt-2 tracking-[4px]">ZK47 Galactic Hardware & Software &copy; 2026</p>
+                <p class="text-[11px] text-slate-700 font-bold uppercase mt-2 tracking-[4px]">ZK47 Galactic Logistics Interface &copy; 2026</p>
             </div>
         </footer>
-    </div>
-
-    <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-cyan-600 text-white px-16 py-5 rounded-full shadow-2xl font-black text-[10px] uppercase tracking-widest opacity-0 transition-all duration-700 z-[100] translate-y-10">
-        <span>Transmitting...</span>
     </div>
 
     <script type="module">
@@ -201,11 +179,11 @@
 
         window.inventory = [];
         window.queue = [];
-        window.serialPort = null;
+        window.selectedPrinter = null;
         window.subMode = 'single';
         window.mode = 'validade';
 
-        // SYNC
+        // SYNC ENGINE
         async function fetchQueue() {
             const { data } = await supabase.from('print_queue').select('*').order('created_at', { ascending: true });
             window.queue = data || [];
@@ -214,65 +192,50 @@
         supabase.channel('nebula').on('postgres_changes', { event: '*', schema: 'public', table: 'print_queue' }, fetchQueue).subscribe();
         fetchQueue();
 
-        // --- HARDWARE ENGINE V44 ---
-        window.connectUSB = async () => {
-            // VERIFICA SEGURANÇA
-            if (!("serial" in navigator)) {
-                alert("ACESSO NEGADO: O Chrome só permite USB em sites com HTTPS. \n\nHospede o arquivo no GitHub Pages ou use Localhost.");
-                return;
-            }
-
+        // --- ALTERNATIVA 2: ZEBRA BROWSER PRINT ENGINE ---
+        window.setupBrowserPrint = async () => {
+            document.getElementById('loader').classList.remove('hidden');
             try {
-                if (window.serialPort) {
-                    try { await window.serialPort.close(); } catch(e){}
-                    window.serialPort = null;
+                // Tenta conectar no serviço local da Zebra (Porta 9101)
+                const response = await fetch("http://localhost:9101/default");
+                if (response.ok) {
+                    const printer = await response.text();
+                    window.selectedPrinter = printer;
+                    
+                    const status = document.getElementById('bridgeStatus');
+                    status.innerText = "BRIDGE: READY";
+                    status.className = "text-[10px] font-black uppercase bg-slate-900/80 px-4 py-1.5 rounded-full border border-emerald-500 status-ready";
+                    window.showToast("ALIEN BRIDGE LINKED");
+                } else {
+                    throw new Error();
                 }
-
-                // Solicita porta
-                window.serialPort = await navigator.serial.requestPort();
-                
-                // Abre com configurações de baixo nível
-                await window.serialPort.open({ 
-                    baudRate: 9600,
-                    dataBits: 8,
-                    stopBits: 1,
-                    parity: "none",
-                    flowControl: "none"
-                });
-
-                const status = document.getElementById('printerStatus');
-                status.innerText = "LINK ESTABLISHED";
-                status.className = "text-[10px] font-black uppercase bg-slate-900/80 px-4 py-1.5 rounded-full border border-emerald-500/50 status-ready";
-                window.showToast("NEBULA HARDWARE LINKED");
-                window.updateUI();
-
             } catch (e) {
-                console.error(e);
-                alert("BUSY PORT ERROR:\n1. Feche o Zebra Utilities.\n2. No Windows, desative 'Suporte Bidirecional' na Zebra.\n3. Recarregue a página.");
+                alert("ERRO: O Zebra Browser Print não está rodando. \n1. Instale o Zebra Browser Print.\n2. Inicie o programa.\n3. Tente novamente.");
             }
+            document.getElementById('loader').classList.add('hidden');
         };
 
-        window.printDirect = async () => {
+        window.printViaBridge = async () => {
             const zpl = document.getElementById('finalZPL').value;
             if (!zpl) return;
-
-            if (!window.serialPort || !window.serialPort.writable) {
-                await window.connectUSB();
-            }
+            if (!window.selectedPrinter) return window.setupBrowserPrint();
 
             try {
-                const encoder = new TextEncoder();
-                const writer = window.serialPort.writable.getWriter();
-                await writer.write(encoder.encode(zpl));
-                writer.releaseLock();
-                window.showToast("SIGNAL DEPLOYED");
+                await fetch("http://localhost:9101/write", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        device: { name: window.selectedPrinter },
+                        data: zpl
+                    })
+                });
+                window.showToast("TRANSMISSION SUCCESS");
             } catch (e) {
-                alert("TRANSMISSION ERROR: A porta está travada pelo Windows.");
-                window.serialPort = null;
+                alert("Bridge Error: Connection lost.");
+                window.selectedPrinter = null;
             }
         };
 
-        // --- CLOUD ENGINE ---
+        // --- CLOUD & DATA ---
         window.handleFileUpload = async (input) => {
             const f = input.files[0]; if (!f) return;
             document.getElementById('loader').classList.remove('hidden');
@@ -286,7 +249,6 @@
                     LIN: String(x[6]||"").trim(), COL: String(x[7]||"").trim(),
                     QTY_DEFAULT: '1'
                 })).filter(i => i.COD);
-                document.getElementById('lockOverlay').classList.add('hidden');
                 document.getElementById('prodCount').innerText = `${window.inventory.length} MASTER`;
                 document.getElementById('btnPushCloud').classList.remove('hidden');
                 document.getElementById('loader').classList.add('hidden');
@@ -301,7 +263,6 @@
             await supabase.from('products').delete().neq('COD', 'X');
             const CHUNK = 500;
             for (let i = 0; i < items.length; i += CHUNK) {
-                document.getElementById('loaderText').innerText = `PUSHING DATA... ${Math.round((i/items.length)*100)}%`;
                 await supabase.from('products').insert(items.slice(i, i + CHUNK));
             }
             document.getElementById('loader').classList.add('hidden');
@@ -313,14 +274,13 @@
             const { data } = await supabase.from('products').select('*');
             if(data?.length) {
                 window.inventory = data;
-                document.getElementById('lockOverlay').classList.add('hidden');
                 document.getElementById('prodCount').innerText = `${data.length} CLOUD`;
-                window.showToast("DATABASE ACQUIRED");
+                window.showToast("SYNC COMPLETE");
             }
             document.getElementById('loader').classList.add('hidden');
         };
 
-        // --- UI & LOGIC ---
+        // --- ENGINE ---
         window.handleScan = (el, type) => {
             let full = el.value.replace(/\D/g,'');
             let short = window.extractShortCode(full);
@@ -332,7 +292,7 @@
                 qr.value = p.QTY_DEFAULT || '1';
                 pr.classList.replace('text-slate-700', 'text-cyan-400');
             } else { 
-                pr.innerText = "NO RECORD FOUND (" + short + ")"; 
+                pr.innerText = "NO RECORD (" + short + ")"; 
                 pr.classList.replace('text-cyan-400', 'text-slate-700'); 
             }
         };
@@ -346,8 +306,8 @@
             window.subMode = s;
             document.getElementById('endManual').classList.toggle('hidden', s !== 'single');
             document.getElementById('endMass').classList.toggle('hidden', s !== 'mass');
-            document.getElementById('subS').className = s === 'single' ? "flex-1 py-3 text-[10px] font-black rounded-xl bg-cyan-600 text-white shadow-lg" : "flex-1 py-3 text-[10px] font-black rounded-xl text-slate-500 hover:text-white transition uppercase";
-            document.getElementById('subM').className = s === 'mass' ? "flex-1 py-3 text-[10px] font-black rounded-xl bg-cyan-600 text-white shadow-lg" : "flex-1 py-3 text-[10px] font-black rounded-xl text-slate-500 hover:text-white transition uppercase";
+            document.getElementById('subS').className = s === 'single' ? "flex-1 py-2 text-[9px] font-black rounded-lg bg-cyan-600 text-white" : "flex-1 py-2 text-[9px] font-black rounded-lg text-slate-500 uppercase";
+            document.getElementById('subM').className = s === 'mass' ? "flex-1 py-2 text-[9px] font-black rounded-lg bg-cyan-600 text-white" : "flex-1 py-2 text-[9px] font-black rounded-lg text-slate-500 uppercase";
         };
 
         window.addItem = async (m) => {
@@ -370,6 +330,7 @@
                 document.getElementById('loader').classList.add('hidden');
                 return;
             }
+
             const prefix = m === 'val' ? 'val' : 'end';
             const fullCode = document.getElementById(prefix + 'Code').value;
             const shortCode = window.extractShortCode(fullCode);
@@ -377,9 +338,11 @@
             const qtyItm = document.getElementById(prefix + 'QtyItm').value;
             const printQtyEnabled = document.getElementById(prefix + 'QtyToggle').checked;
             const validade = m === 'val' ? document.getElementById('valDate').value : "";
+
             if(!fullCode) { document.getElementById('loader').classList.add('hidden'); return; }
             const p = window.inventory.find(i => String(i.COD) === String(shortCode)) || { NOM: 'UNKNOWN' };
             if(printQtyEnabled) await supabase.from('products').update({ QTY_DEFAULT: qtyItm }).eq('COD', shortCode);
+
             const batch = [];
             for(let i=0; i < qtyEtq; i++) {
                 batch.push({
@@ -412,29 +375,23 @@
             const tb = document.getElementById('queueTable');
             document.getElementById('queueBadge').innerText = window.queue.length;
             if (window.queue.length === 0) {
-                tb.innerHTML = `<tr><td colspan="4" class="p-32 text-center text-slate-900 font-black uppercase tracking-[25px] opacity-20">Idle</td></tr>`;
+                tb.innerHTML = `<tr><td colspan="4" class="p-20 text-center text-slate-800 font-black uppercase tracking-[15px]">Idle</td></tr>`;
             } else {
                 tb.innerHTML = window.queue.map((i, idx) => `
-                    <tr class="hover:bg-cyan-500/5 transition group">
-                        <td class="p-8 text-[11px] text-slate-800 font-black w-10">${String(idx+1).padStart(2,'0')}</td>
-                        <td class="p-8">
-                            <div class="font-black text-slate-100 text-lg tracking-tighter italic uppercase">${i.codigo}</div>
-                            <div class="text-[10px] text-slate-600 font-bold uppercase mt-1 tracking-widest">${i.tempName}</div>
+                    <tr class="hover:bg-cyan-500/5 group transition">
+                        <td class="p-6 text-[9px] text-slate-800 font-black w-10">${String(idx+1).padStart(2,'0')}</td>
+                        <td class="p-6">
+                            <div class="font-black text-slate-200 text-sm tracking-tight italic">${i.codigo}</div>
+                            <div class="text-[9px] text-slate-600 font-bold uppercase mt-1 tracking-widest">${i.tempName}</div>
                         </td>
-                        <td class="p-8 text-cyan-600 font-mono text-[12px] text-center font-black uppercase">
+                        <td class="p-6 text-cyan-600 font-mono text-[10px] text-center font-black uppercase">
                             ${i.validade ? i.validade : (i.fullData.qtyItm ? 'Q:'+i.fullData.qtyItm : '--')}
                         </td>
-                        <td class="p-8 text-right">
-                            <button onclick="window.removeItem(${i.id})" class="w-12 h-12 rounded-xl hover:bg-red-500/10 text-slate-800 hover:text-red-500 transition active:scale-90"><i class="fa-solid fa-xmark text-lg"></i></button>
+                        <td class="p-6 text-right">
+                            <button onclick="window.removeItem(${i.id})" class="w-10 h-10 rounded-xl hover:bg-red-500/10 text-slate-800 hover:text-red-500 transition active:scale-90"><i class="fa-solid fa-xmark"></i></button>
                         </td>
                     </tr>`).join('');
             }
-            const has = window.queue.length > 0;
-            const printBtn = document.getElementById('btnPrint');
-            printBtn.disabled = !has;
-            printBtn.className = has ? "bg-cyan-600/20 text-cyan-400 font-black py-4 rounded-2xl border border-cyan-500/30 shadow-lg active:scale-95 text-[10px] uppercase transition cursor-pointer" : "bg-slate-800 text-slate-700 font-black py-4 rounded-2xl border border-slate-700 uppercase text-[9px] cursor-not-allowed";
-            document.getElementById('btnDownload').disabled = !has;
-            document.getElementById('btnDownload').className = has ? "bg-slate-900 text-cyan-400 font-black py-3 rounded-2xl border border-cyan-900/30 shadow-lg transition hover:bg-slate-800 cursor-pointer" : "bg-slate-900 text-slate-800 font-bold py-4 rounded-2xl border border-slate-800 cursor-not-allowed";
         };
 
         window.setMode = (m) => {
@@ -482,11 +439,11 @@
             }
             document.getElementById('finalZPL').value = full;
             document.getElementById('finalZPL').classList.remove('hidden');
-            window.showToast("SIGNAL COMPILED");
+            document.getElementById('btnPrint').disabled = false;
+            document.getElementById('btnPrint').className = "bg-white text-slate-950 font-black py-6 rounded-[2rem] hover:bg-cyan-400 transition uppercase tracking-[5px] text-[12px] active:scale-95 shadow-2xl";
+            window.showToast("ZPL ENGINE READY");
         };
 
-        window.copyZPL = () => { const a = document.getElementById('finalZPL'); a.select(); navigator.clipboard.writeText(a.value); window.showToast("COPIED"); };
-        window.downloadFile = () => { const blob = new Blob([document.getElementById('finalZPL').value], {type: 'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `zk47_out_${Date.now()}.zpl`; a.click(); };
         window.showToast = (msg) => { 
             const t = document.getElementById('toast'); 
             t.querySelector('span').innerText = msg; 
