@@ -119,10 +119,6 @@
                             <textarea id="endMassList" class="w-full input-pro h-40 text-[10px] uppercase custom-scrollbar p-3" placeholder="Paste codes list here..."></textarea>
                         </div>
 
-                        <div id="endManual" class="hidden">
-                            <!-- Campos para modo endereço manual serão adicionados aqui -->
-                        </div>
-
                         <div id="qtyRow" class="flex items-center justify-between p-3 bg-slate-950/50 rounded-xl border border-yellow-900/20 shadow-inner">
                             <div class="flex items-center gap-3">
                                 <label class="switch-pro relative inline-block w-10 h-5">
@@ -205,19 +201,9 @@
 
         async function fetchQueue() {
             const { data, error } = await supabase.from('print_queue').select('*').order('created_at', { ascending: true });
-            if (!error) { 
-                window.queue = data || []; 
-                window.updateUI(); 
-            }
+            if (!error) { window.queue = data || []; window.updateUI(); }
         }
-        
-        // Corrigido: função de callback do subscribe
-        supabase.channel('nebula')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'print_queue' }, () => {
-                fetchQueue();
-            })
-            .subscribe();
-            
+        supabase.channel('nebula').on('postgres_changes', { event: '*', schema: 'public', table: 'print_queue' }, fetchQueue).subscribe();
         fetchQueue();
 
         // --- SCAN CAPTURE BRUTO ---
@@ -286,82 +272,50 @@
 
         // --- HANDLERS DATA ---
         window.handleFileUpload = async (input) => {
-            const f = input.files[0]; 
-            if (!f) return;
-            
+            const f = input.files[0]; if (!f) return;
             document.getElementById('loader').classList.remove('hidden');
             const reader = new FileReader();
-            
             reader.onload = function(e) {
                 try {
                     const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
                     const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
-                    
                     window.inventory = json.slice(1).map(x => ({
-                        COD: String(x[0]||"").trim(), 
-                        NOM: String(x[1]||"").trim(),
-                        RUA: String(x[4]||"").trim(), 
-                        RCK: String(x[5]||"").trim(),
-                        LIN: String(x[6]||"").trim(), 
-                        COL: String(x[7]||"").trim(),
+                        COD: String(x[0]||"").trim(), NOM: String(x[1]||"").trim(),
+                        RUA: String(x[4]||"").trim(), RCK: String(x[5]||"").trim(),
+                        LIN: String(x[6]||"").trim(), COL: String(x[7]||"").trim(),
                         QTY_DEFAULT: '1'
                     })).filter(i => i.COD);
-                    
                     document.getElementById('lockOverlay').classList.add('hidden');
                     document.getElementById('prodCount').innerText = `${window.inventory.length} MASTER`;
+                    document.getElementById('btnPushCloud').classList.remove('hidden');
                     window.showToast("DATABASE LOADED");
-                } catch(err) { 
-                    alert("Excel Error: " + err.message); 
-                } finally {
-                    document.getElementById('loader').classList.add('hidden');
-                }
-            };
-            
-            reader.onerror = function() {
-                alert("Erro ao ler arquivo");
+                } catch(err) { alert("Excel Error"); }
                 document.getElementById('loader').classList.add('hidden');
             };
-            
             reader.readAsArrayBuffer(f);
         };
 
         window.saveToCloud = async () => {
-            const items = window.inventory; 
-            if (items.length === 0) return;
-            
+            const items = window.inventory; if (items.length === 0) return;
             document.getElementById('loader').classList.remove('hidden');
-            
-            try {
-                await supabase.from('products').delete().neq('COD', 'X');
-                const CHUNK = 500;
-                for (let i = 0; i < Math.ceil(items.length / CHUNK); i++) {
-                    await supabase.from('products').insert(items.slice(i*CHUNK, (i+1)*CHUNK));
-                }
-                window.showToast("SAVED TO CLOUD");
-            } catch (error) {
-                alert("Erro ao salvar na nuvem: " + error.message);
-            } finally {
-                document.getElementById('loader').classList.add('hidden');
+            await supabase.from('products').delete().neq('COD', 'X');
+            const CHUNK = 500;
+            for (let i = 0; i < Math.ceil(items.length / CHUNK); i++) {
+                await supabase.from('products').insert(items.slice(i*CHUNK, (i+1)*CHUNK));
             }
+            document.getElementById('loader').classList.add('hidden');
         };
 
         window.loadFromCloud = async () => {
             document.getElementById('loader').classList.remove('hidden');
-            try {
-                const { data, error } = await supabase.from('products').select('*');
-                if(!error && data?.length) {
-                    window.inventory = data;
-                    document.getElementById('lockOverlay').classList.add('hidden');
-                    document.getElementById('prodCount').innerText = `${data.length} CLOUD`;
-                    window.showToast("DATABASE SYNCED");
-                } else if (error) {
-                    throw error;
-                }
-            } catch (error) {
-                alert("Erro ao carregar da nuvem: " + error.message);
-            } finally {
-                document.getElementById('loader').classList.add('hidden');
+            const { data, error } = await supabase.from('products').select('*');
+            if(!error && data?.length) {
+                window.inventory = data;
+                document.getElementById('lockOverlay').classList.add('hidden');
+                document.getElementById('prodCount').innerText = `${data.length} CLOUD`;
+                window.showToast("DATABASE SYNCED");
             }
+            document.getElementById('loader').classList.add('hidden');
         };
 
         window.handleScan = (fullValue) => {
@@ -390,7 +344,6 @@
             if (!inputCode) return null;
             const full = String(inputCode).trim();
             const short = window.extractShortCode(full);
-            
             let match = window.inventory.find(i => String(i.COD).trim() === full);
             if (!match) {
                 match = window.inventory.find(i => {
@@ -410,6 +363,8 @@
             window.subMode = s;
             document.getElementById('endManual').classList.toggle('hidden', s !== 'single');
             document.getElementById('endMass').classList.toggle('hidden', s !== 'mass');
+            document.getElementById('subS').className = s === 'single' ? "flex-1 py-2 text-[9px] font-black rounded bg-yellow-600 text-black shadow" : "flex-1 py-2 text-[9px] font-black rounded text-slate-500 uppercase";
+            document.getElementById('subM').className = s === 'mass' ? "flex-1 py-2 text-[9px] font-black rounded bg-yellow-600 text-white shadow" : "flex-1 py-2 text-[9px] font-black rounded text-slate-500 uppercase";
         };
 
         window.addItem = async () => {
@@ -417,104 +372,55 @@
             const printQtyEnabled = document.getElementById('qtyToggle').checked;
             const m = window.mode;
 
-            try {
-                if (m === 'endereco' && window.subMode === 'mass') {
-                    const raw = document.getElementById('endMassList').value;
-                    const lines = raw.split(/[\n,;\s]+/).filter(c => c.trim().length > 0);
-                    
-                    if (lines.length === 0) {
-                        window.showToast("NENHUM CÓDIGO");
-                        return;
-                    }
-                    
-                    const batch = lines.map((fullCode, i) => {
-                        const short = window.extractShortCode(fullCode);
-                        const p = window.findProdExact(fullCode) || { NOM: 'UNKNOWN' };
-                        return {
-                            codigo: fullCode, 
-                            validade: "", 
-                            tempName: p.NOM,
-                            fullData: { ...p, qtyItm: printQtyEnabled ? (p.QTY_DEFAULT || "1") : "" },
-                            created_at: new Date().toISOString()
-                        };
-                    });
-                    
-                    const { error } = await supabase.from('print_queue').insert(batch);
-                    if (error) throw error;
-                    
-                    document.getElementById('endMassList').value = "";
-                } else {
-                    const fullCode = document.getElementById('mainCode').value.replace(/\D/g,'');
-                    const qtyEtq = parseInt(document.getElementById('valQtyEtq').value) || 1;
-                    const qtyItm = document.getElementById('qtyItm').value;
-                    const validade = m === 'validade' ? document.getElementById('valDate').value : "";
-
-                    if(!fullCode) { 
-                        window.showToast("DIGITE UM CÓDIGO");
-                        return; 
-                    }
-                    
-                    const p = window.findProdExact(fullCode) || { 
-                        NOM: 'S/ CADASTRO', 
-                        COD: fullCode,
-                        RUA: '', RCK: '', LIN: '', COL: '', QTY_DEFAULT: '1'
+            if (m === 'endereco' && document.getElementById('uiEndereco').classList.contains('hidden') === false && window.subMode === 'mass') {
+                const raw = document.getElementById('endMassList').value;
+                const lines = raw.split(/[\n,;\s]+/).filter(c => c.trim().length > 0);
+                const batch = lines.map((fullCode, i) => {
+                    const short = window.extractShortCode(fullCode);
+                    const p = window.findProdExact(fullCode) || { NOM: 'UNKNOWN' };
+                    return {
+                        codigo: fullCode, validade: "", tempName: p.NOM,
+                        fullData: { ...p, qtyItm: printQtyEnabled ? (p.QTY_DEFAULT || "1") : "" },
+                        created_at: Date.now() + i
                     };
-                    
-                    if(printQtyEnabled && p.COD) {
-                        await supabase.from('products').update({ QTY_DEFAULT: qtyItm }).eq('COD', p.COD);
-                    }
+                });
+                await supabase.from('print_queue').insert(batch);
+                document.getElementById('endMassList').value = "";
+            } else {
+                const fullCode = document.getElementById('mainCode').value.replace(/\D/g,'');
+                const qtyEtq = parseInt(document.getElementById('valQtyEtq').value) || 1;
+                const qtyItm = document.getElementById('qtyItm').value;
+                const validade = m === 'validade' ? document.getElementById('valDate').value : "";
 
-                    const batch = [];
-                    for(let i=0; i < qtyEtq; i++) {
-                        batch.push({
-                            codigo: fullCode, 
-                            validade: validade, 
-                            tempName: p.NOM,
-                            fullData: { ...p, qtyItm: printQtyEnabled ? qtyItm : "" },
-                            created_at: new Date().toISOString()
-                        });
-                    }
-                    
-                    const { error } = await supabase.from('print_queue').insert(batch);
-                    if (error) throw error;
-                    
-                    window.clearInput();
-                }
+                if(!fullCode) { document.getElementById('loader').classList.add('hidden'); return; }
+                const short = window.extractShortCode(fullCode);
+                const p = window.findProdExact(fullCode) || { NOM: 'S/ CADASTRO', COD: fullCode };
                 
-                window.showToast("TRANSMITTED");
-            } catch (error) {
-                alert("Erro ao adicionar item: " + error.message);
-            } finally {
-                document.getElementById('loader').classList.add('hidden');
+                if(printQtyEnabled && p.COD) {
+                    await supabase.from('products').update({ QTY_DEFAULT: qtyItm }).eq('COD', p.COD);
+                }
+
+                const batch = [];
+                for(let i=0; i < qtyEtq; i++) {
+                    batch.push({
+                        codigo: fullCode, validade: validade, tempName: p.NOM,
+                        fullData: { ...p, qtyItm: printQtyEnabled ? qtyItm : "" },
+                        created_at: Date.now() + i
+                    });
+                }
+                await supabase.from('print_queue').insert(batch);
+                window.clearInput();
             }
+            document.getElementById('loader').classList.add('hidden');
+            window.showToast("TRANSMITTED");
         };
 
-        window.removeItem = async (id) => {
-            try {
-                const { error } = await supabase.from('print_queue').delete().eq('id', id);
-                if (error) throw error;
-                window.showToast("ITEM REMOVIDO");
-            } catch (error) {
-                alert("Erro ao remover item: " + error.message);
-            }
-        };
-        
-        window.clearQueue = async () => { 
-            if(confirm("Wipe Memory?")) {
-                try {
-                    const { error } = await supabase.from('print_queue').delete().neq('codigo', 'X_BYPASS');
-                    if (error) throw error;
-                    window.showToast("BUFFER LIMPO");
-                } catch (error) {
-                    alert("Erro ao limpar buffer: " + error.message);
-                }
-            }
-        };
+        window.removeItem = async (id) => await supabase.from('print_queue').delete().eq('id', id);
+        window.clearQueue = async () => { if(confirm("Wipe Memory?")) await supabase.from('print_queue').delete().neq('codigo', 'X_BYPASS'); };
 
         window.updateUI = () => {
             const tb = document.getElementById('queueTable');
             document.getElementById('queueBadge').innerText = window.queue.length;
-            
             if (window.queue.length === 0) {
                 tb.innerHTML = `<tr><td colspan="4" class="p-20 text-center text-slate-800 font-black uppercase tracking-[15px] opacity-20 text-[10px]">Void</td></tr>`;
             } else {
@@ -526,54 +432,32 @@
                             <div class="text-[9px] text-yellow-700 font-bold uppercase truncate w-32">${i.tempName}</div>
                         </td>
                         <td class="p-4 text-yellow-500 font-mono text-[11px] text-center font-black">
-                            ${i.validade ? i.validade : (i.fullData?.qtyItm ? 'Q:'+i.fullData.qtyItm : '--')}
+                            ${i.validade ? i.validade : (i.fullData.qtyItm ? 'Q:'+i.fullData.qtyItm : '--')}
                         </td>
                         <td class="p-4 text-right">
-                            <button onclick="window.removeItem('${i.id}')" class="w-10 h-10 rounded-xl text-yellow-900 hover:text-red-500 transition active:scale-90">
-                                <i class="fa-solid fa-xmark"></i>
-                            </button>
+                            <button onclick="window.removeItem(${i.id})" class="w-10 h-10 rounded-xl text-yellow-900 hover:text-red-500 transition active:scale-90"><i class="fa-solid fa-xmark"></i></button>
                         </td>
                     </tr>`).join('');
             }
-            
             const has = window.queue.length > 0;
             ['btnDownload', 'btnCopy'].forEach(id => {
                 const el = document.getElementById(id);
                 el.disabled = !has;
-                el.className = has ? 
-                    "bg-slate-800 text-yellow-500 font-black py-4 rounded-2xl border border-yellow-900/30 transition hover:bg-slate-700 shadow-lg cursor-pointer uppercase text-[10px]" : 
-                    "bg-slate-900 text-yellow-900 font-black py-4 rounded-2xl border border-slate-800 uppercase text-[10px] cursor-not-allowed";
+                el.className = has ? "bg-slate-800 text-yellow-500 font-black py-4 rounded-2xl border border-yellow-900/30 transition hover:bg-slate-700 shadow-lg cursor-pointer" : "bg-slate-900 text-yellow-900 font-black py-4 rounded-2xl border border-slate-800 uppercase text-[10px] cursor-not-allowed";
             });
         };
 
         window.setMode = (m) => {
             window.mode = m;
             document.getElementById('valRow').classList.toggle('hidden', m !== 'validade');
-            document.getElementById('endMass').classList.toggle('hidden', m !== 'endereco');
+            document.getElementById('endMass').classList.toggle('hidden', true); 
             document.getElementById('endManual').classList.toggle('hidden', m !== 'endereco');
-            
-            // Reset para modo single quando alternar para endereço
-            if (m === 'endereco') {
-                window.subMode = 'single';
-                document.getElementById('endMass').classList.add('hidden');
-                document.getElementById('endManual').classList.remove('hidden');
-            }
-            
-            document.getElementById('tabVal').className = m === 'validade' ? 
-                "flex-1 py-2 rounded-lg text-[10px] font-black transition-all bg-yellow-600 text-black shadow-lg uppercase" : 
-                "flex-1 py-2 rounded-lg text-[10px] font-black transition-all text-slate-500 uppercase";
-                
-            document.getElementById('tabEnd').className = m === 'endereco' ? 
-                "flex-1 py-2 rounded-lg text-[10px] font-black transition-all bg-yellow-600 text-black shadow-lg uppercase" : 
-                "flex-1 py-2 rounded-lg text-[10px] font-black transition-all text-slate-500 uppercase";
+            document.getElementById('tabVal').className = m === 'validade' ? "flex-1 py-3 rounded-lg text-[10px] font-black transition-all bg-yellow-600 text-black shadow-lg" : "flex-1 py-3 rounded-lg text-[10px] font-black transition-all text-slate-500";
+            document.getElementById('tabEnd').className = m === 'endereco' ? "flex-1 py-3 rounded-xl text-[10px] font-black transition-all bg-yellow-600 text-black shadow-lg" : "flex-1 py-4 rounded-xl text-[10px] font-black transition-all text-slate-500";
         };
 
         window.generateZPL = () => {
-            if(!window.queue.length) {
-                window.showToast("BUFFER VAZIO");
-                return;
-            }
-            
+            if(!window.queue.length) return;
             let full = "";
             const clean = (t, type) => {
                 if (!t) return "";
@@ -609,29 +493,15 @@
                 let l = `^XA\n^CI28^PW812^LL1218^LH0,0\n`;
                 l += render(t, 0);
                 if(b) l += render(b, 600);
-                l += `^XZ\n`; 
-                full += l;
+                l += `^XZ\n`; full += l;
             }
-            
             document.getElementById('finalZPL').value = full;
             document.getElementById('finalZPL').classList.remove('hidden');
             window.showToast("ENGINE COMPILED");
         };
 
-        window.copyZPL = () => { 
-            const a = document.getElementById('finalZPL'); 
-            a.select(); 
-            navigator.clipboard.writeText(a.value).then(() => window.showToast("COPIED")); 
-        };
-        
-        window.downloadFile = () => { 
-            const blob = new Blob([document.getElementById('finalZPL').value], {type: 'text/plain'}); 
-            const a = document.createElement('a'); 
-            a.href = URL.createObjectURL(blob); 
-            a.download = `zk47_out_${Date.now()}.zpl`; 
-            a.click(); 
-        };
-        
+        window.copyZPL = () => { const a = document.getElementById('finalZPL'); a.select(); navigator.clipboard.writeText(a.value).then(() => window.showToast("COPIED")); };
+        window.downloadFile = () => { const blob = new Blob([document.getElementById('finalZPL').value], {type: 'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `zk47_out.zpl`; a.click(); };
         window.showToast = (msg) => { 
             const t = document.getElementById('toast'); 
             t.querySelector('span').innerText = msg; 
@@ -641,11 +511,6 @@
                 t.classList.replace('opacity-100', 'opacity-0'); 
                 t.classList.replace('translate-y-0', 'translate-y-10'); 
             }, 3000); 
-        };
-        
-        // Inicialização
-        window.onload = () => {
-            window.setMode('validade');
         };
     </script>
 </body>
