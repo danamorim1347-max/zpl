@@ -10,101 +10,116 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
         :root { --gold: #FFD700; --bg: #010409; }
-        body { background-color: var(--bg); color: white; font-family: sans-serif; }
-        .glass { background: #0d1117; border: 1px solid #30363d; border-radius: 1.5rem; padding: 1.5rem; }
-        .input-pro { background: #000; border: 1px solid #30363d; color: white; padding: 12px; border-radius: 8px; width: 100%; font-size: 1.1rem; text-align: center; outline: none; }
-        .input-pro:focus { border-color: var(--gold); }
-        .btn-gold { background: linear-gradient(to bottom, #FFD700, #B8860B); color: black; font-weight: bold; padding: 12px; border-radius: 8px; width: 100%; text-transform: uppercase; }
-        .btn-gold:active { transform: scale(0.98); }
-        .dev-footer { background: linear-gradient(to right, #FFD700, #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold; }
+        
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: #f8fafc; overflow-x: hidden; background-image: radial-gradient(circle at 50% -20%, #443308 0%, transparent 50%); }
+        .glass { background: #0d1117; border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 1.5rem; padding: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .input-pro { background: #000; border: 1px solid #30363d; color: white; outline: none; font-family: 'JetBrains Mono', monospace; border-radius: 10px; padding: 12px; width: 100%; font-size: 1.2rem; font-weight: bold; text-align: center; }
+        .input-pro:focus { border-color: var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
+        .btn-primary { background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%); border-radius: 12px; font-weight: 800; text-transform: uppercase; color: #000; padding: 14px; width: 100%; }
+        .dev-footer { background: linear-gradient(135deg, #f8fafc 30%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
+        .alien-logo { filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4)); animation: float 4s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center">
+<body class="min-h-screen p-2 md:p-6 flex flex-col items-center">
 
-    <div class="w-full max-w-2xl space-y-6">
+    <div id="loader" class="fixed inset-0 z-[100] bg-slate-950/98 backdrop-blur-md flex flex-col items-center justify-center hidden text-center px-6">
+        <div class="w-12 h-12 border-4 border-yellow-900/30 border-t-yellow-500 rounded-full animate-spin"></div>
+        <p class="mt-4 text-yellow-500 font-black uppercase text-[10px] tracking-widest">Transmitindo...</p>
+    </div>
+
+    <div class="w-full max-w-4xl space-y-4 pb-20">
         
         <!-- HEADER -->
-        <header class="flex flex-col items-center glass border-yellow-500/30">
-            <div class="w-20 h-20 mb-2">
-                <svg viewBox="0 0 100 100" class="fill-yellow-500">
+        <header class="flex flex-col items-center justify-center gap-4 glass p-6">
+            <div class="alien-logo w-20 h-20 bg-slate-900 border-2 border-yellow-500 flex items-center justify-center rounded-full">
+                <svg viewBox="0 0 100 100" class="w-12 h-12 fill-yellow-500">
                     <path d="M50,10 C30,10 15,30 15,55 C15,75 35,90 50,90 C65,90 85,75 85,55 C85,30 70,10 50,10 Z" />
                     <ellipse cx="32" cy="50" rx="12" ry="18" fill="#000" transform="rotate(-15 32 50)" />
                     <ellipse cx="68" cy="50" rx="12" ry="18" fill="#000" transform="rotate(15 68 50)" />
                 </svg>
             </div>
-            <button onclick="window.loadFromCloud()" class="text-[10px] border border-yellow-600 px-4 py-1 rounded text-yellow-500 font-bold uppercase">Sincronizar Banco</button>
+            <button onclick="window.loadFromCloud()" class="bg-yellow-900/20 text-yellow-500 px-6 py-2 rounded-xl text-[10px] font-black border border-yellow-800 uppercase tracking-tighter">
+                <i class="fa-solid fa-satellite-dish mr-2"></i> Sync Cloud
+            </button>
         </header>
 
-        <!-- DATABASE IMPORT -->
-        <section class="glass space-y-4">
-            <div class="flex justify-between text-[10px] font-bold text-gray-500 uppercase">
-                <span>Base de Dados</span>
-                <span id="prodCount" class="text-yellow-500">0 itens</span>
-            </div>
-            <input type="file" id="fileInput" class="hidden" onchange="window.handleFileUpload(this)">
-            <button onclick="document.getElementById('fileInput').click()" class="border-2 border-dashed border-gray-700 w-full py-4 rounded-xl text-gray-500 text-sm">
-                Selecionar Excel (.xlsx)
-            </button>
-            <button id="btnPush" onclick="window.saveToCloud()" class="hidden text-[10px] text-yellow-600 underline w-full">Subir base para nuvem</button>
-        </section>
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            
+            <div class="lg:col-span-5 space-y-4">
+                <!-- IMPORT -->
+                <section class="glass space-y-3">
+                    <div class="flex justify-between items-center text-[9px] font-black uppercase text-yellow-700">
+                        <span>Database Node</span>
+                        <div id="prodCount" class="text-yellow-500">0 ITEMS</div>
+                    </div>
+                    <label class="block border-2 border-dashed border-yellow-900/40 rounded-xl p-4 text-center cursor-pointer">
+                        <p class="text-[10px] font-black text-yellow-700 uppercase italic">Inject master_db.xlsx</p>
+                        <input type="file" id="fileInput" class="hidden" onchange="window.handleFileUpload(this)">
+                    </label>
+                    <button id="btnPushCloud" onclick="window.saveToCloud()" class="hidden w-full bg-yellow-600/10 text-yellow-500 border border-yellow-500/20 py-2 rounded-lg text-[9px] font-black uppercase">Push Cloud</button>
+                </section>
 
-        <!-- INPUTS -->
-        <section class="glass space-y-4">
-            <div class="flex gap-2 p-1 bg-black rounded-lg">
-                <button onclick="window.setMode('validade')" id="btnVal" class="flex-1 py-2 rounded bg-yellow-500 text-black font-bold text-xs uppercase">Validade</button>
-                <button onclick="window.setMode('endereco')" id="btnEnd" class="flex-1 py-2 rounded text-gray-500 font-bold text-xs uppercase">Endereço</button>
+                <!-- INPUTS -->
+                <section class="glass space-y-4">
+                    <div class="flex p-1 bg-slate-900 rounded-xl border border-slate-800">
+                        <button onclick="window.setMode('validade')" id="tabVal" class="flex-1 py-2 rounded-lg text-[10px] font-black transition-all bg-yellow-600 text-black">Validade</button>
+                        <button onclick="window.setMode('endereco')" id="tabEnd" class="flex-1 py-2 rounded-lg text-[10px] font-black text-slate-500">Endereço</button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <input type="text" id="mainCode" class="input-pro" placeholder="Scan Barcode..." onchange="window.handleManualScan(this)">
+                        <div id="previewName" class="text-[10px] font-bold text-yellow-500 truncate uppercase text-center min-h-[1.5rem]"></div>
+
+                        <div id="valRow" class="grid grid-cols-2 gap-3">
+                            <input type="text" id="valDate" class="input-pro text-center" placeholder="MMAAAA" maxlength="7" oninput="window.maskDate(this)">
+                            <input type="number" id="valQty" class="input-pro text-center" value="1" placeholder="Etq">
+                        </div>
+
+                        <div id="massArea" class="hidden">
+                            <textarea id="endMassList" class="w-full input-pro h-40 text-[10px] uppercase p-3" placeholder="Cole os códigos aqui..."></textarea>
+                        </div>
+
+                        <div id="qtyItemRow" class="flex items-center justify-between p-3 bg-slate-950/50 rounded-xl border border-yellow-900/20">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="qtyToggle" checked class="w-5 h-5 accent-yellow-500">
+                                <span class="text-[9px] font-black text-yellow-700 uppercase">Imprimir Qtd?</span>
+                            </label>
+                            <input type="number" id="qtyItm" class="w-20 input-pro text-yellow-500 font-bold" value="1">
+                        </div>
+
+                        <button onclick="window.addItem()" class="btn-primary">Transmitir</button>
+                    </div>
+                </section>
             </div>
 
-            <div id="formValidade" class="space-y-4">
-                <input type="text" id="valCode" class="input-pro" placeholder="Bipar Código" onchange="window.handleCodeChange(this)">
-                <div id="valName" class="text-center text-yellow-500 font-bold text-xs uppercase min-h-[1rem]"></div>
-                <div class="flex gap-2">
-                    <input type="text" id="valDate" class="input-pro" placeholder="Data (122026)" maxlength="6">
-                    <input type="number" id="valQty" class="input-pro" value="1" placeholder="Qtd">
-                </div>
-                <button onclick="window.addItem('validade')" class="btn-gold">Adicionar</button>
+            <!-- FILA -->
+            <div class="lg:col-span-7 flex flex-col h-full">
+                <section class="glass flex-grow flex flex-col min-h-[400px]">
+                    <div class="flex justify-between items-center mb-4 border-b border-yellow-900/20 pb-3 font-black uppercase text-[10px] text-white">
+                        <div>Buffer Queue (<span id="queueBadge">0</span>)</div>
+                        <button onclick="window.clearQueue()" class="text-red-500">Wipe</button>
+                    </div>
+                    <div class="flex-grow overflow-y-auto bg-slate-950/40 rounded-2xl h-[28rem]">
+                        <table class="w-full text-left text-xs"><tbody id="queueTable" class="divide-y divide-yellow-900/10"></tbody></table>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 mt-6">
+                        <button onclick="window.generateZPL()" class="bg-yellow-500 text-black font-black py-4 rounded-xl uppercase text-[10px] tracking-widest active:scale-95">Gerar ZPL</button>
+                        <button id="btnCopy" onclick="window.copyZPL()" disabled class="bg-slate-800 text-yellow-700 font-black py-4 rounded-xl border border-yellow-900/30 uppercase text-[10px]">Copiar</button>
+                    </div>
+                </section>
             </div>
+        </main>
 
-            <div id="formEndereco" class="hidden space-y-4">
-                <div class="flex gap-2 mb-2">
-                    <button onclick="window.setSubMode('unit')" id="subUnit" class="flex-1 text-[10px] font-bold text-yellow-500">UNITÁRIO</button>
-                    <button onclick="window.setSubMode('mass')" id="subMass" class="flex-1 text-[10px] font-bold text-gray-600">MASSA</button>
-                </div>
-                <div id="areaUnit">
-                    <input type="text" id="endCode" class="input-pro" placeholder="Bipar Unidade" onchange="window.handleCodeChange(this)">
-                    <div id="endName" class="text-center text-yellow-500 font-bold text-xs uppercase mt-2"></div>
-                </div>
-                <div id="areaMass" class="hidden">
-                    <textarea id="endList" class="input-pro h-32 text-xs" placeholder="Cole os códigos aqui..."></textarea>
-                </div>
-                <button onclick="window.addItem('endereco')" class="btn-gold">Adicionar Itens</button>
-            </div>
-        </section>
-
-        <!-- FILA -->
-        <section class="glass">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xs font-bold uppercase">Fila de Impressão (<span id="queueBadge">0</span>)</h2>
-                <button onclick="window.clearQueue()" class="text-red-500 text-[10px] font-bold uppercase">Limpar</button>
-            </div>
-            <div class="max-h-60 overflow-y-auto border border-gray-800 rounded-lg custom-scrollbar">
-                <table class="w-full text-xs text-left">
-                    <tbody id="queueTable" class="divide-y divide-gray-800"></tbody>
-                </table>
-            </div>
-            <div class="grid grid-cols-2 gap-2 mt-4">
-                <button onclick="window.generateZPL()" class="btn-gold py-4">Gerar ZPL</button>
-                <button onclick="window.downloadFile()" class="bg-gray-800 text-white font-bold rounded-lg uppercase text-[10px]">Baixar .ZPL</button>
-                <button onclick="window.copyZPL()" class="col-span-2 bg-gray-900 text-gray-400 py-2 rounded text-[10px] uppercase font-bold">Copiar Código</button>
-            </div>
-            <textarea id="finalZPL" class="hidden w-full mt-4 h-20 bg-black text-green-500 p-2 text-[10px] border border-gray-800"></textarea>
-        </section>
-
-        <footer class="text-center py-6">
-            <div class="dev-footer text-xl">Benilson Amorim</div>
-            <p class="text-[9px] text-gray-600 uppercase tracking-widest mt-1">ZK47 Galactic Protocol &copy; 2024</p>
+        <footer class="flex flex-col items-center justify-center py-10">
+            <h2 class="dev-name-effect text-2xl">Benilson Amorim</h2>
         </footer>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-yellow-600 text-black px-10 py-3 rounded-full shadow-2xl font-black text-[9px] uppercase tracking-widest opacity-0 transition-all duration-500 z-[100]">
+        <span>Ação Realizada</span>
     </div>
 
     <script type="module">
@@ -117,186 +132,207 @@
         window.inventory = [];
         window.queue = [];
         window.mode = 'validade';
-        window.subMode = 'unit';
 
         // --- FETCH E REALTIME ---
         async function fetchQueue() {
-            const { data } = await supabase.from('print_queue').select('*').order('id', { ascending: true });
-            window.queue = data || [];
-            window.updateUI();
+            const { data, error } = await supabase.from('print_queue').select('*').order('created_at', { ascending: true });
+            if (!error) { window.queue = data || []; window.updateUI(); }
         }
 
-        supabase.channel('custom-all-channel')
+        supabase.channel('nebula-channel')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'print_queue' }, () => fetchQueue())
             .subscribe();
 
         fetchQueue();
 
-        // --- LÓGICA DE EXCEL ---
+        // --- SCAN LOGIC (BLINDADA V85) ---
+        window.handleManualScan = (el) => {
+            const val = el.value.replace(/\D/g,'');
+            const p = window.findProdExact(val);
+            if(p) {
+                document.getElementById('previewName').innerText = p.NOM;
+                document.getElementById('qtyItm').value = p.QTY_DEFAULT || '1';
+            } else {
+                document.getElementById('previewName').innerText = "Não Reconhecido";
+            }
+        };
+
+        window.extractShortCode = (v) => {
+            let clean = String(v).replace(/\D/g,'');
+            if(clean.length === 13) return clean.slice(7, 12);
+            if(clean.length >= 7) return clean.slice(-6, -1);
+            return clean;
+        };
+
+        window.findProdExact = (code) => {
+            if (!code) return null;
+            const full = String(code).trim();
+            const short = window.extractShortCode(full);
+            return window.inventory.find(i => String(i.COD).trim() === full || String(i.COD).trim() === short || String(i.COD).trim() === String(parseInt(short)));
+        };
+
+        // --- DATA HANDLERS ---
         window.handleFileUpload = async (input) => {
             const f = input.files[0]; if (!f) return;
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
                 const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
                 const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
                 window.inventory = json.slice(1).map(x => ({
                     COD: String(x[0]||"").trim(), NOM: String(x[1]||"").trim(),
                     RUA: String(x[4]||"").trim(), RCK: String(x[5]||"").trim(),
-                    LIN: String(x[6]||"").trim(), COL: String(x[7]||"").trim()
+                    LIN: String(x[6]||"").trim(), COL: String(x[7]||"").trim(),
+                    QTY_DEFAULT: '1'
                 })).filter(i => i.COD);
-                document.getElementById('prodCount').innerText = `${window.inventory.length} itens`;
+                document.getElementById('lockOverlay').classList.add('hidden');
+                document.getElementById('prodCount').innerText = `${window.inventory.length} MASTER`;
                 document.getElementById('btnPush').classList.remove('hidden');
             };
             reader.readAsArrayBuffer(f);
         };
 
         window.saveToCloud = async () => {
-            await supabase.from('products').delete().neq('id', 0);
-            const CHUNK = 500;
-            for(let i=0; i < window.inventory.length; i += CHUNK) {
-                await supabase.from('products').insert(window.inventory.slice(i, i + CHUNK));
+            document.getElementById('loader').classList.remove('hidden');
+            await supabase.from('products').delete().neq('COD', 'X');
+            const CHUNK = 400;
+            for (let i = 0; i < Math.ceil(window.inventory.length / CHUNK); i++) {
+                await supabase.from('products').insert(window.inventory.slice(i*CHUNK, (i+1)*CHUNK));
             }
-            alert("Base sincronizada com a nuvem!");
+            document.getElementById('loader').classList.add('hidden');
+            window.showToast("BASE SINCRONIZADA");
         };
 
         window.loadFromCloud = async () => {
+            document.getElementById('loader').classList.remove('hidden');
             const { data } = await supabase.from('products').select('*');
             if(data) {
                 window.inventory = data;
-                document.getElementById('prodCount').innerText = `${data.length} itens (Nuvem)`;
-            }
-        };
-
-        // --- LÓGICA DE SCANNER E BUSCA ---
-        window.handleCodeChange = (el) => {
-            const clean = el.value.replace(/\D/g,'');
-            const p = window.findProd(clean);
-            const display = window.mode === 'validade' ? 'valName' : 'endName';
-            document.getElementById(display).innerText = p ? p.NOM : "Não encontrado";
-        };
-
-        window.findProd = (code) => {
-            if(!code) return null;
-            const full = String(code);
-            const short = full.length === 13 ? full.slice(7, 12) : full.slice(-5);
-            return window.inventory.find(i => String(i.COD) === full || String(i.COD) === short || String(i.COD) === String(parseInt(short)));
-        };
-
-        // --- ADICIONAR ITEM ---
-        window.addItem = async (m) => {
-            document.getElementById('loader').classList.remove('hidden');
-            
-            if (m === 'endereco' && window.subMode === 'mass') {
-                const list = document.getElementById('endList').value.split(/[\n,;\s]+/).filter(x => x);
-                const items = list.map(c => {
-                    const p = window.findProd(c) || { NOM: 'Desconhecido' };
-                    return { codigo: c, tempName: p.NOM, fullData: p, created_at: Date.now() };
-                });
-                await supabase.from('print_queue').insert(items);
-                document.getElementById('endList').value = "";
-            } else {
-                const idCode = m === 'validade' ? 'valCode' : 'endCode';
-                const code = document.getElementById(idCode).value;
-                const p = window.findProd(code) || { NOM: 'Desconhecido' };
-                const qty = parseInt(document.getElementById('valQty')?.value) || 1;
-                const val = document.getElementById('valDate')?.value || "";
-                
-                const batch = [];
-                for(let i=0; i<qty; i++) {
-                    batch.push({ codigo: code, validade: val, tempName: p.NOM, fullData: p, created_at: Date.now() });
-                }
-                await supabase.from('print_queue').insert(batch);
-                document.getElementById(idCode).value = "";
-                if(document.getElementById('valDate')) document.getElementById('valDate').value = "";
+                document.getElementById('lockOverlay').classList.add('hidden');
+                document.getElementById('prodCount').innerText = `${data.length} CLOUD`;
             }
             document.getElementById('loader').classList.add('hidden');
         };
 
-        window.removeItem = async (id) => await supabase.from('print_queue').delete().eq('id', id);
-        window.clearQueue = async () => await supabase.from('print_queue').delete().neq('id', 0);
+        // --- ADIÇÃO ---
+        window.addItem = async () => {
+            document.getElementById('loader').classList.remove('hidden');
+            const printQty = document.getElementById('qtyToggle').checked;
 
-        // --- UI UTILS ---
+            if (window.mode === 'endereco' && !document.getElementById('endMass').classList.contains('hidden')) {
+                const list = document.getElementById('endMassList').value.split(/[\n,;\s]+/).filter(x => x);
+                const items = list.map(c => {
+                    const p = window.findProdExact(c) || { NOM: 'Desconhecido' };
+                    return { codigo: c, validade: "", tempName: p.NOM, fullData: { ...p, qtyItm: printQty ? (p.QTY_DEFAULT||"1") : "" }, created_at: Date.now() };
+                });
+                await supabase.from('print_queue').insert(items);
+                document.getElementById('endMassList').value = "";
+            } else {
+                const codeEl = document.getElementById(window.mode === 'validade' ? 'valCode' : 'endCode');
+                const fullCode = codeEl.value.replace(/\D/g,'');
+                if(!fullCode) { document.getElementById('loader').classList.add('hidden'); return; }
+
+                const p = window.findProdExact(fullCode) || { NOM: 'Desconhecido', COD: fullCode };
+                const qtyEtq = parseInt(document.getElementById('valQty').value) || 1;
+                const qtyItm = document.getElementById('qtyItm').value;
+
+                if(printQty) await supabase.from('products').update({ QTY_DEFAULT: qtyItm }).eq('COD', p.COD);
+
+                const batch = [];
+                for(let i=0; i < qtyEtq; i++) {
+                    batch.push({
+                        codigo: fullCode, validade: window.mode==='validade'?document.getElementById('valDate').value:"",
+                        tempName: p.NOM, fullData: { ...p, qtyItm: printQty ? qtyItm : "" }, created_at: Date.now() + i
+                    });
+                }
+                await supabase.from('print_queue').insert(batch);
+                codeEl.value = ""; document.getElementById('previewName').innerText = "";
+            }
+            document.getElementById('loader').classList.add('hidden');
+            window.showToast("BUFFER ATUALIZADO");
+        };
+
+        window.removeItem = async (id) => await supabase.from('print_queue').delete().eq('id', id);
+        window.clearQueue = async () => { if(confirm("Limpar?")) await supabase.from('print_queue').delete().neq('codigo', 'X'); };
+
         window.setMode = (m) => {
             window.mode = m;
             document.getElementById('formValidade').classList.toggle('hidden', m !== 'validade');
             document.getElementById('formEndereco').classList.toggle('hidden', m !== 'endereco');
-            document.getElementById('btnVal').className = m === 'validade' ? "flex-1 py-2 rounded bg-yellow-500 text-black font-bold text-xs uppercase" : "flex-1 py-2 rounded text-gray-500 font-bold text-xs uppercase";
-            document.getElementById('btnEnd').className = m === 'endereco' ? "flex-1 py-2 rounded bg-yellow-500 text-black font-bold text-xs uppercase" : "flex-1 py-2 rounded text-gray-500 font-bold text-xs uppercase";
+            document.getElementById('btnVal').className = m === 'validade' ? "flex-1 py-2 rounded-lg text-[10px] font-black transition-all bg-yellow-600 text-black" : "flex-1 py-2 text-[10px] font-black text-slate-500";
+            document.getElementById('btnEnd').className = m === 'endereco' ? "flex-1 py-2 rounded-lg text-[10px] font-black transition-all bg-yellow-600 text-black" : "flex-1 py-2 text-[10px] font-black text-slate-500";
         };
 
         window.setSubMode = (s) => {
-            window.subMode = s;
-            document.getElementById('areaUnit').classList.toggle('hidden', s !== 'unit');
-            document.getElementById('areaMass').classList.toggle('hidden', s !== 'mass');
-            document.getElementById('subUnit').classList.toggle('text-yellow-500', s === 'unit');
-            document.getElementById('subMass').classList.toggle('text-yellow-500', s === 'mass');
+            document.getElementById('endManual').classList.toggle('hidden', s !== 'unit');
+            document.getElementById('endMass').classList.toggle('hidden', s !== 'mass');
+            document.getElementById('subUnit').className = s === 'unit' ? "flex-1 text-[10px] font-black text-yellow-500" : "flex-1 text-[10px] text-slate-600";
+            document.getElementById('subMass').className = s === 'mass' ? "flex-1 text-[10px] font-black text-yellow-500" : "flex-1 text-[10px] text-slate-600";
         };
 
-        window.maskDate = (val) => {
-            let v = val.replace(/\D/g,'');
+        window.maskDate = (el) => {
+            let v = el.value.replace(/\D/g,'');
             if(v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2,6);
-            return v;
+            el.value = v;
         };
-        // Aplica mascara no input de data
-        document.getElementById('valDate').addEventListener('keyup', (e) => {
-            if(e.key !== 'Backspace') e.target.value = window.maskDate(e.target.value);
-        });
 
         window.updateUI = () => {
             const tb = document.getElementById('queueTable');
             document.getElementById('queueBadge').innerText = window.queue.length;
             tb.innerHTML = window.queue.map((i, idx) => `
                 <tr class="border-b border-gray-900">
-                    <td class="p-3 text-gray-600 font-bold">${idx+1}</td>
+                    <td class="p-3 text-gray-700 font-bold">${idx+1}</td>
                     <td class="p-3">
                         <div class="font-bold text-gray-200">${i.codigo}</div>
                         <div class="text-[9px] text-gray-500 uppercase">${i.tempName}</div>
                     </td>
-                    <td class="p-3 text-yellow-500 font-bold">${i.validade || '--'}</td>
-                    <td class="p-3 text-right">
-                        <button onclick="window.removeItem(${i.id})" class="text-red-500"><i class="fa-solid fa-xmark"></i></button>
-                    </td>
+                    <td class="p-3 text-yellow-500 font-bold text-center">${i.validade ? i.validade : (i.fullData.qtyItm ? 'Q:'+i.fullData.qtyItm : '--')}</td>
+                    <td class="p-3 text-right"><button onclick="window.removeItem(${i.id})" class="text-red-500"><i class="fa-solid fa-x"></i></button></td>
                 </tr>`).join('');
-            document.getElementById('btnDownload').disabled = window.queue.length === 0;
+            document.getElementById('btnCopy').disabled = window.queue.length === 0;
+            document.getElementById('btnCopy').classList.toggle('opacity-30', window.queue.length === 0);
         };
 
         window.generateZPL = () => {
-            let zpl = "";
-            window.queue.forEach((item, idx) => {
-                const d = item.fullData || {};
-                const fullCod = item.codigo;
-                const shortCod = fullCod.length === 13 ? fullCod.slice(7, 12) : fullCod.slice(-5);
-                
-                if (idx % 2 === 0) zpl += "^XA\n^CI28^PW812^LL1218^LH0,0\n";
-                const y = (idx % 2 === 0) ? 0 : 600;
+            if(!window.queue.length) return;
+            let full = "";
+            const clean = (t, type) => {
+                if (!t) return "";
+                let s = String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+                if (type === 'R') s = s.replace(/^RUA[:\s]*/g, "");
+                if (type === 'K') s = s.replace(/^(RACK|RCK)[:\s]*/g, "");
+                if (type === 'L') s = s.replace(/^(LINHA|LIN)[:\s]*/g, "");
+                if (type === 'C') s = s.replace(/^(COLUNA|COL)[:\s]*/g, "");
+                return s.trim().substring(0, 28);
+            };
 
-                zpl += `^FO0,${y+10}^A0N,120,80^FB812,1,0,C,1^FD${shortCod}^FS\n`;
-                if(item.validade) {
-                    zpl += `^FO235,${y+20}^GB550,65,75^FS\n`;
-                    zpl += `^FO250,${y+30}^A0N,95,90^FR^FDVAL: ${item.validade}^FS\n`;
-                }
-                zpl += `^FO20,${y+140}^A0N,70,70^FB770,2,0,L,0^FD${d.NOM||item.tempName}^FS\n`;
-                zpl += `^FO20,${y+300}^A0N,45,45^FDRUA: ${d.RUA||'--'} - RCK: ${d.RCK||'--'}^FS\n`;
-                zpl += `^FO20,${y+350}^A0N,45,45^FDLIN: ${d.LIN||'--'} - COL: ${d.COL||'--'}^FS\n`;
-                zpl += `^BY3,3,130^FO110,${y+410}^BCN,130,Y,N,N^FD${fullCod}^FS\n`;
-                
-                if (idx % 2 !== 0 || idx === window.queue.length - 1) zpl += "^XZ\n";
-            });
-            document.getElementById('finalZPL').value = zpl;
+            for(let i=0; i<window.queue.length; i+=2) {
+                let t = window.queue[i], b = window.queue[i+1];
+                const render = (item, y) => {
+                    if(!item) return "";
+                    const d = item.fullData || {};
+                    const fullCod = String(item.codigo); 
+                    const shortCod = window.extractShortCode(fullCod);
+                    const qtyItm = d.qtyItm || ""; 
+                    let z = `^FO20,${y+30}^A0N,100,90^FD${shortCod}^FS\n`;
+                    if(item.validade) { z += `^FO235,${y+20}^GB550,65,75^FS\n^FO250,${y+30}^A0N,95,90^FR^FDVAL: ${item.validade}^FS\n`; }
+                    z += `^FO20,${y+140}^A0N,70,70^FB770,2,0,L,0^FD${clean(item.tempName)}^FS\n`;
+                    z += `^FO20,${y+300}^A0N,45,45^FDRUA: ${clean(d.RUA,'R')} - RCK: ${clean(d.RCK,'K')}^FS\n`;
+                    z += `^FO20,${y+350}^A0N,45,45^FDLIN: ${clean(d.LIN,'L')} - COL: ${clean(d.COL,'C')}^FS\n`;
+                    if(qtyItm !== "") z += `^FO580,${y+310}^A0N,80,80^FDQ:${qtyItm}^FS\n`;
+                    z += `^BY3,3,130^FO110,${y+410}^BCN,130,Y,N,N^FD${fullCod}^FS\n`;
+                    return z;
+                };
+                let l = `^XA\n^CI28^PW812^LL1218^LH0,0\n`;
+                l += render(t, 0); if(b) l += render(b, 600); l += `^XZ\n`; full += l;
+            }
+            document.getElementById('finalZPL').value = full;
             document.getElementById('finalZPL').classList.remove('hidden');
+            window.showToast("ENGINE COMPILED");
         };
 
-        window.downloadFile = () => {
-            const blob = new Blob([document.getElementById('finalZPL').value], {type: 'text/plain'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-            a.download = "etiquetas.zpl"; a.click();
-        };
-
-        window.copyZPL = () => {
-            const area = document.getElementById('finalZPL');
-            area.select(); document.execCommand('copy');
-            alert("Código copiado!");
-        };
+        window.copyZPL = () => { const a = document.getElementById('finalZPL'); a.select(); document.execCommand('copy'); window.showToast("COPIED"); };
+        window.downloadFile = () => { const blob = new Blob([document.getElementById('finalZPL').value], {type: 'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `zk47_out.zpl`; a.click(); };
+        window.showToast = (msg) => { const t = document.getElementById('toast'); t.querySelector('span').innerText = msg; t.classList.replace('opacity-0', 'opacity-100'); t.classList.replace('translate-y-10', 'translate-y-0'); setTimeout(() => { t.classList.replace('opacity-100', 'opacity-0'); t.classList.replace('translate-y-0', 'translate-y-10'); }, 3000); };
     </script>
 </body>
 </html>
