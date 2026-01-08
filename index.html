@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZPL ZK47 | Galactic Gold</title>
+    <title>ZK47 | Galactic Gold Interface</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -14,26 +14,28 @@
         :root { --gold: #FFD700; --accent: #FFD700; --bg: #010409; }
         
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: #f8fafc; overflow-x: hidden; background-image: radial-gradient(circle at 50% -20%, #443308 0%, transparent 50%); }
-        .glass { background: #0d1117; border: 1px solid rgba(255, 215, 0, 0.15); border-radius: 1.5rem; padding: 1.2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .glass { background: #0d1117; border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 1.5rem; padding: 1.2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .input-pro { background: #000; border: 1px solid #30363d; color: white; outline: none; font-family: 'JetBrains Mono', monospace; border-radius: 12px; padding: 12px; width: 100%; font-size: 1.2rem; font-weight: bold; text-align: center; }
         .input-pro:focus { border-color: var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
         .input-active { border-color: var(--gold) !important; background: #1a1608 !important; }
-        
         .btn-primary { background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%); border-radius: 14px; font-weight: 800; text-transform: uppercase; color: #000; padding: 14px; width: 100%; transition: 0.2s; }
         .btn-primary:active { transform: scale(0.95); }
 
-        .app-kb { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: #0d1117; padding: 12px; border-radius: 20px; border: 1px solid #443308; }
-        .kb-key { background: #161b22; border: 1px solid #30363d; padding: 14px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 1.4rem; color: #fff; cursor: pointer; }
+        .app-kb { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: #0d1117; padding: 12px; border-radius: 20px; border: 1px solid #443308; }
+        .kb-key { background: #161b22; border: 1px solid #30363d; padding: 15px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 1.4rem; color: #fff; cursor: pointer; transition: 0.1s; }
         .kb-key:active { background: var(--gold); color: #000; transform: scale(0.9); }
         .kb-key-action { background: #B8860B; color: #000; }
 
+        .dev-name-effect { background: linear-gradient(135deg, #f8fafc 30%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
         .alien-logo { filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4)); animation: float 4s ease-in-out infinite; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
         .switch-pro input:checked + .slider-pro { background-color: var(--gold); }
         .slider-pro { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; border-radius: 34px; }
         .slider-pro:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider-pro:before { transform: translateX(20px); background-color: #000; }
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #443308; border-radius: 10px; }
     </style>
 </head>
 <body class="min-h-screen p-2 md:p-6 flex flex-col items-center">
@@ -45,79 +47,74 @@
 
     <div class="w-full max-w-4xl space-y-4 pb-20">
         
-        <!-- HEADER APENAS ET -->
+        <!-- HEADER -->
         <header class="flex flex-col items-center justify-center gap-4 glass p-6 rounded-[2.5rem]">
-            <div class="alien-logo w-20 h-20 bg-slate-900 border-2 border-yellow-500 flex items-center justify-center rounded-full shadow-[0_0_40px_rgba(255,215,0,0.3)]">
-                <svg viewBox="0 0 100 100" class="w-12 h-12 fill-yellow-500">
+            <div class="alien-logo w-24 h-24 bg-slate-900 border-2 border-yellow-500 flex items-center justify-center rounded-full shadow-[0_0_40px_rgba(255,215,0,0.3)]">
+                <svg viewBox="0 0 100 100" class="w-14 h-14 fill-yellow-500">
                     <path d="M50,10 C30,10 15,30 15,55 C15,75 35,90 50,90 C65,90 85,75 85,55 C85,30 70,10 50,10 Z" />
                     <ellipse cx="32" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(-15 32 50)" />
                     <ellipse cx="68" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(15 68 50)" />
                 </svg>
             </div>
-            <button onclick="window.loadFromCloud()" class="bg-yellow-900/20 text-yellow-500 px-5 py-2 rounded-xl text-[10px] font-black border border-yellow-800 shadow-lg active:scale-95 uppercase tracking-widest">
-                <i class="fa-solid fa-satellite-dish mr-1"></i> Sync Nebula
+            <button onclick="window.loadFromCloud()" class="bg-yellow-900/20 text-yellow-500 px-5 py-2 rounded-xl text-[10px] font-black border border-yellow-800 shadow-lg flex items-center gap-2 active:scale-95 uppercase">
+                <i class="fa-solid fa-satellite-dish"></i> Sync Nebula Cloud
             </button>
         </header>
 
-        <main class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-4 text-left">
             <div class="lg:col-span-5 space-y-4">
                 <section class="glass p-4 rounded-3xl space-y-3">
                     <div class="flex justify-between items-center text-[8px] font-black uppercase text-yellow-700 tracking-widest">
                         <span>Database Node</span>
                         <div id="prodCount" class="text-yellow-500 font-black">0 ITEMS</div>
                     </div>
-                    <label class="block border border-dashed border-yellow-900/40 rounded-xl p-3 transition-all text-center cursor-pointer hover:bg-yellow-500/5">
-                        <p class="text-[10px] font-black text-yellow-700 uppercase italic">Inject master_db.xlsx</p>
+                    <label class="block border border-dashed border-yellow-900/40 rounded-xl p-3 hover:border-yellow-500 transition-all text-center cursor-pointer">
+                        <p class="text-[9px] font-black text-yellow-700 uppercase italic">Inject master_db.xlsx</p>
                         <input type="file" id="fileInput" class="hidden" onchange="window.handleFileUpload(this)">
                     </label>
+                    <button id="btnPushCloud" onclick="window.saveToCloud()" class="hidden w-full bg-yellow-600/10 text-yellow-500 border border-yellow-500/20 py-2 rounded-lg text-[9px] font-black uppercase">Push Nebula</button>
                 </section>
 
                 <section class="glass p-5 rounded-[2.5rem] relative">
                     <div id="lockOverlay" class="absolute inset-0 z-20 bg-slate-950/95 flex items-center justify-center rounded-[2.5rem] text-[10px] font-black uppercase tracking-[5px] text-yellow-900">System Restricted</div>
-
                     <div class="flex p-1 bg-slate-900 rounded-xl mb-6 shadow-inner border border-slate-800">
-                        <button onclick="window.setMode('validade')" id="tabVal" class="flex-1 py-3 rounded-lg text-[10px] font-black transition-all bg-yellow-600 text-black shadow-lg uppercase">Validade</button>
-                        <button onclick="window.setMode('endereco')" id="tabEnd" class="flex-1 py-3 rounded-lg text-[10px] font-black text-slate-500 uppercase">Endereço</button>
+                        <button onclick="window.setMode('validade')" id="tabVal" class="flex-1 py-2 rounded-lg text-[10px] font-black transition-all bg-yellow-600 text-black shadow-lg uppercase">Validade</button>
+                        <button onclick="window.setMode('endereco')" id="tabEnd" class="flex-1 py-2 rounded-lg text-[10px] font-black text-slate-500 uppercase">Endereço</button>
                     </div>
 
                     <div class="space-y-4">
-                        <div class="flex gap-2">
+                        <div id="singleEntry">
                             <input type="text" id="mainCode" class="input-pro" placeholder="Scan Barcode..." inputmode="none" onfocus="window.setActiveInput(this)">
-                            <button onclick="window.forceKB('mainCode')" class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-yellow-500"><i class="fa-solid fa-keyboard"></i></button>
+                            <div id="previewName" class="text-[9px] font-bold text-yellow-500 truncate uppercase mt-1 min-h-[1rem] text-center italic"></div>
                         </div>
-                        <div id="previewName" class="text-[9px] font-bold text-yellow-500 truncate uppercase mt-1 text-center min-h-[1rem] italic"></div>
 
                         <div id="valRow" class="grid grid-cols-2 gap-3 text-sm">
-                            <input type="text" id="valDate" class="input-pro" placeholder="MMAAAA" inputmode="none" onfocus="window.setActiveInput(this)">
-                            <input type="text" id="valQtyEtq" class="input-pro" value="1" inputmode="none" onfocus="window.setActiveInput(this)">
+                            <input type="text" id="valDate" class="input-pro text-center" placeholder="MMAAAA" inputmode="none" onfocus="window.setActiveInput(this)">
+                            <input type="text" id="valQtyEtq" class="input-pro text-center" value="1" inputmode="none" onfocus="window.setActiveInput(this)">
                         </div>
 
-                        <div id="endOptions" class="hidden space-y-4">
+                        <div id="endMass" class="hidden space-y-4">
                             <div class="flex gap-2 p-1 bg-slate-800 rounded-lg">
-                                <button onclick="window.switchSub('single')" id="subS" class="flex-1 py-1.5 text-[9px] font-black rounded bg-yellow-600 text-black">UNICO</button>
+                                <button onclick="window.switchSub('single')" id="subS" class="flex-1 py-1.5 text-[9px] font-black rounded bg-yellow-600 text-black shadow">UNICO</button>
                                 <button onclick="window.switchSub('mass')" id="subM" class="flex-1 py-1.5 text-[9px] font-black rounded text-slate-500 uppercase">Massa</button>
                             </div>
-                            <div id="endMass" class="hidden">
+                            <div id="areaMass" class="hidden">
                                 <textarea id="endMassList" class="w-full input-pro h-40 text-[10px] uppercase p-3" placeholder="Cole os códigos aqui..."></textarea>
                             </div>
                         </div>
 
                         <div id="qtyRow" class="flex items-center justify-between p-3 bg-slate-950/50 rounded-xl border border-yellow-900/20 shadow-inner">
                             <div class="flex items-center gap-3">
-                                <label class="switch-pro relative inline-block w-10 h-5">
-                                    <input type="checkbox" id="qtyToggle" checked onchange="window.toggleQtyInput()">
-                                    <span class="slider-pro"></span>
-                                </label>
+                                <label class="switch-pro relative inline-block w-10 h-5"><input type="checkbox" id="qtyToggle" checked onchange="window.toggleQtyInput()"><span class="slider-pro"></span></label>
                                 <span class="text-[9px] font-black text-yellow-700 uppercase tracking-widest">Imp. Qtd?</span>
                             </div>
-                            <input type="text" id="qtyItm" class="w-20 input-pro text-center text-yellow-500 font-bold" value="1" inputmode="none" onfocus="window.setActiveInput(this)">
+                            <input type="text" id="qtyItm" class="w-20 input-pro text-yellow-500 font-bold" value="1" inputmode="none" onfocus="window.setActiveInput(this)">
                         </div>
-
                         <button onclick="window.addItem()" class="w-full btn-primary py-4 text-[10px] tracking-[4px]">TRANSMITIR</button>
                     </div>
                 </section>
 
+                <!-- TECLADO APP -->
                 <section class="app-kb shadow-2xl">
                     <button onclick="window.pressKey('1')" class="kb-key">1</button>
                     <button onclick="window.pressKey('2')" class="kb-key">2</button>
@@ -128,13 +125,13 @@
                     <button onclick="window.pressKey('7')" class="kb-key">7</button>
                     <button onclick="window.pressKey('8')" class="kb-key">8</button>
                     <button onclick="window.pressKey('9')" class="kb-key">9</button>
-                    <button onclick="window.backspace()" class="kb-key kb-key-action"><i class="fa-solid fa-delete-left"></i></button>
+                    <button onclick="window.backspace()" class="kb-key kb-key-action"><i class="fa-solid fa-delete-left text-black"></i></button>
                     <button onclick="window.pressKey('0')" class="kb-key">0</button>
-                    <button onclick="window.clearInput()" class="kb-key kb-key-action"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                    <button onclick="window.clearInput()" class="kb-key kb-key-action"><i class="fa-solid fa-trash-can text-black text-sm"></i></button>
                 </section>
             </div>
 
-            <!-- BUFFER -->
+            <!-- BUFFER (SIGNAL BUFFER) -->
             <div class="lg:col-span-7 flex flex-col h-full text-sm">
                 <section class="glass p-6 rounded-[3.5rem] flex-grow flex flex-col min-h-[500px]">
                     <div class="flex justify-between items-center mb-6 border-b border-yellow-900/20 pb-4 font-black uppercase text-[10px] text-white">
@@ -142,42 +139,36 @@
                         <button onclick="window.clearQueue()" class="text-red-500 hover:text-red-400 transition font-black uppercase">Wipe</button>
                     </div>
                     <div class="flex-grow overflow-y-auto bg-slate-950/40 rounded-[2.5rem] border border-yellow-900/10 h-[28rem] custom-scrollbar">
-                        <table class="w-full text-left">
-                            <tbody id="queueTable" class="divide-y divide-yellow-900/10 text-xs"></tbody>
-                        </table>
+                        <table class="w-full text-left"><tbody id="queueTable" class="divide-y divide-yellow-900/10"></tbody></table>
                     </div>
                     <div class="grid grid-cols-2 gap-4 mt-8">
                         <button onclick="window.generateZPL()" class="bg-yellow-500 text-black font-black py-5 rounded-3xl hover:bg-yellow-400 transition uppercase shadow-2xl tracking-widest text-[12px]">Compile ZPL</button>
-                        <button id="btnDownload" onclick="window.downloadFile()" disabled class="bg-slate-800 text-yellow-700 font-black py-5 rounded-3xl border border-yellow-900/30 uppercase text-[10px] tracking-widest">Save .ZPL</button>
-                        <button id="btnCopy" onclick="window.copyZPL()" disabled class="col-span-2 bg-slate-800 text-yellow-700 font-black py-4 rounded-2xl border border-yellow-900/30 uppercase text-[9px] tracking-widest">Copy Code</button>
+                        <button id="btnDownload" onclick="window.downloadFile()" disabled class="bg-slate-800 text-yellow-700 font-black py-5 rounded-3xl border border-yellow-900/30 uppercase text-[10px] tracking-widest cursor-not-allowed">Save .ZPL</button>
+                        <button id="btnCopy" onclick="window.copyZPL()" disabled class="col-span-2 bg-slate-800 text-yellow-700 font-black py-4 rounded-2xl border border-yellow-900/30 uppercase text-[9px] tracking-widest">Copy Code to Clipboard</button>
                     </div>
                     <textarea id="finalZPL" readonly class="mt-4 w-full h-32 bg-black text-cyan-500 font-mono text-[9px] p-6 rounded-[2rem] border border-cyan-900/20 hidden shadow-inner"></textarea>
                 </section>
             </div>
         </main>
 
-        <footer class="mt-12 opacity-50 flex flex-col items-center">
-            <p class="text-[12px] font-bold tracking-[2px] text-slate-400 uppercase">Benilson Amorim</p>
-            <p class="text-[8px] uppercase tracking-widest text-slate-700 mt-1">Galactic Hardware Interface &copy; 2026</p>
+        <footer class="flex flex-col items-center justify-center py-16 gap-6 border-t border-yellow-900/30 mt-10 relative">
+            <h2 class="dev-name-effect text-3xl">Benilson Amorim</h2>
         </footer>
-    </div>
-
-    <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-yellow-600 text-black px-10 py-3 rounded-full shadow-2xl font-black text-[9px] uppercase tracking-widest opacity-0 transition-all duration-500 z-[100] border border-yellow-400">
-        <span>Transmitting...</span>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // CONFIGURAÇÃO FIREBASE ZPL47
         const firebaseConfig = {
-            apiKey: "AIzaSyB1DaTOer5_cZ-JT15FlZGapNV1nUDrhmE",
-            authDomain: "acai-delibery.firebaseapp.com",
-            projectId: "acai-delibery",
-            databaseURL: "https://acai-delibery-default-rtdb.firebaseio.com",
-            storageBucket: "acai-delibery.appspot.com",
-            messagingSenderId: "476733774850",
-            appId: "1:476733774850:web:0549e47df6ee8dc2e79b1b"
+            apiKey: "AIzaSyCiy4DOVPYYr_UtglmnVWUdZ8SqM26Neo8",
+            authDomain: "zpl47-f751d.firebaseapp.com",
+            projectId: "zpl47-f751d",
+            storageBucket: "zpl47-f751d.firebasestorage.app",
+            messagingSenderId: "919369222408",
+            appId: "1:919369222408:web:7dbe2f87af81e3f22784bd",
+            databaseURL: "https://zpl47-f751d-default-rtdb.firebaseio.com"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -195,11 +186,11 @@
             window.updateUI();
         });
 
-        // MOTOR CAPTURA BRUTO
+        // MOTOR SCANNER ANTI-GHOSTING
         document.addEventListener('keydown', (e) => {
             if(document.activeElement.tagName === 'TEXTAREA') return;
             if(e.key === 'Enter') {
-                if(scanBuffer.length > 5) {
+                if(scanBuffer.length > 3) {
                     const input = document.getElementById('mainCode');
                     input.value = scanBuffer;
                     window.handleScan(scanBuffer); scanBuffer = "";
@@ -213,7 +204,7 @@
             }
         });
 
-        // TECLADO VIRTUAL
+        // TECLADO E BARRA DATA
         window.setActiveInput = (el) => {
             window.activeInput = el;
             document.querySelectorAll('.input-pro').forEach(i => i.classList.remove('input-active'));
@@ -242,10 +233,8 @@
             if(window.activeInput.id === 'mainCode') window.handleScan(window.activeInput.value);
         };
 
-        window.forceKB = (id) => { document.getElementById(id).focus(); };
         window.clearInput = () => { if(window.activeInput) { window.activeInput.value = ""; if(window.activeInput.id === 'mainCode') document.getElementById('previewName').innerText = ""; } };
 
-        // DATA
         window.handleFileUpload = async (input) => {
             const f = input.files[0]; if (!f) return;
             const reader = new FileReader();
@@ -260,8 +249,16 @@
                 })).filter(i => i.COD);
                 document.getElementById('lockOverlay').classList.add('hidden');
                 document.getElementById('prodCount').innerText = `${window.inventory.length} MASTER`;
+                document.getElementById('btnPushCloud').classList.remove('hidden');
             };
             reader.readAsArrayBuffer(f);
+        };
+
+        window.saveToCloud = async () => {
+            document.getElementById('loader').classList.remove('hidden');
+            const obj = {}; window.inventory.forEach(i => { obj[i.COD] = i; });
+            await set(productsRef, obj);
+            document.getElementById('loader').classList.add('hidden');
         };
 
         window.loadFromCloud = async () => {
@@ -275,13 +272,6 @@
                 }
                 document.getElementById('loader').classList.add('hidden');
             }, { onlyOnce: true });
-        };
-
-        window.saveToCloud = async () => {
-            document.getElementById('loader').classList.remove('hidden');
-            const obj = {}; window.inventory.forEach(i => { obj[i.COD] = i; });
-            await set(productsRef, obj);
-            document.getElementById('loader').classList.add('hidden');
         };
 
         window.handleScan = (val) => {
@@ -310,22 +300,24 @@
 
         window.switchSub = (s) => {
             window.subMode = s;
-            document.getElementById('endManual').classList.toggle('hidden', s !== 'single');
-            document.getElementById('endMass').classList.toggle('hidden', s !== 'mass');
-            document.getElementById('subS').className = s === 'single' ? "flex-1 py-1.5 text-[9px] font-black rounded bg-cyan-600 text-white shadow" : "flex-1 py-1.5 text-[9px] font-black rounded text-slate-500 uppercase";
-            document.getElementById('subM').className = s === 'mass' ? "flex-1 py-1.5 text-[9px] font-black rounded bg-cyan-600 text-white shadow" : "flex-1 py-1.5 text-[9px] font-black rounded text-slate-500 uppercase";
+            document.getElementById('singleEntry').classList.toggle('hidden', s === 'mass');
+            document.getElementById('areaMass').classList.toggle('hidden', s === 'single');
+            document.getElementById('subS').className = s === 'single' ? "flex-1 py-1.5 text-[9px] font-black rounded bg-yellow-600 text-black" : "flex-1 py-1.5 text-[9px] font-black rounded text-slate-500 uppercase";
+            document.getElementById('subM').className = s === 'mass' ? "flex-1 py-1.5 text-[9px] font-black rounded bg-yellow-600 text-white shadow" : "flex-1 py-2 text-[9px] font-black rounded text-slate-500 uppercase";
         };
 
+        // --- ADIÇÃO CORRIGIDA ---
         window.addItem = async () => {
             document.getElementById('loader').classList.remove('hidden');
             const printQty = document.getElementById('qtyToggle').checked;
+            
             if (window.mode === 'endereco' && window.subMode === 'mass') {
                 const raw = document.getElementById('endMassList').value;
                 const lines = raw.split(/[\n,;\s]+/).filter(c => c.trim().length > 0);
-                lines.forEach(fullCode => {
+                for (const fullCode of lines) {
                     const p = window.findProdExact(fullCode) || { NOM: 'UNKNOWN' };
-                    push(queueRef, { codigo: fullCode, validade: "", tempName: p.NOM, fullData: { ...p, qtyItm: printQty ? (p.QTY_DEFAULT || "1") : "" }, created_at: Date.now() });
-                });
+                    await push(queueRef, { codigo: fullCode, validade: "", tempName: p.NOM, fullData: { ...p, qtyItm: printQty ? (p.QTY_DEFAULT || "1") : "" }, created_at: Date.now() });
+                }
                 document.getElementById('endMassList').value = "";
             } else {
                 const fullCode = document.getElementById('mainCode').value.replace(/\D/g,'');
@@ -334,17 +326,17 @@
                 if(!fullCode) { document.getElementById('loader').classList.add('hidden'); return; }
                 const p = window.findProdExact(fullCode) || { NOM: 'S/ CADASTRO', COD: fullCode };
                 if(printQty && p.COD) update(ref(db, `master_products/${p.COD}`), { QTY_DEFAULT: qtyItm });
+                
                 for(let i=0; i < qtyEtq; i++) {
-                    push(queueRef, { codigo: fullCode, validade: window.mode==='validade'?document.getElementById('valDate').value:"", tempName: p.NOM, fullData: { ...p, qtyItm: printQty ? qtyItm : "" }, created_at: Date.now() + i });
+                    await push(queueRef, { codigo: fullCode, validade: window.mode==='validade'?document.getElementById('valDate').value:"", tempName: p.NOM, fullData: { ...p, qtyItm: printQty ? qtyItm : "" }, created_at: Date.now() + i });
                 }
                 window.clearInput();
             }
             document.getElementById('loader').classList.add('hidden');
-            window.showToast("TRANSMITTED");
         };
 
         window.removeItem = (id) => remove(ref(db, `print_queue/${id}`));
-        window.clearQueue = () => { if(confirm("Limpar?")) remove(queueRef); };
+        window.clearQueue = () => { if(confirm("Wipe Memory?")) remove(queueRef); };
 
         window.updateUI = () => {
             const tb = document.getElementById('queueTable'); document.getElementById('queueBadge').innerText = window.queue.length;
@@ -358,7 +350,7 @@
                             <div class="text-[9px] text-yellow-700 font-bold uppercase truncate w-40">${i.tempName}</div>
                         </td>
                         <td class="p-4 text-yellow-500 font-mono text-[10px] text-center font-black">${i.validade ? i.validade : (i.fullData.qtyItm ? 'Q:'+i.fullData.qtyItm : '--')}</td>
-                        <td class="p-4 text-right"><button onclick="window.removeItem('${i.id}')" class="text-red-500"><i class="fa-solid fa-xmark"></i></button></td>
+                        <td class="p-4 text-right"><button onclick="window.removeItem('${i.id}')" class="w-10 h-10 rounded-xl text-yellow-900 hover:text-red-500 transition active:scale-90">X</button></td>
                     </tr>`).join('');
             }
             const has = window.queue.length > 0;
@@ -368,21 +360,16 @@
         window.setMode = (m) => {
             window.mode = m;
             document.getElementById('valRow').classList.toggle('hidden', m !== 'validade');
-            document.getElementById('endOptions').classList.toggle('hidden', m !== 'endereco');
+            document.getElementById('endMass').classList.toggle('hidden', m !== 'endereco');
             document.getElementById('tabVal').className = m === 'validade' ? "flex-1 py-3 rounded-lg text-[10px] font-black transition-all bg-yellow-600 text-black shadow-lg" : "flex-1 py-3 rounded-lg text-[10px] font-black transition-all text-slate-500";
-            document.getElementById('tabEnd').className = m === 'endereco' ? "flex-1 py-3 rounded-lg text-[10px] font-black transition-all bg-yellow-600 text-black shadow-lg" : "flex-1 py-3 rounded-lg text-[10px] font-black transition-all text-slate-500";
+            document.getElementById('tabEnd').className = m === 'endereco' ? "flex-1 py-3 rounded-xl text-[10px] font-black transition-all bg-yellow-600 text-black shadow-lg" : "flex-1 py-4 rounded-xl text-[10px] font-black transition-all text-slate-500";
         };
 
-        // --- GERAÇÃO ZPL - CORREÇÃO DE PREFIXO REPETIDO ---
         window.generateZPL = () => {
             if(!window.queue.length) return;
             let full = "";
-            // Função para remover "RUA", "RACK" etc se já estiverem no Excel
-            const strip = (t, prefix) => {
-                if(!t) return "--";
-                let s = String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
-                return s.replace(new RegExp(`^${prefix}[:\\s]*`, 'i'), "").trim();
-            };
+            const clean = (t) => { if (!t) return ""; let s = String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase(); return s.trim().substring(0, 28); };
+            const strip = (t, prefix) => { if(!t) return "--"; let s = String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase(); return s.replace(new RegExp(`^${prefix}[:\\s]*`, 'i'), "").trim(); };
 
             for(let i=0; i<window.queue.length; i+=2) {
                 let t = window.queue[i], b = window.queue[i+1];
@@ -391,15 +378,11 @@
                     const d = item.fullData || {};
                     const fullCod = String(item.codigo); 
                     const shortCod = window.extractShortCode(fullCod);
-                    
                     let z = `^FO20,${y+30}^A0N,100,90^FD${shortCod}^FS\n`;
                     if(item.validade) { z += `^FO235,${y+20}^GB550,65,75^FS\n^FO250,${y+30}^A0N,95,90^FR^FDVAL: ${item.validade}^FS\n`; }
-                    z += `^FO20,${y+140}^A0N,70,70^FB770,2,0,L,0^FD${String(item.tempName).substring(0,28)}^FS\n`;
-                    
-                    // Lógica para não repetir Rua e Rack
-                    z += `^FO20,${y+300}^A0N,45,45^FDRUA: ${strip(d.RUA, 'RUA')} - RCK: ${strip(d.RCK, '(RACK|RCK)')}^FS\n`;
-                    z += `^FO20,${y+350}^A0N,45,45^FDLIN: ${strip(d.LIN, '(LINHA|LIN)')} - COL: ${strip(d.COL, '(COLUNA|COL)')}^FS\n`;
-                    
+                    z += `^FO20,${y+140}^A0N,70,70^FB770,2,0,L,0^FD${clean(item.tempName)}^FS\n`;
+                    z += `^FO20,${y+300}^A0N,45,45^FDRUA: ${strip(d.RUA,'RUA')} - RCK: ${strip(d.RCK,'RCK')}^FS\n`;
+                    z += `^FO20,${y+350}^A0N,45,45^FDLIN: ${strip(d.LIN,'LIN')} - COL: ${strip(d.COL,'COL')}^FS\n`;
                     if(d.qtyItm) z += `^FO580,${y+310}^A0N,80,80^FDQ:${d.qtyItm}^FS\n`;
                     z += `^BY3,3,130^FO110,${y+410}^BCN,130,Y,N,N^FD${fullCod}^FS\n`;
                     return z;
@@ -408,7 +391,6 @@
             }
             document.getElementById('finalZPL').value = full;
             document.getElementById('finalZPL').classList.remove('hidden');
-            window.showToast("ENGINE READY");
         };
 
         window.copyZPL = () => { const a = document.getElementById('finalZPL'); a.select(); document.execCommand('copy'); window.showToast("COPIED"); };
