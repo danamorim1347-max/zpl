@@ -15,37 +15,34 @@
         
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-main); color: #f8fafc; overflow-x: hidden; background-image: radial-gradient(circle at 50% -20%, #443308 0%, transparent 50%); }
         .glass { background: #0d1117; border: 1px solid rgba(255, 215, 0, 0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        .glass-gold { border: 1px solid rgba(255, 215, 0, 0.4); }
         .input-pro { background: #000; border: 1px solid #30363d; color: white; outline: none; font-family: 'JetBrains Mono', monospace; border-radius: 12px; padding: 12px; width: 100%; font-size: 1.2rem; font-weight: bold; text-align: center; }
         .input-pro:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
         .input-active { border-color: var(--accent) !important; background: #1a1608 !important; }
-        .btn-primary { background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%); transition: all 0.2s; border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; font-weight: 800; text-transform: uppercase; color: #000; }
+        .btn-primary { background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%); border-radius: 14px; font-weight: 800; text-transform: uppercase; color: #000; transition: 0.2s; }
+        .btn-primary:active { transform: scale(0.95); }
         .app-kb { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: #0d1117; padding: 12px; border-radius: 20px; border: 1px solid #443308; }
-        .kb-key { background: #161b22; border: 1px solid #30363d; padding: 15px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 1.4rem; color: #fff; transition: 0.1s; cursor: pointer; }
+        .kb-key { background: #161b22; border: 1px solid #30363d; padding: 15px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 1.4rem; color: #fff; cursor: pointer; }
         .kb-key:active { background: var(--accent); color: #000; transform: scale(0.9); }
-        .kb-key-action { background: #B8860B; color: #000; }
         .dev-name-effect { background: linear-gradient(135deg, #f8fafc 30%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
-        .alien-logo { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.3)); animation: float 4s ease-in-out infinite; }
+        .alien-logo { filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4)); animation: float 4s ease-in-out infinite; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .switch-pro input:checked + .slider-pro { background-color: var(--accent); }
-        .slider-pro { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; border-radius: 34px; border: 1px solid #444; }
+        .slider-pro { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; border-radius: 34px; }
         .slider-pro:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider-pro:before { transform: translateX(20px); background-color: #000; }
-        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #443308; border-radius: 10px; }
     </style>
 </head>
 <body class="min-h-screen p-2 md:p-6 flex flex-col items-center">
 
     <div id="loader" class="fixed inset-0 z-[100] bg-slate-950/98 backdrop-blur-md flex flex-col items-center justify-center hidden text-center px-6">
         <div class="w-16 h-16 border-4 border-yellow-900/30 border-t-yellow-500 rounded-full animate-spin"></div>
-        <p id="loaderText" class="mt-4 text-yellow-500 font-black tracking-[4px] uppercase text-[10px]">Processing Nebula...</p>
+        <p class="mt-4 text-yellow-500 font-black tracking-[4px] uppercase text-[10px]">Processing Protocol...</p>
     </div>
 
     <div class="w-full max-w-4xl space-y-4 pb-20">
         
-        <!-- HEADER APENAS ET -->
-        <header class="flex flex-col items-center justify-center gap-4 glass glass-gold p-6 rounded-[2.5rem]">
+        <!-- HEADER -->
+        <header class="flex flex-col items-center justify-center gap-4 glass p-6 rounded-[2.5rem] border-yellow-500/20">
             <div class="alien-logo w-24 h-24 bg-slate-900 border-2 border-yellow-500 flex items-center justify-center rounded-full shadow-[0_0_40px_rgba(255,215,0,0.3)]">
                 <svg viewBox="0 0 100 100" class="w-14 h-14 fill-yellow-500">
                     <path d="M50,10 C30,10 15,30 15,55 C15,75 35,90 50,90 C65,90 85,75 85,55 C85,30 70,10 50,10 Z" />
@@ -53,32 +50,28 @@
                     <ellipse cx="68" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(15 68 50)" />
                 </svg>
             </div>
-            <div class="flex gap-4">
-                <button onclick="window.loadFromCloud()" class="bg-yellow-900/20 text-yellow-500 px-6 py-2 rounded-xl text-[10px] font-black border border-yellow-800 shadow-lg flex items-center gap-2 active:scale-95 uppercase tracking-widest">
-                    <i class="fa-solid fa-satellite-dish"></i> Sync Nebula
-                </button>
-                <div id="syncStatus" class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mt-3">Link: Active</div>
-            </div>
+            <button onclick="window.loadFromCloud()" class="bg-yellow-900/20 text-yellow-500 px-6 py-2 rounded-xl text-[10px] font-black border border-yellow-800 shadow-lg flex items-center gap-2 active:scale-95 uppercase tracking-widest">
+                <i class="fa-solid fa-satellite-dish"></i> Sync Nebula Cloud
+            </button>
         </header>
 
         <main class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            
             <div class="lg:col-span-5 space-y-4">
-                <!-- DATA Node -->
+                <!-- DB -->
                 <section class="glass p-4 rounded-3xl space-y-3">
                     <div class="flex justify-between items-center text-[8px] font-black uppercase text-yellow-700 tracking-[2px]">
-                        <span>Database Node</span>
-                        <div id="prodCount" class="text-yellow-500 font-black uppercase">0 ITEMS</div>
+                        <span>Storage Node</span>
+                        <div id="prodCount" class="text-yellow-500 font-black uppercase tracking-widest">0 ITEMS</div>
                     </div>
                     <label class="block border border-dashed border-yellow-900/40 rounded-xl p-3 hover:border-yellow-500 transition-all text-center cursor-pointer">
-                        <p class="text-[9px] font-black text-yellow-700 uppercase italic">Inject master_db.xlsx</p>
+                        <p class="text-[9px] font-black text-yellow-700 uppercase">Inject master_db.xlsx</p>
                         <input type="file" id="fileInput" class="hidden" onchange="window.handleFileUpload(this)">
                     </label>
-                    <button id="btnPushCloud" onclick="window.saveToCloud()" class="hidden w-full bg-yellow-600/10 text-yellow-500 border border-yellow-500/20 py-2 rounded-lg text-[9px] font-black uppercase">Push Nebula</button>
                 </section>
 
+                <!-- INPUTS -->
                 <section class="glass p-5 rounded-[2.5rem] relative">
-                    <div id="lockOverlay" class="absolute inset-0 z-20 bg-slate-950/95 flex items-center justify-center rounded-[2.5rem] text-[10px] font-black uppercase tracking-[5px] text-yellow-900">Encryption Locked</div>
+                    <div id="lockOverlay" class="absolute inset-0 z-20 bg-slate-950/95 flex items-center justify-center rounded-[2.5rem] text-[10px] font-black uppercase tracking-[5px] text-yellow-900">System Restricted</div>
 
                     <div class="flex p-1 bg-slate-900 rounded-xl mb-6 shadow-inner border border-slate-800">
                         <button onclick="window.setMode('validade')" id="tabVal" class="flex-1 py-2 rounded-lg text-[10px] font-black transition-all bg-yellow-600 text-black shadow-lg uppercase">Validade</button>
@@ -89,12 +82,12 @@
                         <div>
                             <input type="text" id="mainCode" class="input-pro" placeholder="Aguardando Scan..." 
                                    inputmode="none" autocomplete="off" onfocus="window.setActiveInput(this)">
-                            <div id="previewName" class="text-[9px] font-bold text-yellow-500 truncate uppercase mt-1 min-h-[1.2rem] text-center italic"></div>
+                            <div id="previewName" class="text-[9px] font-bold text-yellow-500 truncate uppercase mt-1 min-h-[1.5rem] text-center italic"></div>
                         </div>
 
                         <div id="valRow" class="grid grid-cols-2 gap-3 text-sm">
-                            <input type="text" id="valDate" class="input-pro text-center" placeholder="MMAAAA" inputmode="none" onfocus="window.setActiveInput(this)">
-                            <input type="text" id="valQtyEtq" class="input-pro text-center" value="1" inputmode="none" onfocus="window.setActiveInput(this)">
+                            <input type="text" id="valDate" class="input-pro" placeholder="MMAAAA" inputmode="none" onfocus="window.setActiveInput(this)">
+                            <input type="text" id="valQtyEtq" class="input-pro" value="1" inputmode="none" onfocus="window.setActiveInput(this)">
                         </div>
 
                         <div id="endMass" class="hidden">
@@ -103,15 +96,11 @@
 
                         <div id="qtyRow" class="flex items-center justify-between p-3 bg-slate-950/50 rounded-xl border border-yellow-900/20 shadow-inner">
                             <div class="flex items-center gap-3">
-                                <label class="switch-pro relative inline-block w-10 h-5">
-                                    <input type="checkbox" id="qtyToggle" checked onchange="window.toggleQtyInput()">
-                                    <span class="slider-pro"></span>
-                                </label>
+                                <label class="switch-pro relative inline-block w-10 h-5"><input type="checkbox" id="qtyToggle" checked onchange="window.toggleQtyInput()"><span class="slider-pro"></span></label>
                                 <span class="text-[9px] font-black text-yellow-700 uppercase">Imp. Qtd?</span>
                             </div>
-                            <input type="text" id="qtyItm" class="w-20 input-pro text-center text-yellow-500 font-bold" value="1" inputmode="none" onfocus="window.setActiveInput(this)">
+                            <input type="text" id="qtyItm" class="w-20 input-pro text-yellow-500 font-bold" value="1" inputmode="none" onfocus="window.setActiveInput(this)">
                         </div>
-
                         <button onclick="window.addItem()" class="w-full btn-primary py-4 text-[11px] tracking-[4px]">TRANSMITIR</button>
                     </div>
                 </section>
@@ -132,11 +121,10 @@
                 </section>
             </div>
 
-            <!-- DIREITA -->
             <div class="lg:col-span-7 flex flex-col h-full text-sm">
                 <section class="glass p-6 rounded-[3.5rem] flex-grow flex flex-col min-h-[500px]">
                     <div class="flex justify-between items-center mb-6 border-b border-yellow-900/20 pb-4 font-black uppercase text-[10px] text-white tracking-[3px]">
-                        <div>Protocol Buffer (<span id="queueBadge">0</span>)</div>
+                        <div>Signal Buffer (<span id="queueBadge">0</span>)</div>
                         <button onclick="window.clearQueue()" class="text-red-500 hover:text-red-400 transition font-black uppercase">Wipe</button>
                     </div>
                     <div class="flex-grow overflow-y-auto bg-slate-950/40 rounded-[2.5rem] border border-yellow-900/10 h-[28rem] custom-scrollbar shadow-inner">
@@ -145,9 +133,9 @@
                         </table>
                     </div>
                     <div class="grid grid-cols-2 gap-4 mt-8">
-                        <button onclick="window.generateZPL()" class="bg-yellow-500 text-black font-black py-5 rounded-3xl hover:bg-yellow-400 transition uppercase text-[12px] active:scale-95 shadow-2xl">Compile Engine</button>
+                        <button onclick="window.generateZPL()" class="bg-yellow-500 text-black font-black py-5 rounded-3xl hover:bg-yellow-400 transition uppercase text-[12px] active:scale-95 shadow-2xl">Compile Gold Engine</button>
                         <button id="btnDownload" onclick="window.downloadFile()" disabled class="bg-slate-800 text-yellow-700 font-black py-5 rounded-3xl border border-yellow-900/30 uppercase text-[10px] tracking-widest">Save .ZPL</button>
-                        <button id="btnCopy" onclick="window.copyZPL()" disabled class="col-span-2 bg-slate-800 text-yellow-700 font-black py-4 rounded-2xl border border-yellow-900/30 uppercase text-[9px] tracking-widest">Copy Code</button>
+                        <button id="btnCopy" onclick="window.copyZPL()" disabled class="col-span-2 bg-slate-800 text-yellow-700 font-black py-4 rounded-2xl border border-yellow-900/30 uppercase text-[9px] tracking-widest">Copy to Clipboard</button>
                     </div>
                     <textarea id="finalZPL" readonly class="mt-4 w-full h-32 bg-black text-yellow-500 font-mono text-[9px] p-6 rounded-[2rem] border border-yellow-900/20 hidden shadow-inner"></textarea>
                 </section>
@@ -156,7 +144,7 @@
 
         <footer class="flex flex-col items-center justify-center py-16 gap-6 border-t border-yellow-900/30 mt-10 relative">
             <h2 class="dev-name-effect text-3xl">Benilson Amorim</h2>
-            <p class="text-[9px] text-slate-800 font-black uppercase mt-1 tracking-[8px]">Galactic Hardware Interface &copy; 2026</p>
+            <p class="text-[9px] text-slate-800 font-black uppercase mt-1 tracking-[8px]">Universal Hardware Interface &copy; 2026</p>
         </footer>
     </div>
 
@@ -168,7 +156,7 @@
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
         const SUPABASE_URL = "https://dxaqwlslywmxucbjjdfj.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR4YXF3bHNseXdteHVjYmpqZGZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NzcxMDgsImV4cCI6MjA4MzQ1MzEwOH0.Lh6l-ElPaYK09ssy7LlxGhJ4jY7ORVIq7iDMv85ZC3c";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5cHh5emJxYnd6aXprcmx4aHZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NzcxMDgsImV4cCI6MjA4MzQ1MzEwOH0.Lh6l-ElPaYK09ssy7LlxGhJ4jY7ORVIq7iDMv85ZC3c";
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         window.inventory = [];
@@ -179,34 +167,21 @@
         let scanBuffer = "";
         let scanTimer = null;
 
-        // --- REALTIME SYNC (FIXED) ---
+        // FETCH REALTIME (Garante sincronização instantânea)
         async function fetchQueue() {
             const { data, error } = await supabase.from('print_queue').select('*').order('created_at', { ascending: true });
             if (!error) { window.queue = data || []; window.updateUI(); }
         }
-
-        const channel = supabase.channel('nebula-sync')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'print_queue' }, () => {
-                fetchQueue();
-            })
-            .subscribe((status) => {
-                const conn = document.getElementById('syncStatus');
-                if(status === 'SUBSCRIBED') {
-                    conn.innerText = "Signal: Active";
-                    conn.style.color = "#10b981";
-                } else {
-                    conn.innerText = "Signal: Syncing...";
-                    conn.style.color = "#ef4444";
-                }
-            });
-
+        supabase.channel('nebula-stream')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'print_queue' }, () => fetchQueue())
+            .subscribe();
         fetchQueue();
 
-        // --- SCAN CAPTURE BRUTO (ANTI-GHOSTING) ---
+        // --- MOTOR ANTI-GHOSTING (CAPTA SCANNER BRUTO) ---
         document.addEventListener('keydown', (e) => {
             if(document.activeElement.tagName === 'TEXTAREA') return;
             if(e.key === 'Enter') {
-                if(scanBuffer.length > 5) {
+                if(scanBuffer.length > 3) {
                     const input = document.getElementById('mainCode');
                     input.value = scanBuffer;
                     window.handleScan(scanBuffer);
@@ -221,7 +196,7 @@
             }
         });
 
-        // --- KEYBOARD & DATE SLASH LOGIC ---
+        // --- TECLADO VIRTUAL E DATA SLASH ---
         window.setActiveInput = (el) => {
             window.activeInput = el;
             document.querySelectorAll('.input-pro').forEach(i => i.classList.remove('input-active'));
@@ -230,13 +205,10 @@
 
         window.pressKey = (val) => {
             if(!window.activeInput) window.activeInput = document.getElementById('mainCode');
-            
             if(window.activeInput.id === 'valDate') {
                 let v = window.activeInput.value.replace(/\D/g, ''); 
                 if(v.length < 6) v += val; 
-                if(v.length >= 2) {
-                    v = v.substring(0, 2) + '/' + v.substring(2, 6);
-                }
+                if(v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2, 6);
                 window.activeInput.value = v;
             } else {
                 window.activeInput.value += val;
@@ -264,7 +236,7 @@
             }
         };
 
-        // --- DATA HANDLERS ---
+        // --- DATA LOGIC ---
         window.handleFileUpload = async (input) => {
             const f = input.files[0]; if (!f) return;
             document.getElementById('loader').classList.remove('hidden');
@@ -281,8 +253,8 @@
                     })).filter(i => i.COD);
                     document.getElementById('lockOverlay').classList.add('hidden');
                     document.getElementById('prodCount').innerText = `${window.inventory.length} MASTER`;
-                    document.getElementById('btnPushCloud').classList.remove('hidden');
-                } catch(err) { alert("Excel Error"); }
+                    window.showToast("DATABASE LOADED");
+                } catch(err) { alert("Excel Load Error"); }
                 document.getElementById('loader').classList.add('hidden');
             };
             reader.readAsArrayBuffer(f);
@@ -297,7 +269,7 @@
                 await supabase.from('products').insert(items.slice(i*CHUNK, (i+1)*CHUNK));
             }
             document.getElementById('loader').classList.add('hidden');
-            window.showToast("NEBULA UPDATED");
+            window.showToast("NEBULA CLOUD UPDATED");
         };
 
         window.loadFromCloud = async () => {
@@ -311,8 +283,8 @@
             document.getElementById('loader').classList.add('hidden');
         };
 
-        window.handleScan = (inputVal) => {
-            const clean = String(inputVal).replace(/\D/g,'');
+        window.handleScan = (fullValue) => {
+            const clean = String(fullValue).replace(/\D/g,'');
             const p = window.findProdExact(clean);
             const pr = document.getElementById('previewName');
             const qr = document.getElementById('qtyItm');
@@ -321,7 +293,7 @@
                 qr.value = p.QTY_DEFAULT || '1';
                 pr.style.color = "#FFD700";
             } else { 
-                pr.innerText = "SIGNAL NOT FOUND IN DATABASE"; 
+                pr.innerText = "NO RECORD (" + window.extractShortCode(clean) + ")"; 
                 pr.style.color = "#444";
             }
         };
@@ -334,7 +306,6 @@
         };
 
         window.findProdExact = (inputCode) => {
-            if (!inputCode) return null;
             const full = String(inputCode).trim();
             const short = window.extractShortCode(full);
             let match = window.inventory.find(i => String(i.COD).trim() === full);
@@ -405,29 +376,30 @@
                 window.clearInput();
             }
             document.getElementById('loader').classList.add('hidden');
+            window.showToast("TRANSMITTED");
         };
 
         window.removeItem = async (id) => await supabase.from('print_queue').delete().eq('id', id);
-        window.clearQueue = async () => { if(confirm("Wipe Memory?")) await supabase.from('print_queue').delete().neq('codigo', 'X_BYPASS'); };
+        window.clearQueue = async () => { if(confirm("Wipe Memory?")) await supabase.from('print_queue').delete().neq('codigo', 'X'); };
 
         window.updateUI = () => {
             const tb = document.getElementById('queueTable');
             document.getElementById('queueBadge').innerText = window.queue.length;
             if (window.queue.length === 0) {
-                tb.innerHTML = `<tr><td colspan="4" class="p-20 text-center text-slate-800 font-black uppercase tracking-[15px] opacity-20">Idle</td></tr>`;
+                tb.innerHTML = `<tr><td colspan="4" class="p-20 text-center text-slate-800 font-black uppercase tracking-[15px] opacity-20 text-[10px]">Empty</td></tr>`;
             } else {
                 tb.innerHTML = window.queue.map((i, idx) => `
                     <tr class="hover:bg-yellow-500/5 transition border-yellow-900/10 border-b">
                         <td class="p-4 text-[9px] text-yellow-900 font-black w-10 text-center">${idx+1}</td>
                         <td class="p-4 text-left">
                             <div class="font-black text-slate-100 text-sm tracking-tight uppercase">${i.codigo}</div>
-                            <div class="text-[9px] text-yellow-700 font-bold uppercase truncate w-32">${i.tempName}</div>
+                            <div class="text-[9px] text-yellow-700 font-bold uppercase truncate w-40">${i.tempName}</div>
                         </td>
-                        <td class="p-4 text-yellow-500 font-mono text-[10px] text-center font-black">
+                        <td class="p-4 text-yellow-500 font-mono text-[11px] text-center font-black">
                             ${i.validade ? i.validade : (i.fullData.qtyItm ? 'Q:'+i.fullData.qtyItm : '--')}
                         </td>
                         <td class="p-4 text-right">
-                            <button onclick="window.removeItem('${i.id}')" class="w-10 h-10 rounded-xl text-yellow-900 hover:text-red-500 transition active:scale-90"><i class="fa-solid fa-xmark"></i></button>
+                            <button onclick="window.removeItem('${i.id}')" class="w-10 h-10 rounded-xl text-yellow-900 hover:text-red-500 active:scale-90 transition"><i class="fa-solid fa-xmark"></i></button>
                         </td>
                     </tr>`).join('');
             }
