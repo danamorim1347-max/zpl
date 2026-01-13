@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ZPL ZK47 | Dev. Benilson Amorim</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
+        :root { --gold: #FFD700; --accent: #FFD700; --bg: #010409; }
+        
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: #f8fafc; overflow-x: hidden; background-image: radial-gradient(circle at 50% -20%, #443308 0%, transparent 50%); }
+        .glass { background: #0d1117; border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 1.5rem; padding: 1.2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .input-pro { background: #000; border: 1px solid #30363d; color: white; outline: none; font-family: 'JetBrains Mono', monospace; border-radius: 12px; padding: 12px; width: 100%; font-size: 1.2rem; font-weight: bold; text-align: center; }
+        .input-pro:focus { border-color: var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
+        .input-active { border-color: var(--gold) !important; background: #1a1608 !important; }
+        
+        .btn-primary { background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%); border-radius: 14px; font-weight: 800; text-transform: uppercase; color: #000; padding: 14px; width: 100%; }
+        .btn-primary:active { transform: scale(0.95); }
+
+        .app-kb { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: #0d1117; padding: 12px; border-radius: 20px; border: 1px solid #443308; }
+        .kb-key { background: #161b22; border: 1px solid #30363d; padding: 15px; border-radius: 12px; text-align: center; font-weight: 800; font-size: 1.4rem; color: #fff; cursor: pointer; transition: 0.1s; }
+        .kb-key:active { background: var(--gold); color: #000; transform: scale(0.9); }
+        .kb-key-action { background: #B8860B; color: #000; }
+
+        .dev-name-effect { background: linear-gradient(135deg, #f8fafc 30%, #FFD700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; }
+        .alien-logo { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.4)); animation: float 4s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        .switch-pro input:checked + .slider-pro { background-color: var(--gold); }
+        .slider-pro { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .4s; border-radius: 34px; }
+        .slider-pro:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider-pro:before { transform: translateX(20px); background-color: #000; }
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #443308; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen p-2 md:p-6 flex flex-col items-center">
+
+    <div id="loader" class="fixed inset-0 z-[100] bg-slate-950/98 backdrop-blur-md flex flex-col items-center justify-center hidden text-center px-6">
+        <div class="w-16 h-16 border-4 border-yellow-900/30 border-t-yellow-500 rounded-full animate-spin"></div>
+        <p id="loaderText" class="mt-4 text-yellow-500 font-black tracking-[4px] uppercase text-[10px]">Processing Nebula...</p>
+    </div>
+
+    <div class="w-full max-w-4xl space-y-4 pb-20">
+        
+        <!-- HEADER APENAS ET -->
+        <header class="flex flex-col items-center justify-center gap-4 glass p-6 rounded-[2.5rem]">
+            <div class="alien-logo w-24 h-24 bg-slate-900 border-2 border-yellow-500 flex items-center justify-center rounded-full shadow-[0_0_40px_rgba(255,215,0,0.3)]">
+                <svg viewBox="0 0 100 100" class="w-14 h-14 fill-yellow-500">
+                    <path d="M50,10 C30,10 15,30 15,55 C15,75 35,90 50,90 C65,90 85,75 85,55 C85,30 70,10 50,10 Z" />
+                    <ellipse cx="32" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(-15 32 50)" />
+                    <ellipse cx="68" cy="50" rx="12" ry="18" fill="#020617" transform="rotate(15 68 50)" />
+                </svg>
+            </div>
+            <button onclick="window.loadFromCloud()" class="bg-yellow-900/20 text-yellow-500 px-6 py-2 rounded-xl text-[10px] font-black border border-yellow-800 shadow-lg flex items-center gap-2 active:scale-95 uppercase">
+                <i class="fa-solid fa-satellite-dish"></i> Sync Nebula Cloud
+            </button>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-4 text-left">
+            <div class="lg:col-span-5 space-y-4">
+                <!-- DATA Node -->
+                <section class="glass p-4 rounded-3xl space-y-3">
+                    <div class="flex justify-between items-center text-[8px] font-black uppercase text-yellow-700 tracking-[2px]">
+                        <span>Database Node</span>
+                        <div id="prodCount" class="text-yellow-500 font-black uppercase">0 ITEMS</div>
+                    </div>
+                    <label class="block border border-dashed border-yellow-900/40 rounded-xl p-3 hover:border-yellow-500 transition-all text-center cursor-pointer">
+                        <p class="text-[10px] font-black text-yellow-700 uppercase italic">Inject master_db.xlsx</p>
+                        <input type="file" id="fileInput" class="hidden" onchange="window.handleFileUpload(this)">
+                    </label>
+                </section>
+
+                <section class="glass p-5 rounded-[2.5rem] relative">
+                    <div class="flex p-1 bg-slate-900 rounded-xl mb-6 shadow-inner border border-slate-800">
+                        <button onclick="window.setMode('validade')" id="tabVal" class="flex-1 py-2 rounded-lg text-[10px] font-black transition-all bg-yellow-600 text-black shadow-lg uppercase">Validade</button>
+                        <button onclick="window.setMode('endereco')" id="tabEnd" class="flex-1 py-2 rounded-lg text-[10px] font-black text-slate-500 transition-all uppercase">Endereço</button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <!-- CAMPO BLINDADO: Desativa corretores mobile para não apagar dígitos repetidos -->
+                            <input type="text" id="mainCode" class="input-pro" placeholder="Scan Barcode..." 
+                                   inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                                   onfocus="window.setActiveInput(this)">
+                            <div id="previewName" class="text-[9px] font-bold text-yellow-500 truncate uppercase mt-1 min-h-[1.5rem] text-center italic"></div>
+                        </div>
+
+                        <div id="valRow" class="grid grid-cols-2 gap-3 text-sm">
+                            <input type="text" id="valDate" class="input-pro text-center" placeholder="MMAAAA" inputmode="none" onfocus="window.setActiveInput(this)">
+                            <input type="text" id="valQtyEtq" class="input-pro text-center" value="1" inputmode="none" onfocus="window.setActiveInput(this)">
+                        </div>
+
+                        <div id="endOptions" class="hidden space-y-4">
+                            <div class="flex gap-2 p-1 bg-slate-800 rounded-lg">
+                                <button onclick="window.switchSub('single')" id="subS" class="flex-1 py-1.5 text-[9px] font-black rounded bg-yellow-600 text-black shadow">UNICO</button>
+                                <button onclick="window.switchSub('mass')" id="subM" class="flex-1 py-1.5 text-[9px] font-black rounded text-slate-500 uppercase">Massa</button>
+                            </div>
+                            <div id="areaMass" class="hidden">
+                                <textarea id="endMassList" class="w-full input-pro h-40 text-[10px] uppercase p-3 text-left custom-scrollbar" placeholder="Cole os códigos aqui..."></textarea>
+                            </div>
+                        </div>
+
+                        <div id="qtyRow" class="flex items-center justify-between p-3 bg-slate-950/50 rounded-xl border border-yellow-900/20 shadow-inner">
+                            <div class="flex items-center gap-3">
+                                <label class="switch-pro relative inline-block w-10 h-5"><input type="checkbox" id="qtyToggle" checked onchange="window.toggleQtyInput()"><span class="slider-pro"></span></label>
+                                <span class="text-[9px] font-black text-yellow-700 uppercase">Imp. Qtd?</span>
+                            </div>
+                            <input type="text" id="qtyItm" class="w-20 input-pro text-yellow-500 font-bold" value="1" inputmode="none" onfocus="window.setActiveInput(this)">
+                        </div>
+
+                        <button onclick="window.addItem()" class="w-full btn-primary py-4 text-[10px] tracking-[4px]">TRANSMITIR</button>
+                    </div>
+                </section>
+
+                <section class="app-kb shadow-2xl">
+                    <button onclick="window.pressKey('1')" class="kb-key">1</button>
+                    <button onclick="window.pressKey('2')" class="kb-key">2</button>
+                    <button onclick="window.pressKey('3')" class="kb-key">3</button>
+                    <button onclick="window.pressKey('4')" class="kb-key">4</button>
+                    <button onclick="window.pressKey('5')" class="kb-key">5</button>
+                    <button onclick="window.pressKey('6')" class="kb-key">6</button>
+                    <button onclick="window.pressKey('7')" class="kb-key">7</button>
+                    <button onclick="window.pressKey('8')" class="kb-key">8</button>
+                    <button onclick="window.pressKey('9')" class="kb-key">9</button>
+                    <button onclick="window.backspace()" class="kb-key kb-key-action"><i class="fa-solid fa-delete-left"></i></button>
+                    <button onclick="window.pressKey('0')" class="kb-key">0</button>
+                    <button onclick="window.clearInput()" class="kb-key kb-key-action"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                </section>
+            </div>
+
+            <!-- BUFFER -->
+            <div class="lg:col-span-7 flex flex-col h-full text-sm">
+                <section class="glass p-6 rounded-[3.5rem] flex-grow flex flex-col min-h-[500px]">
+                    <div class="flex justify-between items-center mb-6 border-b border-yellow-900/20 pb-4 font-black uppercase text-[10px] text-white tracking-[3px]">
+                        <div>Signal Buffer (<span id="queueBadge">0</span>)</div>
+                        <button onclick="window.clearQueue()" class="text-red-500 hover:text-red-400 transition font-black uppercase">Wipe</button>
+                    </div>
+                    <div class="flex-grow overflow-y-auto bg-slate-950/40 rounded-[2.5rem] border border-yellow-900/10 h-[28rem] custom-scrollbar shadow-inner">
+                        <table class="w-full text-left text-xs"><tbody id="queueTable" class="divide-y divide-yellow-900/10"></tbody></table>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mt-8">
+                        <button onclick="window.generateZPL()" class="bg-yellow-500 text-black font-black py-5 rounded-3xl hover:bg-yellow-400 transition uppercase shadow-2xl tracking-widest text-[12px]">Compile Engine</button>
+                        <button id="btnDownload" onclick="window.downloadFile()" disabled class="bg-slate-800 text-yellow-700 font-black py-5 rounded-3xl border border-yellow-900/30 uppercase text-[10px] tracking-widest">Save .ZPL</button>
+                        <button id="btnCopy" onclick="window.copyZPL()" disabled class="col-span-2 bg-slate-800 text-yellow-700 font-black py-4 rounded-2xl border border-yellow-900/30 uppercase text-[9px] tracking-widest">Copy Code</button>
+                    </div>
+                    <textarea id="finalZPL" readonly class="mt-4 w-full h-32 bg-black text-cyan-500 font-mono text-[9px] p-6 rounded-[2rem] border border-cyan-900/20 hidden shadow-inner"></textarea>
+                </section>
+            </div>
+        </main>
+
+        <footer class="flex flex-col items-center justify-center py-16 gap-6 border-t border-yellow-900/30 mt-10 relative">
+            <h2 class="dev-name-effect text-3xl">Benilson Amorim</h2>
+        </footer>
+    </div>
+
+    <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-yellow-600 text-black px-10 py-3 rounded-full shadow-2xl font-black text-[9px] uppercase tracking-widest opacity-0 transition-all duration-500 z-[100] border border-yellow-400">
+        <span>Signal Processed</span>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCiy4DOVPYYr_UtglmnVWUdZ8SqM26Neo8",
+            authDomain: "zpl47-f751d.firebaseapp.com",
+            projectId: "zpl47-f751d",
+            storageBucket: "zpl47-f751d.firebasestorage.app",
+            messagingSenderId: "919369222408",
+            appId: "1:919369222408:web:7dbe2f87af81e3f22784bd",
+            databaseURL: "https://zpl47-f751d-default-rtdb.firebaseio.com"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const queueRef = ref(db, "print_queue");
+        const productsRef = ref(db, "master_products");
+
+        window.inventory = []; window.queue = []; window.activeInput = null; window.mode = 'validade'; window.subMode = 'single';
+        let scanBuffer = ""; let scanTimer = null;
+
+        // FETCH REALTIME
+        onValue(queueRef, (snapshot) => {
+            const data = snapshot.val();
+            window.queue = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            window.updateUI();
+        });
+
+        // --- MOTOR DE CAPTURA BRUTO (FIM DO ERRO DE DÍGITOS REPETIDOS) ---
+        // Captura as teclas globais do scanner sem deixar o navegador interferir.
+        document.addEventListener('keydown', (e) => {
+            if(document.activeElement.tagName === 'TEXTAREA') return;
+
+            if(e.key === 'Enter') {
+                if(scanBuffer.length > 5) {
+                    const input = document.getElementById('mainCode');
+                    input.value = scanBuffer;
+                    window.handleScan(scanBuffer);
+                    scanBuffer = "";
+                }
+                return;
+            }
+            if(e.key.length === 1 && /[0-9]/.test(e.key)) {
+                scanBuffer += e.key;
+                clearTimeout(scanTimer);
+                scanTimer = setTimeout(() => { scanBuffer = ""; }, 500); 
+            }
+        });
+
+        window.setActiveInput = (el) => {
+            window.activeInput = el;
+            document.querySelectorAll('.input-pro').forEach(i => i.classList.remove('input-active'));
+            el.classList.add('input-active');
+        };
+
+        // --- TECLADO VIRTUAL + BARRA DATA ---
+        window.pressKey = (val) => {
+            if(!window.activeInput) window.activeInput = document.getElementById('mainCode');
+            if(window.activeInput.id === 'valDate') {
+                let v = window.activeInput.value.replace(/\D/g, ''); 
+                if(v.length < 6) v += val; 
+                if(v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2, 6);
+                window.activeInput.value = v;
+            } else { window.activeInput.value += val; }
+            if(window.activeInput.id === 'mainCode') window.handleScan(window.activeInput.value);
+        };
+
+        window.backspace = () => {
+            if(!window.activeInput) return;
+            let v = window.activeInput.value;
+            if(window.activeInput.id === 'valDate') {
+                v = v.replace(/\//g, '').slice(0, -1);
+                if(v.length >= 2) v = v.substring(0, 2) + '/' + v.substring(2, 6);
+                window.activeInput.value = v;
+            } else { window.activeInput.value = v.slice(0, -1); }
+            if(window.activeInput.id === 'mainCode') window.handleScan(window.activeInput.value);
+        };
+
+        window.clearInput = () => { if(window.activeInput) { window.activeInput.value = ""; if(window.activeInput.id === 'mainCode') document.getElementById('previewName').innerText = ""; } };
+
+        // DATA
+        window.handleFileUpload = async (input) => {
+            const f = input.files[0]; if (!f) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+                window.inventory = json.slice(1).map(x => ({
+                    COD: String(x[0]||"").trim(), NOM: String(x[1]||"").trim(),
+                    RUA: String(x[4]||"").trim(), RCK: String(x[5]||"").trim(),
+                    LIN: String(x[6]||"").trim(), COL: String(x[7]||"").trim(),
+                    QTY_DEFAULT: '1'
+                })).filter(i => i.COD);
+                document.getElementById('lockOverlay').classList.add('hidden');
+                document.getElementById('prodCount').innerText = `${window.inventory.length} MASTER`;
+            };
+            reader.readAsArrayBuffer(f);
+        };
+
+        window.loadFromCloud = async () => {
+            document.getElementById('loader').classList.remove('hidden');
+            onValue(productsRef, (snapshot) => {
+                const data = snapshot.val();
+                if(data) { window.inventory = Object.values(data); document.getElementById('lockOverlay').classList.add('hidden'); document.getElementById('prodCount').innerText = `${data.length} CLOUD`; }
+                document.getElementById('loader').classList.add('hidden');
+            }, { onlyOnce: true });
+        };
+
+        window.handleScan = (val) => {
+            const clean = String(val).replace(/\D/g,'');
+            const p = window.findProdExact(clean);
+            const pr = document.getElementById('previewName');
+            if(p) { pr.innerText = p.NOM; document.getElementById('qtyItm').value = p.QTY_DEFAULT || '1'; pr.style.color = "#FFD700"; }
+            else { pr.innerText = "SIGNAL NOT FOUND"; }
+        };
+
+        window.extractShortCode = (v) => {
+            let clean = String(v).replace(/\D/g,'');
+            if(clean.length === 13) return clean.slice(7, 12);
+            if(clean.length >= 7) return clean.slice(-6, -1);
+            return clean;
+        };
+
+        window.findProdExact = (inputCode) => {
+            if (!inputCode) return null;
+            const full = String(inputCode).trim();
+            const short = window.extractShortCode(full);
+            let match = window.inventory.find(i => String(i.COD).trim() === full);
+            if (!match) { match = window.inventory.find(i => String(i.COD).trim().replace(/^0+/, '') === short.replace(/^0+/, '')); }
+            return match;
+        };
+
+        window.toggleQtyInput = () => { document.getElementById('qtyItm').style.opacity = !document.getElementById('qtyToggle').checked ? "0.1" : "1"; };
+
+        window.switchSub = (s) => {
+            window.subMode = s;
+            document.getElementById('endManual').classList.toggle('hidden', s !== 'single');
+            document.getElementById('endMass').classList.toggle('hidden', s !== 'mass');
+            document.getElementById('subS').className = s === 'single' ? "flex-1 py-1.5 text-[9px] font-black rounded bg-yellow-600 text-black shadow" : "flex-1 py-1.5 text-[9px] font-black rounded text-slate-500 uppercase";
+            document.getElementById('subM').className = s === 'mass' ? "flex-1 py-1.5 text-[9px] font-black rounded bg-yellow-600 text-white shadow" : "flex-1 py-2 text-[9px] font-black rounded text-slate-500 uppercase";
+        };
+
+        window.addItem = async () => {
+            document.getElementById('loader').classList.remove('hidden');
+            const printQty = document.getElementById('qtyToggle').checked;
+            const m = window.mode;
+
+            if (m === 'endereco' && window.subMode === 'mass') {
+                const raw = document.getElementById('endMassList').value;
+                const lines = raw.split(/[\n,;\s]+/).filter(c => c.trim().length > 0);
+                for (const fullCode of lines) {
+                    const p = window.findProdExact(fullCode) || { NOM: 'UNKNOWN' };
+                    await push(queueRef, { codigo: fullCode, validade: "", tempName: p.NOM, fullData: { ...p, qtyItm: printQty ? (p.QTY_DEFAULT || "1") : "" }, created_at: Date.now() });
+                }
+                document.getElementById('endMassList').value = "";
+            } else {
+                const fullCode = document.getElementById('mainCode').value.replace(/\D/g,'');
+                const qtyEtq = parseInt(document.getElementById('valQtyEtq').value) || 1;
+                const qtyItm = document.getElementById('qtyItm').value;
+                if(!fullCode) { document.getElementById('loader').classList.add('hidden'); return; }
+                const p = window.findProdExact(fullCode) || { NOM: 'S/ CADASTRO', COD: fullCode };
+                if(printQty && p.COD) update(ref(db, `master_products/${p.COD}`), { QTY_DEFAULT: qtyItm });
+                for(let i=0; i < qtyEtq; i++) {
+                    await push(queueRef, { codigo: fullCode, validade: m==='validade'?document.getElementById('valDate').value:"", tempName: p.NOM, fullData: { ...p, qtyItm: printQty ? qtyItm : "" }, created_at: Date.now() + i });
+                }
+                window.clearInput();
+            }
+            document.getElementById('loader').classList.add('hidden');
+            window.showToast("TRANSMITTED");
+        };
+
+        window.removeItem = (id) => remove(ref(db, `print_queue/${id}`));
+        window.clearQueue = () => { if(confirm("Limpar?")) remove(queueRef); };
+
+        window.updateUI = () => {
+            const tb = document.getElementById('queueTable'); document.getElementById('queueBadge').innerText = window.queue.length;
+            if (window.queue.length === 0) { tb.innerHTML = `<tr><td colspan="4" class="p-20 text-center text-slate-800 font-black uppercase opacity-20 text-[10px]">Void</td></tr>`; }
+            else {
+                tb.innerHTML = window.queue.map((i, idx) => `
+                    <tr class="border-yellow-900/10 border-b">
+                        <td class="p-4 text-[9px] text-yellow-900 font-black w-10 text-center">${idx+1}</td>
+                        <td class="p-4 text-left">
+                            <div class="font-black text-slate-100 text-sm tracking-tight uppercase italic">${i.codigo}</div>
+                            <div class="text-[9px] text-yellow-700 font-bold uppercase truncate w-40">${i.tempName}</div>
+                        </td>
+                        <td class="p-4 text-yellow-500 font-mono text-[10px] text-center font-black">${i.validade ? i.validade : (i.fullData.qtyItm ? 'Q:'+i.fullData.qtyItm : '--')}</td>
+                        <td class="p-4 text-right"><button onclick="window.removeItem('${i.id}')" class="text-red-500">X</button></td>
+                    </tr>`).join('');
+            }
+            const has = window.queue.length > 0;
+            ['btnDownload', 'btnCopy'].forEach(id => { const el = document.getElementById(id); el.disabled = !has; });
+        };
+
+        window.setMode = (m) => {
+            window.mode = m;
+            document.getElementById('valRow').classList.toggle('hidden', m !== 'validade');
+            document.getElementById('endOptions').classList.toggle('hidden', m !== 'endereco');
+            document.getElementById('tabVal').className = m === 'validade' ? "flex-1 py-2 rounded-lg text-[10px] font-black transition-all bg-yellow-600 text-black shadow-lg" : "flex-1 py-2 text-[10px] font-black transition-all text-slate-500";
+            document.getElementById('tabEnd').className = m === 'endereco' ? "flex-1 py-3 rounded-xl text-[10px] font-black transition-all bg-yellow-600 text-black shadow-lg" : "flex-1 py-2 text-[10px] font-black transition-all text-slate-500";
+        };
+
+        // --- GERAÇÃO ZPL (RACK CORRIGIDO) ---
+        window.generateZPL = () => {
+            if(!window.queue.length) return;
+            let full = "";
+            const clean = (t) => { if (!t) return ""; let s = String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase(); return s.trim().substring(0, 32); };
+            const strip = (t, prefixRegex) => { 
+                if(!t) return "--"; 
+                let s = String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase(); 
+                return s.replace(new RegExp(`^${prefixRegex}[:\\s]*`, 'i'), "").trim(); 
+            };
+
+            for(let i=0; i<window.queue.length; i+=2) {
+                let t = window.queue[i], b = window.queue[i+1];
+                const render = (item, y) => {
+                    if(!item) return "";
+                    const d = item.fullData || {};
+                    const fullCod = String(item.codigo); 
+                    const shortCod = window.extractShortCode(fullCod);
+                    let z = `^FO20,${y+30}^A0N,100,90^FD${shortCod}^FS\n`;
+                    if(item.validade) { z += `^FO235,${y+20}^GB550,65,75^FS\n^FO250,${y+30}^A0N,95,90^FR^FDVAL: ${item.validade}^FS\n`; }
+                    z += `^FO20,${y+140}^A0N,70,70^FB770,2,0,L,0^FD${clean(item.tempName)}^FS\n`;
+                    
+                    // LÓGICA DE LIMPEZA RACK / RUA
+                    z += `^FO20,${y+300}^A0N,45,45^FDRUA: ${strip(d.RUA,'RUA')} - RACK: ${strip(d.RCK,'(RACK|RCK)')}^FS\n`;
+                    z += `^FO20,${y+350}^A0N,45,45^FDLIN: ${strip(d.LIN,'(LIN|LINHA)')}- COL: ${strip(d.COL,'(COL|COLUNA)')}^FS\n`;
+                    
+                    if(d.qtyItm) z += `^FO580,${y+310}^A0N,80,80^FDQ:${d.qtyItm}^FS\n`;
+                    z += `^BY3,3,130^FO110,${y+410}^BCN,130,Y,N,N^FD${fullCod}^FS\n`;
+                    return z;
+                };
+                full += `^XA\n^CI28^PW812^LL1218^LH0,0\n${render(t, 0)}${render(b, 600)}^XZ\n`;
+            }
+            document.getElementById('finalZPL').value = full;
+            document.getElementById('finalZPL').classList.remove('hidden');
+            window.showToast("ENGINE READY");
+        };
+
+        window.copyZPL = () => { const a = document.getElementById('finalZPL'); a.select(); document.execCommand('copy'); window.showToast("COPIED"); };
+        window.downloadFile = () => { const blob = new Blob([document.getElementById('finalZPL').value], {type: 'text/plain'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `zk47_out.zpl`; a.click(); };
+        window.showToast = (msg) => { const t = document.getElementById('toast'); t.querySelector('span').innerText = msg; t.classList.replace('opacity-0', 'opacity-100'); t.classList.replace('translate-y-10', 'translate-y-0'); setTimeout(() => { t.classList.replace('opacity-100', 'opacity-0'); t.classList.replace('translate-y-0', 'translate-y-10'); }, 3000); };
+    </script>
+</body>
+</html>
