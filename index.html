@@ -48,7 +48,7 @@
 
     <div class="w-full max-w-4xl space-y-4 pb-20">
         
-        <!-- HEADER APENAS ET -->
+        <!-- HEADER -->
         <header class="flex flex-col items-center justify-center gap-4 glass p-6 rounded-[2.5rem]">
             <div class="alien-logo w-24 h-24 bg-slate-900 border-2 border-yellow-500 flex items-center justify-center rounded-full shadow-[0_0_40px_rgba(255,215,0,0.3)]">
                 <svg viewBox="0 0 100 100" class="w-14 h-14 fill-yellow-500">
@@ -84,16 +84,16 @@
 
                     <div class="space-y-4">
                         <div>
-                            <!-- CAMPO BLINDADO: Desativa corretores mobile para não apagar dígitos repetidos -->
+                            <!-- CAMPO PRINCIPAL -->
                             <input type="text" id="mainCode" class="input-pro" placeholder="Scan Barcode..." 
-                                   inputmode="none" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+                                   inputmode="text" autocomplete="off" 
                                    onfocus="window.setActiveInput(this)">
                             <div id="previewName" class="text-[9px] font-bold text-yellow-500 truncate uppercase mt-1 min-h-[1.5rem] text-center italic"></div>
                         </div>
 
                         <div id="valRow" class="grid grid-cols-2 gap-3 text-sm">
-                            <input type="text" id="valDate" class="input-pro text-center" placeholder="MMAAAA" inputmode="none" onfocus="window.setActiveInput(this)">
-                            <input type="text" id="valQtyEtq" class="input-pro text-center" value="1" inputmode="none" onfocus="window.setActiveInput(this)">
+                            <input type="text" id="valDate" class="input-pro text-center" placeholder="MMAAAA" inputmode="decimal" onfocus="window.setActiveInput(this)">
+                            <input type="text" id="valQtyEtq" class="input-pro text-center" value="1" inputmode="decimal" onfocus="window.setActiveInput(this)">
                         </div>
 
                         <div id="endOptions" class="hidden space-y-4">
@@ -111,7 +111,7 @@
                                 <label class="switch-pro relative inline-block w-10 h-5"><input type="checkbox" id="qtyToggle" checked onchange="window.toggleQtyInput()"><span class="slider-pro"></span></label>
                                 <span class="text-[9px] font-black text-yellow-700 uppercase">Imp. Qtd?</span>
                             </div>
-                            <input type="text" id="qtyItm" class="w-20 input-pro text-yellow-500 font-bold" value="1" inputmode="none" onfocus="window.setActiveInput(this)">
+                            <input type="text" id="qtyItm" class="w-20 input-pro text-yellow-500 font-bold" value="1" inputmode="decimal" onfocus="window.setActiveInput(this)">
                         </div>
 
                         <button onclick="window.addItem()" class="w-full btn-primary py-4 text-[10px] tracking-[4px]">TRANSMITIR</button>
@@ -183,7 +183,6 @@
         const productsRef = ref(db, "master_products");
 
         window.inventory = []; window.queue = []; window.activeInput = null; window.mode = 'validade'; window.subMode = 'single';
-        let scanBuffer = ""; let scanTimer = null;
 
         // FETCH REALTIME
         onValue(queueRef, (snapshot) => {
@@ -192,24 +191,36 @@
             window.updateUI();
         });
 
-        // --- MOTOR DE CAPTURA BRUTO (FIM DO ERRO DE DÍGITOS REPETIDOS) ---
-        // Captura as teclas globais do scanner sem deixar o navegador interferir.
-        document.addEventListener('keydown', (e) => {
-            if(document.activeElement.tagName === 'TEXTAREA') return;
-
-            if(e.key === 'Enter') {
-                if(scanBuffer.length > 5) {
-                    const input = document.getElementById('mainCode');
-                    input.value = scanBuffer;
-                    window.handleScan(scanBuffer);
-                    scanBuffer = "";
+        // FETCH PRODUCTS & QTY (Keep synced)
+        onValue(productsRef, (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                // Merge cloud data with active inventory to ensure QTYs are up to date
+                const cloudProds = Object.values(data);
+                if(window.inventory.length === 0) {
+                     window.inventory = cloudProds;
+                     document.getElementById('prodCount').innerText = `${window.inventory.length} CLOUD`;
+                } else {
+                    // Update existing local inventory with cloud QTYs
+                    window.inventory.forEach(local => {
+                        const match = cloudProds.find(c => String(c.COD) === String(local.COD));
+                        if(match && match.QTY_DEFAULT) local.QTY_DEFAULT = match.QTY_DEFAULT;
+                    });
                 }
-                return;
             }
-            if(e.key.length === 1 && /[0-9]/.test(e.key)) {
-                scanBuffer += e.key;
-                clearTimeout(scanTimer);
-                scanTimer = setTimeout(() => { scanBuffer = ""; }, 500); 
+        });
+
+        // --- CORREÇÃO DO SCANNER ---
+        // Removida a captura manual tecla-a-tecla que causava o bug "112233 -> 123".
+        // Agora confiamos no evento 'Enter' do campo de input.
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') {
+                const active = document.activeElement;
+                if(active.id === 'mainCode' && active.value.trim() !== "") {
+                    window.handleScan(active.value);
+                    // Opcional: Se quiser adicionar direto ao apertar Enter do scanner, descomente a linha abaixo:
+                    // window.addItem(); 
+                }
             }
         });
 
@@ -219,7 +230,7 @@
             el.classList.add('input-active');
         };
 
-        // --- TECLADO VIRTUAL + BARRA DATA ---
+        // --- TECLADO VIRTUAL ---
         window.pressKey = (val) => {
             if(!window.activeInput) window.activeInput = document.getElementById('mainCode');
             if(window.activeInput.id === 'valDate') {
@@ -242,7 +253,11 @@
             if(window.activeInput.id === 'mainCode') window.handleScan(window.activeInput.value);
         };
 
-        window.clearInput = () => { if(window.activeInput) { window.activeInput.value = ""; if(window.activeInput.id === 'mainCode') document.getElementById('previewName').innerText = ""; } };
+        window.clearInput = () => { 
+            if(window.activeInput) window.activeInput.value = ""; 
+            document.getElementById('mainCode').value = ""; 
+            document.getElementById('previewName').innerText = ""; 
+        };
 
         // DATA
         window.handleFileUpload = async (input) => {
@@ -257,7 +272,6 @@
                     LIN: String(x[6]||"").trim(), COL: String(x[7]||"").trim(),
                     QTY_DEFAULT: '1'
                 })).filter(i => i.COD);
-                document.getElementById('lockOverlay').classList.add('hidden');
                 document.getElementById('prodCount').innerText = `${window.inventory.length} MASTER`;
             };
             reader.readAsArrayBuffer(f);
@@ -267,7 +281,7 @@
             document.getElementById('loader').classList.remove('hidden');
             onValue(productsRef, (snapshot) => {
                 const data = snapshot.val();
-                if(data) { window.inventory = Object.values(data); document.getElementById('lockOverlay').classList.add('hidden'); document.getElementById('prodCount').innerText = `${data.length} CLOUD`; }
+                if(data) { window.inventory = Object.values(data); document.getElementById('prodCount').innerText = `${data.length} CLOUD`; }
                 document.getElementById('loader').classList.add('hidden');
             }, { onlyOnce: true });
         };
@@ -276,8 +290,22 @@
             const clean = String(val).replace(/\D/g,'');
             const p = window.findProdExact(clean);
             const pr = document.getElementById('previewName');
-            if(p) { pr.innerText = p.NOM; document.getElementById('qtyItm').value = p.QTY_DEFAULT || '1'; pr.style.color = "#FFD700"; }
-            else { pr.innerText = "SIGNAL NOT FOUND"; }
+            
+            if(p) { 
+                pr.innerText = p.NOM; 
+                pr.style.color = "#FFD700"; 
+                
+                // CARREGA A QUANTIDADE SALVA (MEMÓRIA)
+                if(p.QTY_DEFAULT) {
+                    document.getElementById('qtyItm').value = p.QTY_DEFAULT;
+                } else {
+                    document.getElementById('qtyItm').value = "1";
+                }
+            }
+            else { 
+                pr.innerText = "SIGNAL NOT FOUND"; 
+                document.getElementById('qtyItm').value = "1";
+            }
         };
 
         window.extractShortCode = (v) => {
@@ -310,26 +338,37 @@
             document.getElementById('loader').classList.remove('hidden');
             const printQty = document.getElementById('qtyToggle').checked;
             const m = window.mode;
+            const fullCode = document.getElementById('mainCode').value.replace(/\D/g,'');
 
             if (m === 'endereco' && window.subMode === 'mass') {
                 const raw = document.getElementById('endMassList').value;
                 const lines = raw.split(/[\n,;\s]+/).filter(c => c.trim().length > 0);
-                for (const fullCode of lines) {
-                    const p = window.findProdExact(fullCode) || { NOM: 'UNKNOWN' };
-                    await push(queueRef, { codigo: fullCode, validade: "", tempName: p.NOM, fullData: { ...p, qtyItm: printQty ? (p.QTY_DEFAULT || "1") : "" }, created_at: Date.now() });
+                for (const fc of lines) {
+                    const p = window.findProdExact(fc) || { NOM: 'UNKNOWN' };
+                    await push(queueRef, { codigo: fc, validade: "", tempName: p.NOM, fullData: { ...p, qtyItm: printQty ? (p.QTY_DEFAULT || "1") : "" }, created_at: Date.now() });
                 }
                 document.getElementById('endMassList').value = "";
             } else {
-                const fullCode = document.getElementById('mainCode').value.replace(/\D/g,'');
-                const qtyEtq = parseInt(document.getElementById('valQtyEtq').value) || 1;
-                const qtyItm = document.getElementById('qtyItm').value;
                 if(!fullCode) { document.getElementById('loader').classList.add('hidden'); return; }
                 const p = window.findProdExact(fullCode) || { NOM: 'S/ CADASTRO', COD: fullCode };
-                if(printQty && p.COD) update(ref(db, `master_products/${p.COD}`), { QTY_DEFAULT: qtyItm });
+                const qtyEtq = parseInt(document.getElementById('valQtyEtq').value) || 1;
+                const qtyItm = document.getElementById('qtyItm').value;
+
+                // SALVA A QUANTIDADE NO BANCO (PERSISTÊNCIA)
+                if(printQty && p.COD) {
+                    // Atualiza local
+                    p.QTY_DEFAULT = qtyItm;
+                    // Atualiza nuvem
+                    update(ref(db, `master_products/${p.COD}`), { QTY_DEFAULT: qtyItm });
+                }
+
                 for(let i=0; i < qtyEtq; i++) {
                     await push(queueRef, { codigo: fullCode, validade: m==='validade'?document.getElementById('valDate').value:"", tempName: p.NOM, fullData: { ...p, qtyItm: printQty ? qtyItm : "" }, created_at: Date.now() + i });
                 }
+                
+                // LIMPEZA AUTOMÁTICA E FOCO
                 window.clearInput();
+                document.getElementById('mainCode').focus();
             }
             document.getElementById('loader').classList.add('hidden');
             window.showToast("TRANSMITTED");
@@ -387,7 +426,6 @@
                     if(item.validade) { z += `^FO235,${y+20}^GB550,65,75^FS\n^FO250,${y+30}^A0N,95,90^FR^FDVAL: ${item.validade}^FS\n`; }
                     z += `^FO20,${y+140}^A0N,70,70^FB770,2,0,L,0^FD${clean(item.tempName)}^FS\n`;
                     
-                    // LÓGICA DE LIMPEZA RACK / RUA
                     z += `^FO20,${y+300}^A0N,45,45^FDRUA: ${strip(d.RUA,'RUA')} - RACK: ${strip(d.RCK,'(RACK|RCK)')}^FS\n`;
                     z += `^FO20,${y+350}^A0N,45,45^FDLIN: ${strip(d.LIN,'(LIN|LINHA)')}- COL: ${strip(d.COL,'(COL|COLUNA)')}^FS\n`;
                     
