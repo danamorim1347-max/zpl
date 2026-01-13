@@ -51,35 +51,16 @@
         </p>
     </div>
 
-    <!-- LOGIN -->
-    <section id="loginScreen" class="w-full max-w-md glass-panel p-8 rounded-2xl z-50 mt-8 relative overflow-hidden">
-        <div id="loginLoader" class="loader-overlay"><i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-500"></i><p class="text-xs text-slate-300 mt-2">Acessando...</p></div>
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/30"><i class="fa-solid fa-shield-halved text-3xl text-blue-500"></i></div>
-            <h1 class="text-2xl font-bold text-white">Login Seguro</h1>
-            <p class="text-xs text-slate-400 mt-1">ZPL Master System</p>
-        </div>
-        <form onsubmit="handleLogin(event)" class="space-y-4">
-            <div><label class="text-xs font-bold text-slate-400 uppercase">Usuário</label><input type="text" id="loginUser" class="input-std w-full rounded-xl py-3 px-4 text-sm mt-1" required></div>
-            <div><label class="text-xs font-bold text-slate-400 uppercase">Senha</label><input type="password" id="loginPass" class="input-std w-full rounded-xl py-3 px-4 text-sm mt-1" required></div>
-            <p id="loginError" class="text-xs text-red-500 font-bold text-center h-4"></p>
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl shadow-lg transition">Acessar</button>
-        </form>
-        <div class="mt-6 text-center border-t border-slate-700 pt-4"><p class="text-[10px] text-slate-500">Desenvolvido por Benilson Amorim</p></div>
-    </section>
-
-    <!-- APP PRINCIPAL -->
-    <div id="appContent" class="hidden w-full max-w-6xl pb-10 mt-4">
+    <!-- APP PRINCIPAL (AGORA VISÍVEL DIRETO) -->
+    <div id="appContent" class="w-full max-w-6xl pb-10 mt-4">
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div class="text-center md:text-left">
                 <h1 class="text-3xl font-extrabold text-white tracking-tight"><i class="fa-solid fa-print text-accent mr-2"></i>ZPL <span class="text-accent">Master</span></h1>
-                <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Usuário: <span id="userNameDisplay" class="text-white font-bold">...</span></p>
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Status: <span class="text-emerald-400 font-bold">Online</span></p>
             </div>
             <div class="flex items-center gap-3">
                 <button onclick="syncQueue()" class="bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white px-3 py-2 rounded-lg text-xs font-bold border border-blue-500/50 flex items-center gap-1 transition"><i class="fa-solid fa-rotate"></i> Atualizar Fila</button>
-                <button onclick="openAdminPanel()" id="btnAdmin" class="hidden bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-xs font-bold shadow border border-purple-500 flex items-center gap-2"><i class="fa-solid fa-users-gear"></i> Admin</button>
                 <button onclick="toggleModal(true)" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-xs font-bold transition shadow border border-slate-600 flex items-center gap-2"><i class="fa-solid fa-circle-question"></i> Ajuda</button>
-                <button onclick="doLogout()" class="bg-red-900/30 hover:bg-red-600 text-red-200 hover:text-white px-4 py-2 rounded-lg text-xs font-bold border border-red-900/50">Sair</button>
             </div>
         </header>
 
@@ -124,7 +105,6 @@
                         <div>
                             <label class="text-xs font-bold text-slate-400 uppercase">Código</label>
                             <input type="text" id="valCode" inputmode="numeric" class="input-std w-full rounded-xl py-3 px-4 font-mono text-lg mt-1" placeholder="Scan..." oninput="this.value=this.value.replace(/[^0-9]/g,''); checkValCode(this)" onkeydown="handleEnter(event, 'valCode')">
-                            <!-- PREVIEW COM CONTADOR -->
                             <div id="valPreview" class="h-6 text-xs font-bold mt-1 pl-1 truncate flex items-center"></div>
                         </div>
                         <div id="dateContainer" class="hidden">
@@ -149,7 +129,6 @@
                                 <input type="text" id="endCode" inputmode="numeric" class="input-std flex-grow rounded-xl py-3 px-4 font-mono text-lg" placeholder="Scan..." oninput="this.value=this.value.replace(/[^0-9]/g,''); checkEndCode(this)" onkeydown="handleEnter(event, 'endCode')">
                                 <button onclick="addEndItem()" class="bg-accent hover:brightness-110 text-white px-5 rounded-xl font-bold text-lg"><i class="fa-solid fa-plus"></i></button>
                             </div>
-                            <!-- PREVIEW COM CONTADOR ENDEREÇO -->
                             <div id="endPreview" class="h-6 text-xs font-bold mt-1 pl-1 truncate text-slate-500 flex items-center"></div>
                         </div>
                         <div id="massEntry" class="hidden space-y-2">
@@ -176,23 +155,6 @@
         </main>
     </div>
 
-    <!-- MODAL DE ADMIN -->
-    <div id="adminModal" class="fixed inset-0 z-[60] hidden">
-        <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" onclick="toggleAdmin(false)"></div>
-        <div class="relative bg-slate-800 rounded-2xl max-w-lg w-full mx-4 my-10 shadow-2xl border border-purple-500/50 overflow-hidden transform scale-95 opacity-0 transition-all duration-300 left-1/2 top-10 -translate-x-1/2">
-            <div class="bg-purple-900/50 p-6 flex justify-between items-center border-b border-purple-500/30"><h3 class="text-xl font-bold text-white flex items-center gap-2">Gestão Usuários</h3><button onclick="toggleAdmin(false)" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button></div>
-            <div class="p-6">
-                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-700 mb-6">
-                    <h4 class="text-sm font-bold text-purple-400 mb-3 uppercase">Novo Usuário</h4>
-                    <div class="grid grid-cols-2 gap-3 mb-3"><input type="text" id="newUsername" class="input-std rounded-lg px-3 py-2 text-sm" placeholder="Usuário"><input type="text" id="newPassword" class="input-std rounded-lg px-3 py-2 text-sm" placeholder="Senha"></div>
-                    <div class="flex gap-3"><select id="newRole" class="input-std rounded-lg px-3 py-2 text-sm flex-grow"><option value="operador">Operador</option><option value="admin">Administrador</option></select><button onclick="createUser()" class="bg-purple-600 hover:bg-purple-500 text-white px-4 rounded-lg font-bold text-xs">Criar</button></div>
-                </div>
-                <h4 class="text-sm font-bold text-slate-400 mb-2 uppercase">Ativos</h4>
-                <div class="max-h-48 overflow-y-auto rounded-lg border border-slate-700"><table class="w-full text-left text-sm text-slate-400"><thead class="bg-slate-900 text-xs text-slate-300 sticky top-0"><tr><th class="p-2">Usuário</th><th class="p-2">Cargo</th><th class="p-2 text-right">Ação</th></tr></thead><tbody id="adminUserTable" class="divide-y divide-slate-700 bg-slate-800"></tbody></table></div>
-            </div>
-        </div>
-    </div>
-
     <!-- MODAL DE AJUDA & SUPORTE -->
     <div id="helpModal" class="fixed inset-0 z-[100] hidden">
         <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" onclick="toggleModal(false)"></div>
@@ -216,76 +178,24 @@
         const SUPABASE_URL = 'https://pnuxyipdkjecsbotbupa.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBudXh5aXBka2plY3Nib3RidXBhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5NzU0MTcsImV4cCI6MjA4MTU1MTQxN30.fK3StqY8KXVg_6GuUdXy5GahUqJVVt1e-x89qmLZUXQ';
         
-        // Cria a conexão (apenas uma vez)
+        // Cria a conexão
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // VARIÁVEIS GLOBAIS
-        let currentUser = ''; 
-        let userRole = '';
+        // Definimos 'operador' como padrão já que o login foi removido
+        let currentUser = 'operador'; 
         let inventory = []; 
         let printQueue = []; 
         let currentMode = 'validade'; 
         let serialPort = null;
 
-        // VERIFICA SE JÁ ESTÁ LOGADO
-        if(sessionStorage.getItem('zplUser')) { 
-            currentUser = sessionStorage.getItem('zplUser'); 
-            userRole = sessionStorage.getItem('zplRole') || 'operador'; 
-            showApp(currentUser); 
-        }
-
-        // --- FUNÇÃO DE LOGIN CORRIGIDA ---
-        async function handleLogin(e) { 
-            e.preventDefault(); 
-            const u = document.getElementById('loginUser').value.trim();
-            const p = document.getElementById('loginPass').value.trim();
-
-            if (!u || !p) return alert("Preencha usuário e senha");
-
-            document.getElementById('loginLoader').classList.add('active');
-            
-            try {
-                const { data, error } = await supabase
-                    .from('usuarios')
-                    .select('*')
-                    .eq('username', u)
-                    .single();
-
-                document.getElementById('loginLoader').classList.remove('active');
-
-                if (error || !data) {
-                    alert("Erro: Usuário não encontrado ou erro de conexão.\n" + (error ? error.message : ""));
-                    return;
-                }
-
-                if (data.password === p) {
-                    sessionStorage.setItem('zplUser', data.username); 
-                    sessionStorage.setItem('zplRole', data.role); 
-                    currentUser = data.username; 
-                    userRole = data.role; 
-                    showApp(data.username); 
-                } else {
-                    alert("Senha incorreta!");
-                }
-            } catch (err) {
-                document.getElementById('loginLoader').classList.remove('active');
-                alert("Erro grave no script: " + err.message);
-                console.error(err);
-            }
-        }
+        // INICIALIZAÇÃO IMEDIATA
+        window.onload = function() {
+            syncQueue();
+        };
 
         // --- FUNÇÕES DO SISTEMA ---
-        function showApp(u) { 
-            document.getElementById('loginScreen').style.display='none'; 
-            document.getElementById('appContent').classList.remove('hidden'); 
-            document.getElementById('userNameDisplay').innerText = u; 
-            document.body.classList.remove('justify-center'); 
-            document.body.classList.add('pt-10'); 
-            syncQueue(); 
-            if(userRole === 'admin') document.getElementById('btnAdmin').classList.remove('hidden');
-        }
-
-        function doLogout(){ sessionStorage.clear(); location.reload(); }
+        function setMode(m) { currentMode=m;document.getElementById('formValidade').classList.toggle('hidden',m!=='validade');document.getElementById('formEndereco').classList.toggle('hidden',m!=='endereco');const root=document.documentElement,btnVal=document.getElementById('btnVal'),btnEnd=document.getElementById('btnEnd');if(m==='validade'){root.style.setProperty('--accent','#3b82f6');btnVal.className="flex-1 py-3 rounded-xl text-sm font-bold bg-accent text-white shadow-lg transition";btnEnd.className="flex-1 py-3 rounded-xl text-sm font-bold bg-slate-800 text-slate-400 hover:text-white transition";setTimeout(()=>document.getElementById('valCode').focus(),100);}else{root.style.setProperty('--accent','#a855f7');btnEnd.className="flex-1 py-3 rounded-xl text-sm font-bold bg-accent text-white shadow-lg transition";btnVal.className="flex-1 py-3 rounded-xl text-sm font-bold bg-slate-800 text-slate-400 hover:text-white transition";switchTab('unit');} }
 
         // --- SINCRONIZAÇÃO (BANCO DE DADOS) ---
         async function saveToCloud() {
@@ -308,7 +218,6 @@
         }
 
         async function syncQueue() {
-            if(!currentUser) return;
             const { data, error } = await supabase.from('fila_impressao')
                 .select('*')
                 .order('created_at', { ascending: true }); 
@@ -412,52 +321,9 @@
             document.getElementById('dataLoaded').classList.add('hidden'); 
         }
 
-        // --- ADMIN ---
-        function toggleAdmin(show) { 
-            const m=document.getElementById('adminModal'); 
-            if(show){
-                m.classList.remove('hidden'); 
-                setTimeout(()=>m.children[1].classList.remove('scale-95','opacity-0'),10); 
-                listUsers();
-            } else {
-                m.children[1].classList.add('scale-95','opacity-0'); 
-                setTimeout(()=>m.classList.add('hidden'),300);
-            } 
-        }
-        function openAdminPanel() { toggleAdmin(true); }
-        
-        async function listUsers() { 
-            const tbody=document.getElementById('adminUserTable'); 
-            tbody.innerHTML='<tr><td colspan="3" class="p-2 text-center">...</td></tr>'; 
-            const { data } = await supabase.from('usuarios').select('*').order('id',{ascending:true}); 
-            tbody.innerHTML=''; 
-            if(data) data.forEach(u => {
-                tbody.innerHTML += `<tr class="hover:bg-slate-700/50"><td class="p-2 font-mono text-white">${u.username}</td><td class="p-2 text-xs"><span class="px-2 py-1 rounded ${u.role==='admin'?'bg-purple-500/20 text-purple-300':'bg-blue-500/20 text-blue-300'}">${u.role}</span></td><td class="p-2 text-right">${u.username!=='danzk47'?`<button onclick="deleteUser(${u.id})" class="text-red-400 hover:text-red-200"><i class="fa-solid fa-trash"></i></button>`:''}</td></tr>`;
-            }); 
-        }
-        
-        async function createUser() { 
-            const u=document.getElementById('newUsername').value.trim();
-            const p=document.getElementById('newPassword').value.trim();
-            const r=document.getElementById('newRole').value; 
-            if(!u||!p)return alert("Preencha tudo"); 
-            const { error } = await supabase.from('usuarios').insert({username:u, password:p, role:r}); 
-            if(error) alert(error.message); 
-            else { showToast("Criado!"); document.getElementById('newUsername').value=''; document.getElementById('newPassword').value=''; listUsers(); } 
-        }
-        
-        async function deleteUser(id) { 
-            if(confirm("Excluir?")) { 
-                await supabase.from('usuarios').delete().eq('id', id); 
-                listUsers(); 
-                showToast("Removido."); 
-            } 
-        }
-
         // --- INTERFACE UTILS ---
         function toggleModal(show) { const m=document.getElementById('helpModal'),c=document.getElementById('modalContent'); if(show){m.classList.remove('hidden'); setTimeout(()=>{c.classList.remove('scale-95','opacity-0');c.classList.add('scale-100','opacity-100');},10);}else{c.classList.remove('scale-100','opacity-100');c.classList.add('scale-95','opacity-0');setTimeout(()=>m.classList.add('hidden'),300);} }
         function switchTab(t) { const bg=document.getElementById('tabBg'),bU=document.getElementById('btnTabUnit'),bM=document.getElementById('btnTabMass'); if(t==='unit'){bg.style.transform='translateX(0)';bU.classList.replace('text-slate-400','text-white');bM.classList.replace('text-white','text-slate-400');document.getElementById('singleEntry').classList.remove('hidden');document.getElementById('massEntry').classList.add('hidden');document.getElementById('endCode').focus();}else{bg.style.transform='translateX(100%)';bM.classList.replace('text-slate-400','text-white');bU.classList.replace('text-white','text-slate-400');document.getElementById('singleEntry').classList.add('hidden');document.getElementById('massEntry').classList.remove('hidden');document.getElementById('endList').focus();} }
-        function setMode(m) { currentMode=m;document.getElementById('formValidade').classList.toggle('hidden',m!=='validade');document.getElementById('formEndereco').classList.toggle('hidden',m!=='endereco');const root=document.documentElement,btnVal=document.getElementById('btnVal'),btnEnd=document.getElementById('btnEnd');if(m==='validade'){root.style.setProperty('--accent','#3b82f6');btnVal.className="flex-1 py-3 rounded-xl text-sm font-bold bg-accent text-white shadow-lg transition";btnEnd.className="flex-1 py-3 rounded-xl text-sm font-bold bg-slate-800 text-slate-400 hover:text-white transition";setTimeout(()=>document.getElementById('valCode').focus(),100);}else{root.style.setProperty('--accent','#a855f7');btnEnd.className="flex-1 py-3 rounded-xl text-sm font-bold bg-accent text-white shadow-lg transition";btnVal.className="flex-1 py-3 rounded-xl text-sm font-bold bg-slate-800 text-slate-400 hover:text-white transition";switchTab('unit');} }
         function findProduct(c) { let f=inventory.find(i=>i.COD==c); if(!f) try{ let n=parseInt(c); if(!isNaN(n))f=inventory.find(i=>parseInt(i.COD)===n); }catch(e){} return f; }
         function extractEAN(v) { v=v.replace(/\D/g,''); if(v.length>=12)return v.slice(-6,-1); return v; }
         function maskDate(el) { let v=el.value.replace(/\D/g,''); if(v.length>2)v=v.substring(0,2)+'/'+v.substring(2,6); el.value=v; }
@@ -470,7 +336,7 @@
             return printQueue.filter(i => i.COD === code).length;
         }
 
-        // --- INPUT CHECKS (ATUALIZADO PARA MOSTRAR QUANTIDADE) ---
+        // --- INPUT CHECKS (COM QUANTIDADE) ---
         function checkValCode(el) { 
             let v=el.value.replace(/\D/g,''), fV=v; 
             if(v.length>=12)fV=extractEAN(v); 
@@ -479,9 +345,7 @@
             const dc=document.getElementById('dateContainer'); 
             
             if(p){
-                // Só muda o valor se for EAN longo, pra não atrapalhar digitação rápida
                 if(v.length>=12) el.value=fV; 
-                
                 const qtd = getCountInQueue(p.COD);
                 pv.innerHTML = `<span class="truncate flex-grow">${p.NOM}</span> <span class="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded ml-2 whitespace-nowrap">Qtd: ${qtd}</span>`;
                 pv.className="h-6 text-xs font-bold mt-1 pl-1 flex items-center text-success w-full"; 
@@ -509,27 +373,22 @@
             } 
         }
         
-        // --- ADD/QUEUE ACTIONS (ATUALIZADO LIMPEZA RÁPIDA) ---
+        // --- ADD/QUEUE ACTIONS (LIMPEZA RÁPIDA) ---
         async function addValItem() { 
             const elCode = document.getElementById('valCode');
             const elDate = document.getElementById('valDate');
             let c=elCode.value.replace(/\D/g,'');
             if(c.length>=12) c=extractEAN(c);
 
-            // Validade opcional se estiver vazia (para fluxo rápido) ou valida se tiver valor
             const d = elDate.value;
-            // Se quiser validar data obrigatória, descomente: if(d.length<7)return alert("Data inválida");
-
             const p=findProduct(c); 
             if(p){ 
-                // LIMPA IMEDIATAMENTE PARA PERMITIR PRÓXIMO BIPE
                 elCode.value = '';
                 elDate.value = '';
                 document.getElementById('valPreview').innerText = '';
                 document.getElementById('dateContainer').classList.add('hidden');
                 elCode.focus();
 
-                // Salva no banco (fundo)
                 await addToQueueDB(p.COD, d); 
             } else {
                 alert("Erro: Produto não encontrado.");
@@ -544,16 +403,14 @@
             
             const p = findProduct(v); 
             if(p){ 
-                // LIMPA IMEDIATAMENTE
                 el.value = '';
                 document.getElementById('endPreview').innerText = '';
                 el.focus();
 
-                // Salva
                 await addToQueueDB(p.COD, ""); 
             } else {
                 alert("Não encontrado");
-                el.value = ''; // Limpa mesmo se errar pra não travar scanner
+                el.value = '';
                 el.focus();
             } 
         }
