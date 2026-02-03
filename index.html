@@ -30,40 +30,15 @@
         .tab-btn { flex: 1; padding: 10px; font-size: 10px; font-weight: 900; text-transform: uppercase; color: #64748b; cursor: pointer; border-radius: 8px; }
         .tab-btn.active { background-color: var(--gold); color: #000; }
 
-        .location-card { background: #0d1117; border: 2px solid #FFD700; border-radius: 20px; animation: slideUp 0.3s; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
+        .location-card { background: #0d1117; border: 2px solid #FFD700; border-radius: 20px; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #443308; border-radius: 10px; }
-        
-        /* Adicionar animação suave para aparecimento do textarea */
-        #finalZPL {
-            transition: all 0.3s ease;
-        }
-        
-        /* Melhorar responsividade em telas muito pequenas */
-        @media (max-width: 640px) {
-            .app-kb .kb-key {
-                padding: 12px 8px;
-                font-size: 1.2rem;
-            }
-            
-            .glass {
-                padding: 1rem;
-            }
-        }
-        
-        /* Indicador visual melhor para modo ativo */
-        .tab-btn.active {
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-        }
     </style>
 </head>
 <body class="min-h-screen p-2 flex flex-col items-center">
 
     <div id="loader" class="fixed inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center hidden">
         <div class="w-12 h-12 border-4 border-yellow-900/30 border-t-yellow-500 rounded-full animate-spin"></div>
-        <p class="mt-4 text-yellow-500 font-black uppercase text-[10px]">Processando...</p>
     </div>
 
     <div id="toast" class="fixed top-4 right-4 bg-yellow-500 text-black px-6 py-3 rounded-xl font-black uppercase text-xs shadow-2xl opacity-0 transition-all duration-300 z-[9999]">
@@ -75,12 +50,9 @@
         <header class="flex flex-col items-center gap-4 glass p-6 rounded-[2.5rem]">
             <i class="fa-solid fa-qrcode text-yellow-500 text-3xl"></i>
             <div class="flex gap-2">
-                <button onclick="window.loadFromCloud()" class="bg-yellow-900/20 text-yellow-500 px-4 py-2 rounded-xl text-[10px] font-black border border-yellow-800 uppercase">
-                    <i class="fa-solid fa-sync"></i> Cloud Sync
-                </button>
+                <button onclick="window.loadFromCloud()" class="bg-yellow-900/20 text-yellow-500 px-4 py-2 rounded-xl text-[10px] font-black border border-yellow-800 uppercase">Cloud Sync</button>
                 <label class="bg-slate-800 text-slate-400 px-4 py-2 rounded-xl text-[10px] font-black border border-slate-700 uppercase cursor-pointer">
-                    <i class="fa-solid fa-file-excel"></i> Importar
-                    <input type="file" class="hidden" onchange="window.handleFileUpload(this)" accept=".xlsx">
+                    Importar Excel <input type="file" class="hidden" onchange="window.handleFileUpload(this)" accept=".xlsx">
                 </label>
             </div>
         </header>
@@ -96,27 +68,34 @@
 
                     <div class="space-y-4">
                         <div class="relative">
-                            <input type="text" id="mainCode" class="input-pro" placeholder="48060 ou EAN-13" inputmode="none" onfocus="window.setActiveInput(this)">
-                            <div id="qtySavedIndicator" class="absolute right-3 top-1/2 -translate-y-1/2 hidden bg-green-600 text-white text-[8px] px-2 py-1 rounded-full font-black">SALVO</div>
+                            <input type="text" id="mainCode" class="input-pro" placeholder="Digite o Código" inputmode="none" onfocus="window.setActiveInput(this)" oninput="window.updateSearch(this.value)">
                         </div>
-                        <div id="previewName" class="text-[11px] font-black text-yellow-500 text-center uppercase min-h-[1.5rem]"></div>
-
-                        <div id="locationResult" class="hidden location-card p-4 grid grid-cols-2 gap-2 text-center font-black">
-                            <div class="bg-black/60 p-2 rounded-lg border border-yellow-900/30">
-                                <div class="text-slate-500 text-[8px] uppercase">Rua</div>
-                                <div id="resRua" class="text-xl text-white">--</div>
+                        
+                        <!-- NOVO: Container para mostrar o endereço no modo localizar -->
+                        <div id="locationInfo" class="location-card p-4 hidden">
+                            <div class="text-center mb-2">
+                                <div id="previewName" class="text-[13px] font-black text-yellow-500 uppercase min-h-[1.5rem]"></div>
                             </div>
-                            <div class="bg-black/60 p-2 rounded-lg border border-yellow-900/30">
-                                <div class="text-slate-500 text-[8px] uppercase">Rack</div>
-                                <div id="resRack" class="text-xl text-white">--</div>
+                            <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                <div class="bg-black/50 p-2 rounded-lg">
+                                    <div class="text-yellow-700 font-bold">RUA</div>
+                                    <div id="infoRua" class="font-mono font-bold text-white">-</div>
+                                </div>
+                                <div class="bg-black/50 p-2 rounded-lg">
+                                    <div class="text-yellow-700 font-bold">RACK</div>
+                                    <div id="infoRack" class="font-mono font-bold text-white">-</div>
+                                </div>
+                                <div class="bg-black/50 p-2 rounded-lg">
+                                    <div class="text-yellow-700 font-bold">LINHA</div>
+                                    <div id="infoLinha" class="font-mono font-bold text-white">-</div>
+                                </div>
+                                <div class="bg-black/50 p-2 rounded-lg">
+                                    <div class="text-yellow-700 font-bold">COLUNA</div>
+                                    <div id="infoColuna" class="font-mono font-bold text-white">-</div>
+                                </div>
                             </div>
-                            <div class="bg-black/60 p-2 rounded-lg border border-yellow-900/30">
-                                <div class="text-slate-500 text-[8px] uppercase">Linha</div>
-                                <div id="resLinha" class="text-xl text-white">--</div>
-                            </div>
-                            <div class="bg-black/60 p-2 rounded-lg border border-yellow-900/30">
-                                <div class="text-slate-500 text-[8px] uppercase">Coluna</div>
-                                <div id="resColuna" class="text-xl text-white">--</div>
+                            <div class="mt-3 text-center text-[9px] text-slate-400">
+                                <i class="fas fa-map-marker-alt mr-1"></i> Endereço completo do produto
                             </div>
                         </div>
 
@@ -126,7 +105,7 @@
                         </div>
 
                         <div id="qtyRow" class="flex items-center justify-between p-3 bg-slate-950/50 rounded-xl border border-yellow-900/20">
-                            <span class="text-[9px] font-black text-yellow-700 uppercase">Imp. Qtd?</span>
+                            <span class="text-[9px] font-black text-yellow-700 uppercase">Qtd por Emb?</span>
                             <div class="flex gap-2 items-center">
                                 <input type="checkbox" id="qtyToggle" checked class="w-4 h-4 accent-yellow-500">
                                 <input type="text" id="qtyItm" class="w-16 input-pro text-sm py-1" value="1" onfocus="window.setActiveInput(this)">
@@ -166,9 +145,8 @@
                     </div>
                     <div class="grid grid-cols-2 gap-4 mt-6">
                         <button onclick="window.generateZPL()" class="bg-yellow-500 text-black font-black py-4 rounded-xl uppercase text-xs">Gerar ZPL</button>
-                        <button id="btnDownload" onclick="window.downloadFile()" disabled class="bg-slate-800 text-yellow-600 font-black py-4 rounded-xl uppercase text-xs opacity-50 cursor-not-allowed">Download .ZPL</button>
+                        <button id="btnDownload" onclick="window.downloadFile()" disabled class="bg-slate-800 text-yellow-600 font-black py-4 rounded-xl uppercase text-xs opacity-50 cursor-not-allowed">Download</button>
                     </div>
-                    <!-- TEXTAREA MOSTRADA AUTOMATICAMENTE AO GERAR -->
                     <textarea id="finalZPL" readonly class="hidden mt-4 w-full h-32 bg-black text-cyan-500 p-4 rounded-xl font-mono text-[8px]"></textarea>
                 </section>
             </div>
@@ -196,9 +174,7 @@
         window.activeInput = null;
         window.mode = 'validade';
 
-        // ============ LÓGICA DE EXTRAÇÃO E BUSCA (CORRIGIDA) ============
-        
-        // Extrai o identificador das posições 8, 9, 10, 11, 12 (Índice 7 a 11)
+        // Extrai apenas os 5 dígitos do meio (identificador)
         const extractId = (code) => {
             const clean = String(code).replace(/\D/g, '');
             if (clean.length === 13) return clean.substring(7, 12);
@@ -208,65 +184,52 @@
         window.findProductUniversal = (input) => {
             const cleanInput = String(input).replace(/\D/g, '');
             if (cleanInput.length < 5) return null;
-
-            // Pega o que pesquisar (se for 13, extrai o miolo, se for 5, usa direto)
             const searchKey = cleanInput.length === 13 ? cleanInput.substring(7, 12) : cleanInput;
-
-            return window.inventory.find(i => {
-                const dbId = extractId(i.COD);
-                return dbId === searchKey;
-            });
+            return window.inventory.find(i => extractId(i.COD) === searchKey);
         };
 
-        // ============ FUNÇÃO UPDATE SEARCH CORRIGIDA ============
         window.updateSearch = (val) => {
-            // 1. Limpa caracteres não numéricos
-            const cleanInput = String(val).replace(/\D/g, '');
-            
-            // 2. Determina o que buscar: se tem 13 dígitos, extrai os 5 centrais
-            const searchKey = cleanInput.length === 13 ? cleanInput.substring(7, 12) : cleanInput;
-            
-            // 3. Busca no inventário
-            const prod = window.inventory.find(i => {
-                const dbId = extractId(i.COD); // Extrai os 5 dígitos do código do banco
-                return dbId === searchKey;
-            });
-            
+            const prod = window.findProductUniversal(val);
             const preview = document.getElementById('previewName');
-            const panel = document.getElementById('locationResult');
-            const savedInd = document.getElementById('qtySavedIndicator');
-
+            const locationInfo = document.getElementById('locationInfo');
+            
             if (prod) {
                 preview.textContent = prod.NOM;
                 preview.style.color = "#FFD700";
                 
+                // Atualizar informações de endereço
+                document.getElementById('infoRua').textContent = prod.RUA || "-";
+                document.getElementById('infoRack').textContent = prod.RCK || "-";
+                document.getElementById('infoLinha').textContent = prod.LIN || "-";
+                document.getElementById('infoColuna').textContent = prod.COL || "-";
+                
+                // Mostrar card de localização apenas no modo localizar
                 if (window.mode === 'localizar') {
-                    panel.classList.remove('hidden');
-                    document.getElementById('resRua').textContent = prod.RUA || '--';
-                    document.getElementById('resRack').textContent = prod.RCK || '--';
-                    document.getElementById('resLinha').textContent = prod.LIN || '--';
-                    document.getElementById('resColuna').textContent = prod.COL || '--';
-                }
-
-                if (prod.QTY_DEFAULT && prod.QTY_DEFAULT !== '1') {
-                    document.getElementById('qtyItm').value = prod.QTY_DEFAULT;
-                    savedInd.classList.remove('hidden');
+                    locationInfo.classList.remove('hidden');
                 }
             } else {
-                // Mostra "NÃO CADASTRADO" apenas se tiver 5+ dígitos (ou 13 dígitos completos)
-                preview.textContent = searchKey.length >= 5 ? "PRODUTO NÃO CADASTRADO" : "";
+                preview.textContent = val.length >= 5 ? "NÃO CADASTRADO" : "";
                 preview.style.color = "#ff4444";
-                panel.classList.add('hidden');
-                savedInd.classList.add('hidden');
+                
+                // Esconder card de localização se não encontrado
+                if (window.mode === 'localizar') {
+                    locationInfo.classList.remove('hidden');
+                    document.getElementById('infoRua').textContent = "-";
+                    document.getElementById('infoRack').textContent = "-";
+                    document.getElementById('infoLinha').textContent = "-";
+                    document.getElementById('infoColuna').textContent = "-";
+                }
+            }
+            
+            // Esconder card de localização se campo vazio
+            if (!val || val.length < 5) {
+                locationInfo.classList.add('hidden');
             }
         };
 
-        // ============ GERAÇÃO ZPL (CORRIGIDA) ============
+        // ============ GERAÇÃO ZPL (CORREÇÃO DE BARCODE E RUA/RACK) ============
         window.generateZPL = () => {
-            if (window.queue.length === 0) {
-                window.showToast("Adicione itens à fila primeiro!");
-                return;
-            }
+            if (window.queue.length === 0) return;
             document.getElementById('loader').classList.remove('hidden');
 
             setTimeout(() => {
@@ -278,18 +241,42 @@
                     
                     const drawLabel = (item, y) => {
                         if (!item) return "";
-                        const d = item.fullData || {};
-                        const barCode = String(item.codigo).replace(/\D/g, '');
-                        // Identificador das posições 8-12 para o topo da etiqueta
-                        const ident = extractId(barCode);
+                        
+                        // O Identificador (Topo) é sempre os 5 dígitos
+                        const ident = extractId(item.codigo_barras);
+                        // O Código de Barras (Inferior) é o que foi digitado (13 dígitos)
+                        const barCode = item.codigo_barras; 
+                        
+                        const productName = item.tempName || "PRODUTO";
+                        const rua = (item.fullData?.RUA || "").trim();
+                        const rack = (item.fullData?.RCK || "").trim();
+                        const linha = (item.fullData?.LIN || "").trim();
+                        const coluna = (item.fullData?.COL || "").trim();
                         
                         let s = `^FO20,${y+30}^A0N,100,90^FD${ident}^FS\n`;
-                        if(item.validade) s += `^FO235,${y+20}^GB550,65,75^FS^FO250,${y+30}^A0N,95,90^FR^FDVAL: ${item.validade}^FS\n`;
-                        s += `^FO20,${y+140}^A0N,70,70^FB770,2,0,L,0^FD${cleanStr(item.tempName)}^FS\n`;
-                        s += `^FO20,${y+300}^A0N,45,45^FDRUA: ${d.RUA||''} - RACK: ${d.RCK||''}^FS\n`;
-                        s += `^FO20,${y+350}^A0N,45,45^FDLIN: ${d.LIN||''} - COL: ${d.COL||''}^FS\n`;
-                        if(d.qtyItm) s += `^FO580,${y+310}^A0N,80,80^FDQ:${d.qtyItm}^FS\n`;
-                        s += `^BY3,3,130^FO110,${y+410}^BCN,130,Y,N,N^FD${barCode}^FS\n`;
+                        
+                        if(item.validade) {
+                            s += `^FO235,${y+20}^GB550,65,75^FS^FO250,${y+30}^A0N,95,90^FR^FDVAL: ${item.validade}^FS\n`;
+                        }
+                        
+                        s += `^FO20,${y+140}^A0N,70,70^FB770,2,0,L,0^FD${cleanStr(productName)}^FS\n`;
+                        
+                        // Rua e Rack sem prefixo fixo (usa o que está no banco)
+                        if (rua || rack) {
+                            s += `^FO20,${y+300}^A0N,45,45^FD${rua}  ${rack}^FS\n`;
+                        }
+                        
+                        if (linha || coluna) {
+                            s += `^FO20,${y+350}^A0N,45,45^FDLIN: ${linha} - COL: ${coluna}^FS\n`;
+                        }
+                        
+                        if(item.fullData?.qtyItm) {
+                            s += `^FO580,${y+310}^A0N,80,80^FDQ:${item.fullData.qtyItm}^FS\n`;
+                        }
+                        
+                        // BARCODE CORRIGIDO: ^BY2 para caber 13 dígitos e ^BC (Code 128)
+                        s += `^BY2,3,130^FO60,${y+410}^BCN,130,Y,N,N^FD${barCode}^FS\n`;
+                        
                         return s;
                     };
 
@@ -298,57 +285,75 @@
                     zpl += "^XZ\n";
                 }
 
-                const area = document.getElementById('finalZPL');
-                area.value = zpl;
-                area.classList.remove('hidden');
+                document.getElementById('finalZPL').value = zpl;
+                document.getElementById('finalZPL').classList.remove('hidden');
                 document.getElementById('btnDownload').disabled = false;
-                document.getElementById('btnDownload').classList.remove('opacity-50', 'cursor-not-allowed');
+                document.getElementById('btnDownload').classList.remove('opacity-50');
                 document.getElementById('loader').classList.add('hidden');
-                window.showToast("ZPL Gerado com Sucesso!");
+                window.showToast("ZPL Gerado!");
             }, 600);
         };
 
-        // ============ FUNÇÕES DE INTERFACE ============
         window.addItem = async () => {
-            const val = document.getElementById('mainCode').value;
+            const val = document.getElementById('mainCode').value; // Valor digitado (ex: 13 dígitos)
             if(!val) return;
+            
             const p = window.findProductUniversal(val) || { NOM: 'PRODUTO AVULSO', COD: val };
             const qtyEtq = parseInt(document.getElementById('valQtyEtq').value) || 1;
             const qtyItm = document.getElementById('qtyItm').value;
 
-            // Salva quantidade padrão se o toggle estiver ativo
-            if(document.getElementById('qtyToggle').checked && p.COD) {
-                await update(ref(db, `master_products/${p.COD}`), { QTY_DEFAULT: qtyItm });
-            }
-
             for(let i=0; i<qtyEtq; i++){
                 await push(queueRef, {
-                    codigo: p.COD || val,
+                    codigo_barras: val, // Salva os 13 números para o código de barras
                     validade: window.mode === 'validade' ? document.getElementById('valDate').value : "",
                     tempName: p.NOM,
-                    fullData: { ...p, qtyItm: document.getElementById('qtyToggle').checked ? qtyItm : "" },
+                    fullData: { 
+                        ...p, 
+                        qtyItm: document.getElementById('qtyToggle').checked ? qtyItm : "" 
+                    },
                     created_at: Date.now() + i
                 });
             }
             window.clearInput();
-            window.showToast("Adicionado à fila!");
+            window.showToast("Adicionado!");
         };
 
         window.setMode = (m) => {
             window.mode = m;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(m==='validade'?'tabVal':m==='endereco'?'tabEnd':'tabLoc').classList.add('active');
+            
+            // Mostrar/ocultar elementos conforme modo
             document.getElementById('valRow').classList.toggle('hidden', m !== 'validade');
             document.getElementById('qtyRow').classList.toggle('hidden', m === 'localizar');
-            document.getElementById('btnAction').classList.toggle('hidden', m === 'localizar');
+            
+            // Mostrar card de localização apenas se houver código digitado no modo localizar
+            const mainCode = document.getElementById('mainCode').value;
+            const locationInfo = document.getElementById('locationInfo');
+            
+            if (m === 'localizar' && mainCode && mainCode.length >= 5) {
+                locationInfo.classList.remove('hidden');
+            } else {
+                locationInfo.classList.add('hidden');
+            }
+            
+            // Atualizar texto do botão principal
+            const btnAction = document.getElementById('btnAction');
+            if (m === 'localizar') {
+                btnAction.textContent = 'Localizar Produto';
+                btnAction.disabled = true;
+                btnAction.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                btnAction.textContent = 'Adicionar à Fila';
+                btnAction.disabled = false;
+                btnAction.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
             window.clearInput();
         };
 
-        // ============ FUNÇÕES DE TECLADO CORRIGIDAS ============
         window.pressKey = (val) => {
             if(!window.activeInput) window.activeInput = document.getElementById('mainCode');
-            
-            // Lógica especial para campo de data
             if(window.activeInput.id === 'valDate') {
                 let v = window.activeInput.value.replace(/\D/g, '');
                 if(v.length < 6) v += val;
@@ -356,37 +361,26 @@
                 window.activeInput.value = v;
                 return;
             }
-            
-            // Para outros campos, apenas adiciona o dígito
             window.activeInput.value += val;
-            
-            // Se for o campo principal, atualiza a busca com o valor atual
-            if(window.activeInput.id === 'mainCode') {
-                window.updateSearch(window.activeInput.value);
-            }
+            if(window.activeInput.id === 'mainCode') window.updateSearch(window.activeInput.value);
         };
 
         window.backspace = () => {
             if(!window.activeInput) return;
             window.activeInput.value = window.activeInput.value.slice(0, -1);
-            if(window.activeInput.id === 'mainCode') {
-                window.updateSearch(window.activeInput.value);
-            }
+            if(window.activeInput.id === 'mainCode') window.updateSearch(window.activeInput.value);
         };
 
         window.clearInput = () => {
             if(window.activeInput) window.activeInput.value = "";
             document.getElementById('previewName').textContent = "";
-            document.getElementById('locationResult').classList.add('hidden');
+            document.getElementById('locationInfo').classList.add('hidden');
         };
 
         window.loadFromCloud = async () => {
             document.getElementById('loader').classList.remove('hidden');
             const snap = await get(productsRef);
-            if(snap.exists()) {
-                window.inventory = Object.values(snap.val());
-                window.showToast(`Base de dados: ${window.inventory.length} itens`);
-            }
+            if(snap.exists()) window.inventory = Object.values(snap.val());
             document.getElementById('loader').classList.add('hidden');
         };
 
@@ -413,17 +407,17 @@
             document.getElementById('queueTable').innerHTML = window.queue.map((item, idx) => `
                 <tr class="border-b border-yellow-900/10">
                     <td class="p-2 font-bold text-yellow-600">${idx+1}</td>
-                    <td class="p-2"><b>${item.codigo}</b><br><small>${item.tempName}</small></td>
+                    <td class="p-2"><b>${item.codigo_barras}</b><br><small>${item.tempName}</small></td>
                     <td class="p-2 text-right"><button onclick="window.removeItem('${item.id}')" class="text-red-500"><i class="fa-solid fa-times"></i></button></td>
                 </tr>`).join('');
         });
 
         window.removeItem = (id) => remove(ref(db, `print_queue/${id}`));
-        window.clearQueue = () => confirm("Deseja limpar toda a fila?") && remove(queueRef);
+        window.clearQueue = () => confirm("Limpar fila?") && remove(queueRef);
         window.showToast = (m) => { const t = document.getElementById('toast'); t.querySelector('span').textContent=m; t.classList.remove('opacity-0'); setTimeout(()=>t.classList.add('opacity-0'),2000); };
         window.downloadFile = () => {
             const blob = new Blob([document.getElementById('finalZPL').value], {type: 'text/plain'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `etiquetas_${Date.now()}.zpl`; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `etiquetas.zpl`; a.click();
         };
         window.setActiveInput = (el) => { window.activeInput = el; document.querySelectorAll('.input-pro').forEach(i => i.classList.remove('input-active')); el.classList.add('input-active'); };
 
