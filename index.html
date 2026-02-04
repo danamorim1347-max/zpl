@@ -271,9 +271,11 @@
                     if(item.validade) s += `^FO240,${y+25}^GB540,70,75^FS^FO255,${y+35}^A0N,90,85^FR^FDVAL: ${item.validade}^FS\n`;
                     s += `^FO20,${y+150}^A0N,65,60^FB770,2,0,L,0^FD${clean(item.tempName)}^FS\n`;
                     
-                    // Removido "RUA:" e "RCK:" fixos para evitar duplicidade
+                    // Rua e Rack apenas os valores da planilha para evitar duplicidade
                     s += `^FO20,${y+300}^A0N,45,45^FD${clean(item.fullData?.RUA)} ${clean(item.fullData?.RCK)}^FS\n`;
-                    s += `^FO20,${y+350}^A0N,45,45^FD${clean(item.fullData?.LIN)} ${clean(item.fullData?.COL)}^FS\n`;
+                    
+                    // Mantido o nome LINHA e COLUNA conforme solicitado
+                    s += `^FO20,${y+350}^A0N,45,45^FDLINHA: ${clean(item.fullData?.LIN)}  COLUNA: ${clean(item.fullData?.COL)}^FS\n`;
                     
                     s += `^BY2,3,130^FO60,${y+410}^BCN,130,Y,N,N^FD${item.codigo_barras}^FS\n`;
                     return s;
@@ -289,14 +291,15 @@
         };
 
         window.copyToClipboard = () => {
-            const text = document.getElementById('finalZPL').value;
-            navigator.clipboard.writeText(text).then(() => {
-                window.showToast("Copiado com sucesso!");
+            const area = document.getElementById('finalZPL');
+            area.select();
+            navigator.clipboard.writeText(area.value).then(() => {
+                window.showToast("Código Copiado!");
             });
         };
 
         window.removeItem = (id) => remove(ref(db, `print_queue/${id}`));
-        window.clearQueue = () => confirm("Limpar fila?") && remove(queueRef);
+        window.clearQueue = () => confirm("Limpar toda a fila?") && remove(queueRef);
         window.setActiveInput = (el) => {
             window.activeInput = el;
             document.querySelectorAll('.input-pro').forEach(i => i.classList.remove('input-active'));
