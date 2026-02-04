@@ -72,7 +72,7 @@
                         <div id="locationInfo" class="location-card p-4 hidden">
                             <div id="previewName" class="text-center font-black text-yellow-500 uppercase mb-2 text-sm min-h-[1.5rem]"></div>
                             <div class="grid grid-cols-2 gap-2 text-[10px] text-white">
-                                <div class="bg-black/40 p-2 rounded">RUA: <span id="infoRua" class="font-bold">-</span></div>
+                                <div class="bg-black/40 p-2 rounded">LOC: <span id="infoRua" class="font-bold">-</span></div>
                                 <div class="bg-black/40 p-2 rounded">RCK: <span id="infoRack" class="font-bold">-</span></div>
                                 <div class="bg-black/40 p-2 rounded">LIN: <span id="infoLinha" class="font-bold">-</span></div>
                                 <div class="bg-black/40 p-2 rounded">COL: <span id="infoColuna" class="font-bold">-</span></div>
@@ -108,16 +108,20 @@
                 <section class="glass p-6 min-h-[400px] flex flex-col">
                     <div class="flex justify-between items-center mb-4">
                         <span class="text-xs font-black uppercase tracking-widest">Fila (<span id="queueBadge">0</span>)</span>
-                        <button onclick="window.clearQueue()" class="text-red-500 text-[10px] font-black">LIMPAR</button>
+                        <button onclick="window.clearQueue()" class="text-red-500 text-[10px] font-black">LIMPAR FILA</button>
                     </div>
-                    <div class="flex-grow overflow-y-auto max-h-[300px] custom-scrollbar">
+                    <div class="flex-grow overflow-y-auto max-h-[250px] custom-scrollbar">
                         <table class="w-full text-xs text-left">
                             <tbody id="queueTable" class="divide-y divide-yellow-900/10"></tbody>
                         </table>
                     </div>
-                    <div class="mt-4 space-y-2">
-                        <button onclick="window.generateZPL()" class="w-full bg-yellow-500 text-black font-black py-4 rounded-xl uppercase hover:bg-yellow-400 transition-colors">Gerar Etiquetas ZPL</button>
-                        <textarea id="finalZPL" readonly class="hidden w-full h-32 bg-black text-cyan-400 p-2 font-mono text-[10px] rounded-lg border border-yellow-900/30"></textarea>
+                    <div class="mt-4 space-y-3">
+                        <button onclick="window.generateZPL()" class="w-full bg-yellow-500 text-black font-black py-4 rounded-xl uppercase">Gerar Etiquetas</button>
+                        
+                        <div id="copyArea" class="hidden space-y-2">
+                            <textarea id="finalZPL" readonly class="w-full h-24 bg-black text-cyan-400 p-2 font-mono text-[9px] rounded-lg border border-yellow-900/30"></textarea>
+                            <button onclick="window.copyToClipboard()" class="w-full bg-cyan-600 text-white font-black py-3 rounded-xl uppercase text-xs">Copiar Código ZPL</button>
+                        </div>
                     </div>
                 </section>
             </div>
@@ -148,10 +152,9 @@
         window.activeInput = null;
         window.mode = 'validade';
 
-        // Lógica de Identificação (Extração de 5 dígitos centrais)
         const getIdentifier = (val) => {
             const clean = String(val).replace(/\D/g, '');
-            if (clean.length === 13) return clean.substring(7, 12); // Extrai do índice 7 ao 11
+            if (clean.length === 13) return clean.substring(7, 12);
             return clean;
         };
 
@@ -192,7 +195,7 @@
                     });
                     await set(productsRef, master);
                     window.loadFromCloud();
-                    window.showToast("Banco de Dados Atualizado!");
+                    window.showToast("Dados Atualizados!");
                 } catch (err) { alert("Erro no Excel!"); }
                 document.getElementById('loader').classList.add('hidden');
             };
@@ -229,7 +232,7 @@
             for(let i=0; i<qty; i++) {
                 await push(queueRef, {
                     codigo_barras: val,
-                    identificador: iden, // Salva o identificador de 5 dígitos separadamente
+                    identificador: iden,
                     tempName: prod.NOM,
                     validade: window.mode === 'validade' ? document.getElementById('valDate').value : "",
                     fullData: prod,
@@ -264,16 +267,14 @@
                 zpl += "^XA\n^CI28^PW812^LL1218\n";
                 const draw = (item, y) => {
                     if (!item) return "";
-                    // O Identificador (5 dígitos) fica no topo grande
                     let s = `^FO20,${y+30}^A0N,110,100^FD${item.identificador}^FS\n`;
-                    // Validade se houver
                     if(item.validade) s += `^FO240,${y+25}^GB540,70,75^FS^FO255,${y+35}^A0N,90,85^FR^FDVAL: ${item.validade}^FS\n`;
-                    // Nome do Produto
                     s += `^FO20,${y+150}^A0N,65,60^FB770,2,0,L,0^FD${clean(item.tempName)}^FS\n`;
-                    // Endereçamento
-                    s += `^FO20,${y+300}^A0N,45,45^FDRUA: ${clean(item.fullData?.RUA)}  RCK: ${clean(item.fullData?.RCK)}^FS\n`;
-                    s += `^FO20,${y+350}^A0N,45,45^FDLIN: ${clean(item.fullData?.LIN)}  COL: ${clean(item.fullData?.COL)}^FS\n`;
-                    // Código de Barras (Original de 13 dígitos)
+                    
+                    // Removido "RUA:" e "RCK:" fixos para evitar duplicidade
+                    s += `^FO20,${y+300}^A0N,45,45^FD${clean(item.fullData?.RUA)} ${clean(item.fullData?.RCK)}^FS\n`;
+                    s += `^FO20,${y+350}^A0N,45,45^FD${clean(item.fullData?.LIN)} ${clean(item.fullData?.COL)}^FS\n`;
+                    
                     s += `^BY2,3,130^FO60,${y+410}^BCN,130,Y,N,N^FD${item.codigo_barras}^FS\n`;
                     return s;
                 };
@@ -282,16 +283,16 @@
                 zpl += "^XZ\n";
             }
 
-            const area = document.getElementById('finalZPL');
-            area.value = zpl;
-            area.classList.remove('hidden');
-            
-            const blob = new Blob([zpl], {type: 'text/plain'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `etiquetas.zpl`;
-            a.click();
-            window.showToast("ZPL Gerado e Baixado!");
+            document.getElementById('finalZPL').value = zpl;
+            document.getElementById('copyArea').classList.remove('hidden');
+            window.showToast("ZPL Gerado!");
+        };
+
+        window.copyToClipboard = () => {
+            const text = document.getElementById('finalZPL').value;
+            navigator.clipboard.writeText(text).then(() => {
+                window.showToast("Copiado com sucesso!");
+            });
         };
 
         window.removeItem = (id) => remove(ref(db, `print_queue/${id}`));
