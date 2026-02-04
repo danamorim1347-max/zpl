@@ -31,6 +31,8 @@
         .tab-btn.active { background-color: var(--gold); color: #000; }
 
         .location-card { background: #0d1117; border: 2px solid #FFD700; border-radius: 20px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #443308; border-radius: 10px; }
     </style>
 </head>
 <body class="min-h-screen p-2 flex flex-col items-center">
@@ -68,12 +70,12 @@
                         <input type="text" id="mainCode" class="input-pro" placeholder="DIGITE O CÓDIGO" inputmode="none" onfocus="window.setActiveInput(this)" oninput="window.updateSearch(this.value)">
                         
                         <div id="locationInfo" class="location-card p-4 hidden">
-                            <div id="previewName" class="text-center font-black text-yellow-500 uppercase mb-2 text-xs"></div>
+                            <div id="previewName" class="text-center font-black text-yellow-500 uppercase mb-2 text-sm min-h-[1.5rem]"></div>
                             <div class="grid grid-cols-2 gap-2 text-[10px] text-white">
-                                <div class="bg-black/40 p-2 rounded">RUA: <span id="infoRua">-</span></div>
-                                <div class="bg-black/40 p-2 rounded">RACK: <span id="infoRack">-</span></div>
-                                <div class="bg-black/40 p-2 rounded">LINHA: <span id="infoLinha">-</span></div>
-                                <div class="bg-black/40 p-2 rounded">COL: <span id="infoColuna">-</span></div>
+                                <div class="bg-black/40 p-2 rounded">RUA: <span id="infoRua" class="font-bold">-</span></div>
+                                <div class="bg-black/40 p-2 rounded">RCK: <span id="infoRack" class="font-bold">-</span></div>
+                                <div class="bg-black/40 p-2 rounded">LIN: <span id="infoLinha" class="font-bold">-</span></div>
+                                <div class="bg-black/40 p-2 rounded">COL: <span id="infoColuna" class="font-bold">-</span></div>
                             </div>
                         </div>
 
@@ -103,17 +105,20 @@
             </div>
 
             <div class="lg:col-span-7 space-y-4">
-                <section class="glass p-6 min-h-[400px]">
+                <section class="glass p-6 min-h-[400px] flex flex-col">
                     <div class="flex justify-between items-center mb-4">
                         <span class="text-xs font-black uppercase tracking-widest">Fila (<span id="queueBadge">0</span>)</span>
                         <button onclick="window.clearQueue()" class="text-red-500 text-[10px] font-black">LIMPAR</button>
                     </div>
-                    <div class="overflow-y-auto max-h-[300px]">
+                    <div class="flex-grow overflow-y-auto max-h-[300px] custom-scrollbar">
                         <table class="w-full text-xs text-left">
                             <tbody id="queueTable" class="divide-y divide-yellow-900/10"></tbody>
                         </table>
                     </div>
-                    <button onclick="window.generateZPL()" class="w-full bg-yellow-500 text-black font-black py-4 mt-4 rounded-xl uppercase">Gerar Etiquetas ZPL</button>
+                    <div class="mt-4 space-y-2">
+                        <button onclick="window.generateZPL()" class="w-full bg-yellow-500 text-black font-black py-4 rounded-xl uppercase hover:bg-yellow-400 transition-colors">Gerar Etiquetas ZPL</button>
+                        <textarea id="finalZPL" readonly class="hidden w-full h-32 bg-black text-cyan-400 p-2 font-mono text-[10px] rounded-lg border border-yellow-900/30"></textarea>
+                    </div>
                 </section>
             </div>
         </main>
@@ -123,7 +128,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, remove, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // CONFIGURAÇÃO FIREBASE (ATUALIZADA)
         const firebaseConfig = {
             apiKey: "AIzaSyCiy4DOVPYYr_UtglmnVWUdZ8SqM26Neo8",
             authDomain: "zpl47-f751d.firebaseapp.com",
@@ -144,45 +148,36 @@
         window.activeInput = null;
         window.mode = 'validade';
 
-        // Lógica de Identificador (5 dígitos)
-        const getSearchKey = (val) => {
+        // Lógica de Identificação (Extração de 5 dígitos centrais)
+        const getIdentifier = (val) => {
             const clean = String(val).replace(/\D/g, '');
-            if (clean.length === 13) return clean.substring(7, 12);
+            if (clean.length === 13) return clean.substring(7, 12); // Extrai do índice 7 ao 11
             return clean;
         };
 
-        // CARREGAR DADOS DO FIREBASE
         window.loadFromCloud = async () => {
             document.getElementById('loader').classList.remove('hidden');
             try {
                 const snap = await get(productsRef);
                 window.inventory = snap.exists() ? Object.values(snap.val()) : [];
-                window.showToast("Nuvem Sincronizada: " + window.inventory.length + " itens");
-            } catch (err) {
-                alert("Erro ao conectar: Verifique as regras do banco!");
-            }
+                window.showToast("Nuvem Sincronizada!");
+            } catch (err) { alert("Erro de conexão!"); }
             document.getElementById('loader').classList.add('hidden');
         };
 
-        // IMPORTAR EXCEL (MAPEADO PELAS COLUNAS A, B, E, F, G, H)
         window.handleFileUpload = (input) => {
             const file = input.files[0];
             if (!file) return;
             document.getElementById('loader').classList.remove('hidden');
             const reader = new FileReader();
-
             reader.onload = async (e) => {
                 try {
                     const data = new Uint8Array(e.target.result);
                     const wb = XLSX.read(data, { type: 'array' });
-                    // Lê a primeira aba usando cabeçalhos por letra (A, B, C...)
                     const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: "A" });
-                    
                     const master = {};
                     json.forEach((row, index) => {
-                        // Ignora a primeira linha se for cabeçalho
                         if (index === 0) return;
-
                         const cod = String(row.A || "").trim();
                         if (cod) {
                             master[cod] = {
@@ -195,60 +190,48 @@
                             };
                         }
                     });
-
                     await set(productsRef, master);
                     window.loadFromCloud();
-                    window.showToast("Importação Concluída!");
-                } catch (err) {
-                    alert("Erro no processamento do Excel: " + err.message);
-                } finally {
-                    document.getElementById('loader').classList.add('hidden');
-                    input.value = "";
-                }
+                    window.showToast("Banco de Dados Atualizado!");
+                } catch (err) { alert("Erro no Excel!"); }
+                document.getElementById('loader').classList.add('hidden');
             };
             reader.readAsArrayBuffer(file);
         };
 
-        // BUSCA DE PRODUTO EM TEMPO REAL
         window.updateSearch = (val) => {
             if (val.length < 3) {
                 document.getElementById('locationInfo').classList.add('hidden');
                 return;
             }
-
-            const searchKey = getSearchKey(val);
-            const prod = window.inventory.find(i => String(i.COD).includes(searchKey));
-            
+            const iden = getIdentifier(val);
+            const prod = window.inventory.find(i => String(i.COD).includes(iden));
             const infoBox = document.getElementById('locationInfo');
             if (prod) {
                 document.getElementById('previewName').textContent = prod.NOM;
-                document.getElementById('infoRua').textContent = prod.RUA || "-";
-                document.getElementById('infoRack').textContent = prod.RCK || "-";
-                document.getElementById('infoLinha').textContent = prod.LIN || "-";
-                document.getElementById('infoColuna').textContent = prod.COL || "-";
+                document.getElementById('infoRua').textContent = prod.RUA;
+                document.getElementById('infoRack').textContent = prod.RCK;
+                document.getElementById('infoLinha').textContent = prod.LIN;
+                document.getElementById('infoColuna').textContent = prod.COL;
                 infoBox.classList.remove('hidden');
             } else {
-                document.getElementById('previewName').textContent = "NÃO ENCONTRADO";
-                infoBox.classList.add('hidden');
+                document.getElementById('previewName').textContent = "NÃO CADASTRADO";
+                infoBox.classList.remove('hidden');
             }
         };
 
-        // ADICIONAR À FILA
         window.addItem = async () => {
             const val = document.getElementById('mainCode').value;
             if (!val) return;
-
-            const searchKey = getSearchKey(val);
-            const prod = window.inventory.find(i => String(i.COD).includes(searchKey)) || { NOM: "PRODUTO AVULSO", COD: val };
-            
+            const iden = getIdentifier(val);
+            const prod = window.inventory.find(i => String(i.COD).includes(iden)) || { NOM: "PRODUTO AVULSO", COD: val };
             const qty = parseInt(document.getElementById('valQtyEtq').value) || 1;
-            const validade = document.getElementById('valDate').value;
-
             for(let i=0; i<qty; i++) {
                 await push(queueRef, {
                     codigo_barras: val,
+                    identificador: iden, // Salva o identificador de 5 dígitos separadamente
                     tempName: prod.NOM,
-                    validade: window.mode === 'validade' ? validade : "",
+                    validade: window.mode === 'validade' ? document.getElementById('valDate').value : "",
                     fullData: prod,
                     timestamp: Date.now() + i
                 });
@@ -257,7 +240,6 @@
             window.clearInput();
         };
 
-        // ESCUTA A FILA DO FIREBASE
         onValue(queueRef, (snap) => {
             const data = snap.val();
             const list = data ? Object.keys(data).map(k => ({id: k, ...data[k]})) : [];
@@ -265,30 +247,34 @@
             document.getElementById('queueTable').innerHTML = list.map((item, idx) => `
                 <tr class="border-b border-yellow-900/10">
                     <td class="p-2 font-bold text-yellow-600">${idx+1}</td>
-                    <td class="p-2"><b>${item.codigo_barras}</b><br><span class="text-[9px]">${item.tempName}</span></td>
-                    <td class="p-2 text-right"><button onclick="window.removeItem('${item.id}')" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td>
-                </tr>
-            `).join('');
+                    <td class="p-2"><b>${item.identificador}</b><br><span class="text-[9px] text-gray-400">${item.tempName}</span></td>
+                    <td class="p-2 text-right"><button onclick="window.removeItem('${item.id}')" class="text-red-500"><i class="fa-solid fa-times"></i></button></td>
+                </tr>`).join('');
             window.currentQueueData = list;
         });
 
-        // GERAÇÃO DE ZPL
         window.generateZPL = () => {
             const queue = window.currentQueueData;
             if (!queue || queue.length === 0) return alert("Fila vazia!");
-
+            
             let zpl = "";
+            const clean = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+
             for (let i = 0; i < queue.length; i += 2) {
                 zpl += "^XA\n^CI28^PW812^LL1218\n";
                 const draw = (item, y) => {
                     if (!item) return "";
-                    const ident = getSearchKey(item.codigo_barras);
-                    let s = `^FO20,${y+30}^A0N,100,90^FD${ident}^FS\n`;
-                    if(item.validade) s += `^FO235,${y+20}^GB550,65,75^FS^FO250,${y+30}^A0N,95,90^FR^FDVAL: ${item.validade}^FS\n`;
-                    s += `^FO20,${y+140}^A0N,60,60^FB770,2,0,L,0^FD${item.tempName.substring(0,40)}^FS\n`;
-                    s += `^FO20,${y+280}^A0N,40,40^FDRUA: ${item.fullData?.RUA || ""}  RCK: ${item.fullData?.RCK || ""}^FS\n`;
-                    s += `^FO20,${y+330}^A0N,40,40^FDLIN: ${item.fullData?.LIN || ""}  COL: ${item.fullData?.COL || ""}^FS\n`;
-                    s += `^BY2,3,120^FO60,${y+400}^BCN,120,Y,N,N^FD${item.codigo_barras}^FS\n`;
+                    // O Identificador (5 dígitos) fica no topo grande
+                    let s = `^FO20,${y+30}^A0N,110,100^FD${item.identificador}^FS\n`;
+                    // Validade se houver
+                    if(item.validade) s += `^FO240,${y+25}^GB540,70,75^FS^FO255,${y+35}^A0N,90,85^FR^FDVAL: ${item.validade}^FS\n`;
+                    // Nome do Produto
+                    s += `^FO20,${y+150}^A0N,65,60^FB770,2,0,L,0^FD${clean(item.tempName)}^FS\n`;
+                    // Endereçamento
+                    s += `^FO20,${y+300}^A0N,45,45^FDRUA: ${clean(item.fullData?.RUA)}  RCK: ${clean(item.fullData?.RCK)}^FS\n`;
+                    s += `^FO20,${y+350}^A0N,45,45^FDLIN: ${clean(item.fullData?.LIN)}  COL: ${clean(item.fullData?.COL)}^FS\n`;
+                    // Código de Barras (Original de 13 dígitos)
+                    s += `^BY2,3,130^FO60,${y+410}^BCN,130,Y,N,N^FD${item.codigo_barras}^FS\n`;
                     return s;
                 };
                 zpl += draw(queue[i], 0);
@@ -296,17 +282,20 @@
                 zpl += "^XZ\n";
             }
 
+            const area = document.getElementById('finalZPL');
+            area.value = zpl;
+            area.classList.remove('hidden');
+            
             const blob = new Blob([zpl], {type: 'text/plain'});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `etiquetas_${Date.now()}.zpl`;
+            a.download = `etiquetas.zpl`;
             a.click();
-            window.showToast("ZPL Baixado!");
+            window.showToast("ZPL Gerado e Baixado!");
         };
 
-        // FUNÇÕES DE UI
         window.removeItem = (id) => remove(ref(db, `print_queue/${id}`));
-        window.clearQueue = () => confirm("Limpar toda a fila?") && remove(queueRef);
+        window.clearQueue = () => confirm("Limpar fila?") && remove(queueRef);
         window.setActiveInput = (el) => {
             window.activeInput = el;
             document.querySelectorAll('.input-pro').forEach(i => i.classList.remove('input-active'));
@@ -339,7 +328,6 @@
             setTimeout(() => t.classList.add('opacity-0'), 2000);
         };
 
-        // Inicialização
         window.loadFromCloud();
     </script>
 </body>
