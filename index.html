@@ -55,8 +55,13 @@
             <div class="flex gap-2">
                 <button id="syncBtn" onclick="App.syncInventory()" class="bg-yellow-900/20 text-yellow-500 px-3 py-2 rounded-xl text-[10px] font-black uppercase">Sincronizar</button>
                 <label class="bg-slate-800 text-slate-400 px-3 py-2 rounded-xl text-[10px] font-black cursor-pointer uppercase">
-                    Importar Excel
+                    Importar Cadastro
                     <input type="file" class="hidden" accept=".xlsx,.xls,.csv" onchange="App.handleFileUpload(this)">
+                </label>
+                <!-- NOVO BOTÃO: Importar Pedidos (planilha com Código, Nome, Quantidade) -->
+                <label class="bg-blue-800/30 text-blue-400 px-3 py-2 rounded-xl text-[10px] font-black cursor-pointer uppercase">
+                    Importar Pedidos
+                    <input type="file" class="hidden" accept=".xlsx,.xls,.csv" onchange="App.importOrderSheet(this)">
                 </label>
             </div>
         </header>
@@ -92,7 +97,7 @@
 
                     <!-- View Separação -->
                     <div id="separacaoView" class="hidden space-y-4">
-                        <textarea id="bulkList" class="input-pro w-full p-4 h-32 text-left" placeholder="Código Qtd (um por linha)" onfocus="App.setActiveInput(this)"></textarea>
+                        <textarea id="bulkList" class="input-pro w-full p-4 h-32 text-left" placeholder="Código | Nome | Quantidade (cole da planilha)" onfocus="App.setActiveInput(this)"></textarea>
                         <button id="btnGerarChecklist" onclick="App.processBulkSeparation()" class="btn-primary w-full py-3 uppercase text-xs">Gerar Checklist</button>
                     </div>
                 </section>
@@ -240,7 +245,6 @@
 
                 const body = document.getElementById('mainTableBody');
                 body.innerHTML = items.map(i => {
-                    // Formata o endereço completo: RUA RCK · LIN/COL
                     const endereco = `${i.rua || '-'} ${i.rack || '-'} · ${i.lin || '-'}/${i.col || '-'}`;
                     return `
                     <tr class="item-row ${i.status === 'done' ? 'done' : ''} text-[11px]">
@@ -415,7 +419,7 @@
                 }
             },
 
-            // ========== SEPARAÇÃO – AGORA COM ENDEREÇO COMPLETO ==========
+            // ========== SEPARAÇÃO – PARSER INTELIGENTE ==========
             async processBulkSeparation() {
                 const textarea = document.getElementById('bulkList');
                 const lines = textarea.value.split('\n').filter(l => l.trim() !== '');
@@ -427,23 +431,35 @@
                 
                 try {
                     for (let line of lines) {
-                        const parts = line.trim().split(/[\s,;]+/);
-                        const code = parts[0];
-                        const qty = parts[1] || 1;
-                        if (code) {
-                            const prod = this.inventory.find(i => i.COD && this.extractId(i.COD) === this.extractId(code)) || { NOM: "NÃO CADASTRADO", COD: code };
-                            const normalized = this.normalizeProduct(prod);
-                            await push(ref(db, "active_separation"), {
-                                code,
-                                qty: String(qty),
-                                name: normalized.NOM,
-                                rua: normalized.RUA || '-',
-                                rack: normalized.RCK || '-',
-                                lin: normalized.LIN || '-',   // <<< ADICIONADO
-                                col: normalized.COL || '-',   // <<< ADICIONADO
-                                status: 'pending'
-                            });
+                        // Divide por qualquer separador: espaços, |, ;, ,, tab
+                        const tokens = line.trim().split(/[\s|;,]+/).filter(t => t !== '');
+                        if (tokens.length === 0) continue;
+
+                        const code = tokens[0];
+                        // Último token numérico = quantidade
+                        let qty = 1;
+                        for (let i = tokens.length - 1; i >= 0; i--) {
+                            if (!isNaN(tokens[i]) && tokens[i] !== '') {
+                                qty = parseInt(tokens[i], 10);
+                                break;
+                            }
                         }
+                        if (isNaN(qty) || qty <= 0) qty = 1;
+
+                        const prod = this.inventory.find(i => i.COD && this.extractId(i.COD) === this.extractId(code)) 
+                                    || { NOM: "NÃO CADASTRADO", COD: code };
+                        const normalized = this.normalizeProduct(prod);
+                        
+                        await push(ref(db, "active_separation"), {
+                            code,
+                            qty: String(qty),
+                            name: normalized.NOM,
+                            rua: normalized.RUA || '-',
+                            rack: normalized.RCK || '-',
+                            lin: normalized.LIN || '-',
+                            col: normalized.COL || '-',
+                            status: 'pending'
+                        });
                     }
                     textarea.value = "";
                     this.showToast("Checklist gerado");
@@ -454,6 +470,58 @@
                     btn.disabled = false;
                     document.getElementById('loader').classList.add('hidden');
                 }
+            },
+
+            // ========== NOVO: IMPORTAÇÃO DE PLANILHA DE PEDIDOS ==========
+            async importOrderSheet(input) {
+                const file = input.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                    document.getElementById('loader').classList.remove('hidden');
+                    try {
+                        // Assume primeira linha como cabeçalho – pula
+                        for (let i = 1; i < rows.length; i++) {
+                            const row = rows[i];
+                            if (!row || row.length < 2) continue;
+                            const code = String(row[0]).trim();
+                            if (!code) continue;
+                            
+                            // Coluna 2 (índice 2) é quantidade; se não existir, usa coluna 1
+                            let qty = parseInt(row[2] !== undefined ? row[2] : row[1], 10);
+                            if (isNaN(qty) || qty <= 0) qty = 1;
+
+                            const prod = this.inventory.find(p => p.COD && this.extractId(p.COD) === this.extractId(code))
+                                        || { NOM: "IMPORTADO", COD: code };
+                            const normalized = this.normalizeProduct(prod);
+
+                            await push(ref(db, "active_separation"), {
+                                code,
+                                qty: String(qty),
+                                name: normalized.NOM,
+                                rua: normalized.RUA || '-',
+                                rack: normalized.RCK || '-',
+                                lin: normalized.LIN || '-',
+                                col: normalized.COL || '-',
+                                status: 'pending'
+                            });
+                        }
+                        this.showToast("Pedidos importados!");
+                    } catch (e) {
+                        this.showToast("Erro ao importar", 3000);
+                        console.error(e);
+                    } finally {
+                        document.getElementById('loader').classList.add('hidden');
+                        input.value = '';
+                    }
+                };
+                reader.readAsArrayBuffer(file);
             },
 
             // ========== SINCRONIZAÇÃO MANUAL ==========
@@ -482,7 +550,7 @@
                 }
             },
 
-            // ========== UPLOAD DE EXCEL COM MERGE E NORMALIZAÇÃO ==========
+            // ========== UPLOAD DE EXCEL PARA CADASTRO (MERGE) ==========
             async handleFileUpload(input) {
                 const file = input.files[0];
                 if (!file) return;
@@ -510,7 +578,6 @@
                         produtos[cod] = this.normalizeProduct(prod);
                     });
 
-                    // Merge com dados existentes
                     const snap = await get(ref(db, "master_products"));
                     const existing = snap.exists() ? snap.val() : {};
                     const merged = { ...existing, ...produtos };
