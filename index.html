@@ -22,8 +22,6 @@
         .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-gold-outline { background: transparent; border: 2px solid var(--gold); border-radius: 14px; font-weight: 800; color: var(--gold); cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .btn-gold-outline:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-success { background: #10b981; border-radius: 14px; font-weight: 800; color: #000; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-success:disabled { opacity: 0.5; cursor: not-allowed; }
         .tab-btn { flex: 1; padding: 10px; font-size: 11px; font-weight: 900; text-transform: uppercase; color: #64748b; cursor: pointer; border-radius: 8px; }
         .tab-btn.active { background-color: var(--gold); color: #000; }
         .item-row.done { opacity: 0.3; background: #061108 !important; border-left: 4px solid #10b981; }
@@ -95,7 +93,8 @@
                             <div class="bg-black/50 p-1 rounded text-center"><div class="text-[7px] text-slate-500">COL</div><div id="lCol" class="text-xs font-bold">-</div></div>
                         </div>
                         <div class="grid grid-cols-3 gap-2">
-                            <input type="text" id="valDate" class="input-pro text-xs p-2" placeholder="MMAAAA" maxlength="6" onfocus="App.setActiveInput(this)" oninput="App.validateDate(this)">
+                            <!-- DATA AUTOMÁTICA -->
+                            <input type="text" id="valDate" class="input-pro text-xs p-2" placeholder="MMAAAA" maxlength="6" onfocus="App.setActiveInput(this); App.setCurrentDate(this);" oninput="App.validateDate(this)">
                             <input type="text" id="valQtyEtq" class="input-pro text-xs p-2" value="1" onfocus="App.setActiveInput(this)" oninput="this.value = this.value.replace(/\D/g,'')">
                             <input type="text" id="valQtyItens" class="input-pro text-xs p-2" placeholder="Qtd Itens" onfocus="App.setActiveInput(this)" oninput="this.value = this.value.replace(/\D/g,'')">
                         </div>
@@ -190,17 +189,29 @@
                 return str.length === 13 ? str.substring(7, 12) : str;
             },
 
-            // Normaliza objeto de produto
+            // ========== NORMALIZA PRODUTO ==========
             normalizeProduct(prod) {
                 if (!prod) return null;
                 return {
-                    COD: String(prod.COD || prod.cod || prod.Codigo || prod.codigo || '').trim(),
-                    NOM: String(prod.NOM || prod.nom || prod.Nome || prod.nome || prod.DESCRICAO || prod.descricao || 'S/N').trim(),
-                    RUA: String(prod.RUA || prod.rua || prod.Rua || prod.ENDERECO || prod.endereco || prod.LOCAL || prod.local || '').trim(),
-                    RCK: String(prod.RCK || prod.rck || prod.Rack || prod.rack || prod.PRATELEIRA || prod.prateleira || '').trim(),
-                    LIN: String(prod.LIN || prod.lin || prod.Linha || prod.linha || '').trim(),
-                    COL: String(prod.COL || prod.col || prod.Coluna || prod.coluna || '').trim()
+                    COD: String(prod.COD || prod.codigo || '').trim(),
+                    NOM: String(prod.NOM || prod.nome || prod.descricao || 'S/N').trim(),
+                    RUA: String(prod.RUA || prod.rua || '').trim(),
+                    RCK: String(prod.RCK || prod.rack || '').trim(),
+                    LIN: String(prod.LIN || prod.linha || '').trim(),
+                    COL: String(prod.COL || prod.coluna || '').trim(),
+                    QTD_ITENS: String(prod.QTD_ITENS || prod.qtd_itens || prod.quantidade || '').trim()
                 };
+            },
+
+            // ========== DATA AUTOMÁTICA ==========
+            setCurrentDate(input) {
+                if (!input.value) {
+                    const now = new Date();
+                    const mes = String(now.getMonth() + 1).padStart(2, '0');
+                    const ano = now.getFullYear();
+                    input.value = `${mes}${ano}`;
+                    this.validateDate(input);
+                }
             },
 
             // ========== INVENTÁRIO EM TEMPO REAL ==========
@@ -331,6 +342,13 @@
                     document.getElementById('lLin').textContent = prod.LIN || "-";
                     document.getElementById('lCol').textContent = prod.COL || "-";
                     live.style.opacity = "1";
+                    
+                    // PREENCHER QUANTIDADE DE ITENS DO CADASTRO
+                    if (prod.QTD_ITENS) {
+                        document.getElementById('valQtyItens').value = prod.QTD_ITENS;
+                    } else {
+                        document.getElementById('valQtyItens').value = '';
+                    }
                 } else {
                     live.style.opacity = "0";
                     document.getElementById('previewName').textContent = val.length >= 5 ? "NÃO CADASTRADO" : "";
@@ -403,7 +421,7 @@
                 }
             },
 
-            // ========== GERAR ZPL – CORRIGIDO E COM CÓDIGO DE BARRAS MAIOR ==========
+            // ========== GERAR ZPL ==========
             async generateZPL(action) {
                 const snap = await get(ref(db, "print_queue"));
                 const items = snap.val() ? Object.values(snap.val()) : [];
@@ -412,7 +430,7 @@
                     return;
                 }
 
-                // Desabilitar botões relacionados
+                // Desabilitar botões
                 const btns = [
                     document.getElementById('btnGerarEtiquetasDownload'),
                     document.getElementById('btnGerarEtiquetasCopy'),
@@ -438,10 +456,7 @@
                     };
 
                     for (let i = 0; i < items.length; i += 2) {
-                        zpl += "^XA\n";
-                        zpl += "^CI28\n";
-                        zpl += "^PW812\n";
-                        zpl += "^LL1218\n";
+                        zpl += "^XA\n^CI28\n^PW812\n^LL1218\n";
                         
                         // Etiqueta superior
                         if (items[i]) {
@@ -450,32 +465,26 @@
                             const codBarras = item.codigo_barras || '';
                             const y = 0;
                             
-                            // Código do produto (5 dígitos)
                             zpl += `^FO20,${y+20}^A0N,110,100^FD${this.extractId(codBarras)}^FS\n`;
                             
-                            // Validade - só se tiver conteúdo
                             if (item.validade && item.validade.trim() !== '') {
                                 zpl += `^FO235,${y+10}^GB550,70,80^FS\n`;
                                 zpl += `^FO250,${y+20}^A0N,105,100^FR^FDVAL: ${cleanText(item.validade)}^FS\n`;
                             }
                             
-                            // Nome do produto
                             zpl += `^FO20,${y+150}^A0N,60,60^FB770,2,0,L,0^FD${cleanText(item.tempName)}^FS\n`;
                             
-                            // Endereço
                             const endereco = `${cleanText(r.RUA)} ${cleanText(r.RCK)}  ${cleanText(r.LIN)}/${cleanText(r.COL)}`.trim();
                             zpl += `^FO20,${y+320}^A0N,45,45^FD${endereco || ''}^FS\n`;
                             
-                            // Quantidade de itens
                             if (item.qtdItens) {
                                 zpl += `^FO580,${y+320}^A0N,80,80^FDQ:${item.qtdItens}^FS\n`;
                             }
                             
-                            // Código de barras - MAIOR E MAIS COMPACTO
                             zpl += `^BY3,3,180^FO60,${y+380}^BCN,180,Y,N,N^FD${codBarras}^FS\n`;
                         }
                         
-                        // Etiqueta inferior (se existir)
+                        // Etiqueta inferior
                         if (items[i + 1]) {
                             const item = items[i + 1];
                             const r = item.fullData || {};
@@ -518,7 +527,7 @@
                         this.showToast("✅ Download iniciado! Fila limpa.");
                     }
 
-                    // LIMPAR A FILA AUTOMATICAMENTE
+                    // LIMPAR FILA AUTOMATICAMENTE
                     await remove(ref(db, "print_queue"));
 
                 } catch (e) {
@@ -696,7 +705,8 @@
                 }
             },
 
-            // ========== UPLOAD DE EXCEL PARA CADASTRO – CORRIGIDO ==========
+            // ========== UPLOAD DE EXCEL PARA CADASTRO – PADRÃO FIXO ==========
+            // COLUNAS: A=Código, B=Descrição, E=Rua, F=Rack, G=Linha, H=Coluna
             async handleFileUpload(input) {
                 const file = input.files[0];
                 if (!file) return;
@@ -707,49 +717,52 @@
                     const workbook = XLSX.read(data, { type: 'array' });
                     const sheetName = workbook.SheetNames[0];
                     const sheet = workbook.Sheets[sheetName];
-                    const json = XLSX.utils.sheet_to_json(sheet);
+                    
+                    // Converter para array de arrays (linhas e colunas)
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
                     const produtos = {};
-                    json.forEach(row => {
-                        const cod = this.extractFromRow(row, ['COD', 'CÓDIGO', 'Código', 'codigo', 'code']);
-                        if (!cod) return;
+                    
+                    // Pular cabeçalho (linha 0)
+                    for (let i = 1; i < rows.length; i++) {
+                        const row = rows[i];
+                        if (!row || row.length < 1) continue;
+                        
+                        // Índices das colunas (0-based)
+                        // A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7
+                        const codigo = row[0] ? String(row[0]).trim() : '';        // Coluna A
+                        const descricao = row[1] ? String(row[1]).trim() : '';     // Coluna B
+                        const rua = row[4] ? String(row[4]).trim() : '';           // Coluna E
+                        const rack = row[5] ? String(row[5]).trim() : '';          // Coluna F
+                        const linha = row[6] ? String(row[6]).trim() : '';         // Coluna G
+                        const coluna = row[7] ? String(row[7]).trim() : '';        // Coluna H
+                        
+                        if (!codigo) continue;
                         
                         const prod = {
-                            COD: String(cod).trim(),
-                            NOM: this.extractFromRow(row, ['NOME', 'Nome', 'nome', 'DESCRICAO', 'Descrição', 'descricao', 'PRODUTO', 'Produto']) || 'S/N',
-                            RUA: this.extractFromRow(row, ['RUA', 'Rua', 'rua', 'ENDERECO', 'Endereco', 'endereco', 'LOCAL', 'Local', 'local']) || '',
-                            RCK: this.extractFromRow(row, ['RACK', 'Rack', 'rack', 'RCK', 'PRATELEIRA', 'Prateleira', 'prateleira']) || '',
-                            LIN: this.extractFromRow(row, ['LINHA', 'Linha', 'linha', 'LIN', 'LINHA', 'Line', 'line']) || '',
-                            COL: this.extractFromRow(row, ['COLUNA', 'Coluna', 'coluna', 'COL', 'COLUNA', 'Column', 'column']) || ''
+                            COD: codigo,
+                            NOM: descricao || 'S/N',
+                            RUA: rua,
+                            RCK: rack,
+                            LIN: linha,
+                            COL: coluna,
+                            QTD_ITENS: '' // Opcional, pode adicionar coluna depois
                         };
                         
-                        produtos[cod] = this.normalizeProduct(prod);
-                    });
+                        produtos[codigo] = this.normalizeProduct(prod);
+                    }
 
-                    const snap = await get(ref(db, "master_products"));
-                    const existing = snap.exists() ? snap.val() : {};
-                    const merged = { ...existing, ...produtos };
-
-                    await set(ref(db, "master_products"), merged);
+                    // SUBSTITUI COMPLETAMENTE OS DADOS ANTIGOS
+                    await set(ref(db, "master_products"), produtos);
                     
-                    // FORÇAR ATUALIZAÇÃO IMEDIATA
+                    // ATUALIZAÇÃO IMEDIATA
                     const newSnap = await get(ref(db, "master_products"));
                     this._updateInventoryFromSnapshot(newSnap);
                     
-                    this.showToast("✅ Produtos importados!");
+                    this.showToast(`✅ ${Object.keys(produtos).length} produtos importados! Cadastro substituído.`);
                     input.value = '';
                 };
                 reader.readAsArrayBuffer(file);
-            },
-
-            extractFromRow(row, keys) {
-                for (let k of keys) {
-                    if (row[k] !== undefined) {
-                        const val = String(row[k]).trim();
-                        if (val !== '') return val;
-                    }
-                }
-                return null;
             },
 
             // ========== AÇÕES DA TABELA ==========
