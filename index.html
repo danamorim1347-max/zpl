@@ -93,8 +93,8 @@
                             <div class="bg-black/50 p-1 rounded text-center"><div class="text-[7px] text-slate-500">COL</div><div id="lCol" class="text-xs font-bold">-</div></div>
                         </div>
                         <div class="grid grid-cols-3 gap-2">
-                            <!-- DATA AUTOMÁTICA -->
-                            <input type="text" id="valDate" class="input-pro text-xs p-2" placeholder="MMAAAA" maxlength="6" onfocus="App.setActiveInput(this); App.setCurrentDate(this);" oninput="App.validateDate(this)">
+                            <!-- DATA AUTOMÁTICA COM BARRA -->
+                            <input type="text" id="valDate" class="input-pro text-xs p-2" placeholder="MM/AAAA" maxlength="7" onfocus="App.setActiveInput(this); App.setCurrentDate(this);" oninput="App.formatDate(this)">
                             <input type="text" id="valQtyEtq" class="input-pro text-xs p-2" value="1" onfocus="App.setActiveInput(this)" oninput="this.value = this.value.replace(/\D/g,'')">
                             <input type="text" id="valQtyItens" class="input-pro text-xs p-2" placeholder="Qtd Itens" onfocus="App.setActiveInput(this)" oninput="this.value = this.value.replace(/\D/g,'')">
                         </div>
@@ -203,14 +203,41 @@
                 };
             },
 
-            // ========== DATA AUTOMÁTICA ==========
+            // ========== DATA AUTOMÁTICA COM BARRA ==========
             setCurrentDate(input) {
                 if (!input.value) {
                     const now = new Date();
                     const mes = String(now.getMonth() + 1).padStart(2, '0');
                     const ano = now.getFullYear();
-                    input.value = `${mes}${ano}`;
+                    input.value = `${mes}/${ano}`;
                     this.validateDate(input);
+                }
+            },
+
+            // ========== FORMATADOR DE DATA COM BARRA ==========
+            formatDate(input) {
+                let v = input.value.replace(/\D/g, '');
+                if (v.length > 6) v = v.slice(0, 6);
+                
+                if (v.length >= 2) {
+                    v = v.slice(0, 2) + '/' + v.slice(2);
+                }
+                
+                input.value = v;
+                this.validateDate(input);
+            },
+
+            // ========== VALIDAÇÃO DE DATA ==========
+            validateDate(input) {
+                const v = input.value;
+                if (v.length === 7) { // Formato MM/AAAA
+                    const mes = parseInt(v.slice(0, 2), 10);
+                    if (mes < 1 || mes > 12) {
+                        this.showToast("Mês inválido", 3000);
+                        input.classList.add('border-red-500');
+                    } else {
+                        input.classList.remove('border-red-500');
+                    }
                 }
             },
 
@@ -352,22 +379,6 @@
                 } else {
                     live.style.opacity = "0";
                     document.getElementById('previewName').textContent = val.length >= 5 ? "NÃO CADASTRADO" : "";
-                }
-            },
-
-            // ========== VALIDAÇÃO DE DATA ==========
-            validateDate(input) {
-                let v = input.value.replace(/\D/g, '');
-                if (v.length > 6) v = v.slice(0, 6);
-                input.value = v;
-                if (v.length === 6) {
-                    const mes = parseInt(v.slice(0, 2), 10);
-                    if (mes < 1 || mes > 12) {
-                        this.showToast("Mês inválido", 3000);
-                        input.classList.add('border-red-500');
-                    } else {
-                        input.classList.remove('border-red-500');
-                    }
                 }
             },
 
