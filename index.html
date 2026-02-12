@@ -22,6 +22,8 @@
         .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-gold-outline { background: transparent; border: 2px solid var(--gold); border-radius: 14px; font-weight: 800; color: var(--gold); cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .btn-gold-outline:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-success { background: #10b981; border-radius: 14px; font-weight: 800; color: #000; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-success:disabled { opacity: 0.5; cursor: not-allowed; }
         .tab-btn { flex: 1; padding: 10px; font-size: 11px; font-weight: 900; text-transform: uppercase; color: #64748b; cursor: pointer; border-radius: 8px; }
         .tab-btn.active { background-color: var(--gold); color: #000; }
         .item-row.done { opacity: 0.3; background: #061108 !important; border-left: 4px solid #10b981; }
@@ -98,12 +100,17 @@
                             <input type="text" id="valQtyItens" class="input-pro text-xs p-2" placeholder="Qtd Itens" onfocus="App.setActiveInput(this)" oninput="this.value = this.value.replace(/\D/g,'')">
                         </div>
                         
-                        <!-- NOVO BOTÃO: Gerar Etiquetas (atajo) -->
-                        <button id="btnGerarEtiquetas" onclick="App.generateZPL('download')" class="btn-gold-outline w-full py-3 uppercase text-xs">
-                            <i class="fa-solid fa-tag"></i> GERAR ETIQUETAS
-                        </button>
+                        <!-- Botões de ação principais -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="btnGerarEtiquetasDownload" onclick="App.generateZPL('download')" class="btn-primary py-3 uppercase text-xs">
+                                <i class="fa-solid fa-download"></i> DOWNLOAD
+                            </button>
+                            <button id="btnGerarEtiquetasCopy" onclick="App.generateZPL('copy')" class="btn-gold-outline py-3 uppercase text-xs">
+                                <i class="fa-solid fa-copy"></i> COPIAR
+                            </button>
+                        </div>
                         
-                        <button id="btnAddEtiqueta" onclick="App.addItemToQueue()" class="btn-primary w-full py-3 uppercase text-xs">
+                        <button id="btnAddEtiqueta" onclick="App.addItemToQueue()" class="btn-secondary w-full py-3 uppercase text-xs">
                             <i class="fa-solid fa-plus"></i> Adicionar
                         </button>
                     </div>
@@ -131,6 +138,9 @@
                         <div class="flex gap-2 no-print">
                             <button id="btnPrint" onclick="App.printList()" class="hidden border border-yellow-500/20 px-3 py-1 rounded text-yellow-500 text-[10px] flex items-center gap-1">
                                 <i class="fa-solid fa-print"></i> Imprimir
+                            </button>
+                            <button id="btnExportSeparation" onclick="App.exportSeparationToExcel()" class="hidden border border-green-500/20 px-3 py-1 rounded text-green-500 text-[10px] flex items-center gap-1">
+                                <i class="fa-solid fa-file-excel"></i> EXPORTAR EXCEL
                             </button>
                             <button onclick="App.clearCurrentCollection()" class="border border-red-500/20 px-3 py-1 rounded text-red-500 text-[10px] flex items-center gap-1">
                                 <i class="fa-solid fa-trash-can"></i> LIMPAR
@@ -184,12 +194,12 @@
             normalizeProduct(prod) {
                 if (!prod) return null;
                 return {
-                    COD: prod.COD || prod.cod || prod.Codigo || '',
-                    NOM: prod.NOM || prod.nom || prod.Nome || prod.nome || 'S/N',
-                    RUA: prod.RUA || prod.rua || prod.Rua || '',
-                    RCK: prod.RCK || prod.rck || prod.Rack || prod.rack || '',
-                    LIN: prod.LIN || prod.lin || prod.Linha || prod.linha || '',
-                    COL: prod.COL || prod.col || prod.Coluna || prod.coluna || ''
+                    COD: String(prod.COD || prod.cod || prod.Codigo || prod.codigo || '').trim(),
+                    NOM: String(prod.NOM || prod.nom || prod.Nome || prod.nome || prod.DESCRICAO || prod.descricao || 'S/N').trim(),
+                    RUA: String(prod.RUA || prod.rua || prod.Rua || prod.ENDERECO || prod.endereco || prod.LOCAL || prod.local || '').trim(),
+                    RCK: String(prod.RCK || prod.rck || prod.Rack || prod.rack || prod.PRATELEIRA || prod.prateleira || '').trim(),
+                    LIN: String(prod.LIN || prod.lin || prod.Linha || prod.linha || '').trim(),
+                    COL: String(prod.COL || prod.col || prod.Coluna || prod.coluna || '').trim()
                 };
             },
 
@@ -197,17 +207,23 @@
             listenMasterProducts() {
                 if (this.unsubscribeMaster) this.unsubscribeMaster();
                 this.unsubscribeMaster = onValue(ref(db, "master_products"), (snap) => {
-                    if (snap.exists()) {
-                        const data = snap.val();
-                        this.inventory = Object.values(data)
-                            .filter(p => p.COD && String(p.COD).trim() !== '')
-                            .map(p => this.normalizeProduct(p));
-                    } else {
-                        this.inventory = [];
-                    }
+                    this._updateInventoryFromSnapshot(snap);
                 }, (error) => {
                     console.error("Erro ao ouvir master_products:", error);
                 });
+            },
+
+            _updateInventoryFromSnapshot(snap) {
+                if (snap.exists()) {
+                    const data = snap.val();
+                    this.inventory = Object.values(data)
+                        .filter(p => p.COD && String(p.COD).trim() !== '')
+                        .map(p => this.normalizeProduct(p));
+                    console.log("Inventário atualizado:", this.inventory.length, "itens");
+                } else {
+                    this.inventory = [];
+                    console.log("Inventário vazio");
+                }
             },
 
             // ========== GERENCIAMENTO DE LISTENERS ==========
@@ -247,7 +263,6 @@
                     </tr>
                 `).join('');
                 
-                // Botões de ZPL na área de ações
                 document.getElementById('footerActions').innerHTML = `
                     <div class="grid grid-cols-2 gap-2">
                         <button id="btnDownloadZpl" onclick="App.generateZPL('download')" class="btn-primary py-3 text-[10px]">
@@ -259,6 +274,7 @@
                     </div>
                 `;
                 document.getElementById('btnPrint').classList.toggle('hidden', this.mode !== 'separacao');
+                document.getElementById('btnExportSeparation').classList.toggle('hidden', this.mode !== 'separacao');
             },
 
             renderSeparation(data) {
@@ -299,6 +315,8 @@
                         <i class="fa-solid fa-location-dot mr-1"></i> Ordenado por endereço
                     </div>
                 `;
+                document.getElementById('btnPrint').classList.toggle('hidden', this.mode !== 'separacao');
+                document.getElementById('btnExportSeparation').classList.toggle('hidden', this.mode !== 'separacao');
             },
 
             // ========== BUSCA E PREVIEW ==========
@@ -344,6 +362,7 @@
                 document.getElementById('etiquetaView').classList.toggle('hidden', m !== 'etiqueta');
                 document.getElementById('separacaoView').classList.toggle('hidden', m !== 'separacao');
                 document.getElementById('btnPrint').classList.toggle('hidden', m !== 'separacao');
+                document.getElementById('btnExportSeparation').classList.toggle('hidden', m !== 'separacao');
                 this.attachListener();
             },
 
@@ -384,7 +403,7 @@
                 }
             },
 
-            // ========== GERAR ZPL – VALIDADE CONDICIONAL E LADO DIREITO EM BRANCO ==========
+            // ========== GERAR ZPL – CORRIGIDO E COM CÓDIGO DE BARRAS MAIOR ==========
             async generateZPL(action) {
                 const snap = await get(ref(db, "print_queue"));
                 const items = snap.val() ? Object.values(snap.val()) : [];
@@ -393,18 +412,18 @@
                     return;
                 }
 
-                // Desabilitar botões relacionados à geração ZPL
+                // Desabilitar botões relacionados
                 const btns = [
-                    document.getElementById('btnGerarEtiquetas'),
+                    document.getElementById('btnGerarEtiquetasDownload'),
+                    document.getElementById('btnGerarEtiquetasCopy'),
                     document.getElementById('btnDownloadZpl'),
                     document.getElementById('btnCopyZpl')
                 ];
                 btns.forEach(btn => {
                     if (btn) {
                         btn.disabled = true;
-                        if (btn.id === 'btnGerarEtiquetas') btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> GERANDO...';
-                        if (btn.id === 'btnDownloadZpl') btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> GERANDO...';
-                        if (btn.id === 'btnCopyZpl') btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> COPIANDO...';
+                        if (btn.id.includes('Download')) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> GERANDO...';
+                        if (btn.id.includes('Copy')) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> COPIANDO...';
                     }
                 });
 
@@ -419,38 +438,75 @@
                     };
 
                     for (let i = 0; i < items.length; i += 2) {
-                        zpl += "^XA\n^CI28^PW812^LL1218\n";
+                        zpl += "^XA\n";
+                        zpl += "^CI28\n";
+                        zpl += "^PW812\n";
+                        zpl += "^LL1218\n";
                         
-                        const label = (item, y) => {
-                            if (!item) return ''; // Lado completamente vazio
+                        // Etiqueta superior
+                        if (items[i]) {
+                            const item = items[i];
                             const r = item.fullData || {};
                             const codBarras = item.codigo_barras || '';
-                            const endereco = `${cleanText(r.RUA)} ${cleanText(r.RCK)}  ${cleanText(r.LIN)}/${cleanText(r.COL)}`.trim();
+                            const y = 0;
                             
-                            let out = `^FO20,${y+30}^A0N,100,90^FD${this.extractId(codBarras)}^FS\n`;
+                            // Código do produto (5 dígitos)
+                            zpl += `^FO20,${y+20}^A0N,110,100^FD${this.extractId(codBarras)}^FS\n`;
                             
-                            // Só imprime a validade se existir e não for vazia
+                            // Validade - só se tiver conteúdo
                             if (item.validade && item.validade.trim() !== '') {
-                                out += `^FO235,${y+20}^GB550,65,75^FS^FO250,${y+30}^A0N,95,90^FR^FDVAL: ${cleanText(item.validade)}^FS\n`;
+                                zpl += `^FO235,${y+10}^GB550,70,80^FS\n`;
+                                zpl += `^FO250,${y+20}^A0N,105,100^FR^FDVAL: ${cleanText(item.validade)}^FS\n`;
                             }
                             
-                            out += `^FO20,${y+140}^A0N,60,60^FB770,2,0,L,0^FD${cleanText(item.tempName)}^FS\n`;
-                            out += `^FO20,${y+300}^A0N,40,40^FD${endereco || ''}^FS\n`;
-                            if (item.qtdItens) out += `^FO580,${y+310}^A0N,80,80^FDQ:${item.qtdItens}^FS\n`;
-                            out += `^BY2,3,130^FO60,${y+410}^BCN,130,Y,N,N^FD${codBarras}^FS\n`;
-                            return out;
-                        };
-
-                        zpl += label(items[i], 0);
-                        if (items[i + 1]) {
-                            zpl += label(items[i + 1], 600);
+                            // Nome do produto
+                            zpl += `^FO20,${y+150}^A0N,60,60^FB770,2,0,L,0^FD${cleanText(item.tempName)}^FS\n`;
+                            
+                            // Endereço
+                            const endereco = `${cleanText(r.RUA)} ${cleanText(r.RCK)}  ${cleanText(r.LIN)}/${cleanText(r.COL)}`.trim();
+                            zpl += `^FO20,${y+320}^A0N,45,45^FD${endereco || ''}^FS\n`;
+                            
+                            // Quantidade de itens
+                            if (item.qtdItens) {
+                                zpl += `^FO580,${y+320}^A0N,80,80^FDQ:${item.qtdItens}^FS\n`;
+                            }
+                            
+                            // Código de barras - MAIOR E MAIS COMPACTO
+                            zpl += `^BY3,3,180^FO60,${y+380}^BCN,180,Y,N,N^FD${codBarras}^FS\n`;
                         }
+                        
+                        // Etiqueta inferior (se existir)
+                        if (items[i + 1]) {
+                            const item = items[i + 1];
+                            const r = item.fullData || {};
+                            const codBarras = item.codigo_barras || '';
+                            const y = 600;
+                            
+                            zpl += `^FO20,${y+20}^A0N,110,100^FD${this.extractId(codBarras)}^FS\n`;
+                            
+                            if (item.validade && item.validade.trim() !== '') {
+                                zpl += `^FO235,${y+10}^GB550,70,80^FS\n`;
+                                zpl += `^FO250,${y+20}^A0N,105,100^FR^FDVAL: ${cleanText(item.validade)}^FS\n`;
+                            }
+                            
+                            zpl += `^FO20,${y+150}^A0N,60,60^FB770,2,0,L,0^FD${cleanText(item.tempName)}^FS\n`;
+                            
+                            const endereco = `${cleanText(r.RUA)} ${cleanText(r.RCK)}  ${cleanText(r.LIN)}/${cleanText(r.COL)}`.trim();
+                            zpl += `^FO20,${y+320}^A0N,45,45^FD${endereco || ''}^FS\n`;
+                            
+                            if (item.qtdItens) {
+                                zpl += `^FO580,${y+320}^A0N,80,80^FDQ:${item.qtdItens}^FS\n`;
+                            }
+                            
+                            zpl += `^BY3,3,180^FO60,${y+380}^BCN,180,Y,N,N^FD${codBarras}^FS\n`;
+                        }
+                        
                         zpl += "^XZ\n";
                     }
 
                     if (action === 'copy') {
                         await navigator.clipboard.writeText(zpl);
-                        this.showToast("ZPL copiado para a área de transferência!");
+                        this.showToast("✅ ZPL copiado! Fila limpa.");
                     } else {
                         const blob = new Blob([zpl], { type: 'text/plain' });
                         const url = URL.createObjectURL(blob);
@@ -459,21 +515,62 @@
                         a.download = `etiquetas_${new Date().getTime()}.zpl`;
                         a.click();
                         URL.revokeObjectURL(url);
-                        this.showToast("Download iniciado");
+                        this.showToast("✅ Download iniciado! Fila limpa.");
                     }
+
+                    // LIMPAR A FILA AUTOMATICAMENTE
+                    await remove(ref(db, "print_queue"));
+
                 } catch (e) {
-                    this.showToast(`Erro ao ${action === 'copy' ? 'copiar' : 'baixar'}`, 3000);
+                    this.showToast(`❌ Erro ao ${action === 'copy' ? 'copiar' : 'baixar'}`, 3000);
                     console.error(e);
                 } finally {
                     // Restaurar botões
                     btns.forEach(btn => {
                         if (btn) {
                             btn.disabled = false;
-                            if (btn.id === 'btnGerarEtiquetas') btn.innerHTML = '<i class="fa-solid fa-tag"></i> GERAR ETIQUETAS';
+                            if (btn.id.includes('Download')) btn.innerHTML = '<i class="fa-solid fa-download"></i> DOWNLOAD';
+                            if (btn.id.includes('Copy')) btn.innerHTML = '<i class="fa-solid fa-copy"></i> COPIAR';
                             if (btn.id === 'btnDownloadZpl') btn.innerHTML = '<i class="fa-solid fa-download"></i> DOWNLOAD ZPL';
                             if (btn.id === 'btnCopyZpl') btn.innerHTML = '<i class="fa-solid fa-copy"></i> COPIAR ZPL';
                         }
                     });
+                }
+            },
+
+            // ========== EXPORTAR LISTA DE SEPARAÇÃO PARA EXCEL ==========
+            async exportSeparationToExcel() {
+                const snap = await get(ref(db, "active_separation"));
+                const items = snap.val() ? Object.keys(snap.val()).map(k => ({ id: k, ...snap.val()[k] })) : [];
+                if (!items.length) {
+                    this.showToast("Nenhum item na separação");
+                    return;
+                }
+
+                const btn = document.getElementById('btnExportSeparation');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> EXPORTANDO...';
+
+                try {
+                    const data = items.map(item => ({
+                        Código: item.code || '',
+                        Produto: item.name || '',
+                        Endereço: `${item.rua || ''} ${item.rack || ''} · ${item.lin || ''}/${item.col || ''}`.trim(),
+                        Quantidade: item.qty || 1,
+                        Status: item.status === 'done' ? 'Concluído' : 'Pendente'
+                    }));
+
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.json_to_sheet(data);
+                    XLSX.utils.book_append_sheet(wb, ws, 'Separação');
+                    XLSX.writeFile(wb, `separacao_${new Date().getTime()}.xlsx`);
+                    this.showToast("✅ Checklist exportado!");
+                } catch (e) {
+                    this.showToast("❌ Erro ao exportar", 3000);
+                    console.error(e);
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-file-excel"></i> EXPORTAR EXCEL';
                 }
             },
 
@@ -518,9 +615,9 @@
                         });
                     }
                     textarea.value = "";
-                    this.showToast("Checklist gerado com sucesso!");
+                    this.showToast("✅ Checklist gerado!");
                 } catch (e) {
-                    this.showToast("Erro ao processar", 3000);
+                    this.showToast("❌ Erro ao processar", 3000);
                     console.error(e);
                 } finally {
                     btn.disabled = false;
@@ -567,9 +664,9 @@
                                 status: 'pending'
                             });
                         }
-                        this.showToast("Pedidos importados com sucesso!");
+                        this.showToast("✅ Pedidos importados!");
                     } catch (e) {
-                        this.showToast("Erro ao importar", 3000);
+                        this.showToast("❌ Erro ao importar", 3000);
                         console.error(e);
                     } finally {
                         document.getElementById('loader').classList.add('hidden');
@@ -587,18 +684,10 @@
                 document.getElementById('loader').classList.remove('hidden');
                 try {
                     const snap = await get(ref(db, "master_products"));
-                    if (snap.exists()) {
-                        const data = snap.val();
-                        this.inventory = Object.values(data)
-                            .filter(p => p.COD && String(p.COD).trim() !== '')
-                            .map(p => this.normalizeProduct(p));
-                        this.showToast("Inventário sincronizado");
-                    } else {
-                        this.inventory = [];
-                        this.showToast("Nenhum produto cadastrado", 3000);
-                    }
+                    this._updateInventoryFromSnapshot(snap);
+                    this.showToast(snap.exists() ? "✅ Inventário sincronizado" : "ℹ️ Nenhum produto cadastrado", 3000);
                 } catch (e) {
-                    this.showToast("Erro na sincronia", 3000);
+                    this.showToast("❌ Erro na sincronia", 3000);
                     console.error(e);
                 } finally {
                     btn.disabled = false;
@@ -607,7 +696,7 @@
                 }
             },
 
-            // ========== UPLOAD DE EXCEL PARA CADASTRO ==========
+            // ========== UPLOAD DE EXCEL PARA CADASTRO – CORRIGIDO ==========
             async handleFileUpload(input) {
                 const file = input.files[0];
                 if (!file) return;
@@ -624,14 +713,16 @@
                     json.forEach(row => {
                         const cod = this.extractFromRow(row, ['COD', 'CÓDIGO', 'Código', 'codigo', 'code']);
                         if (!cod) return;
+                        
                         const prod = {
                             COD: String(cod).trim(),
-                            NOM: this.extractFromRow(row, ['NOME', 'Nome', 'nome', 'DESCRICAO', 'Descrição']) || 'S/N',
-                            RUA: this.extractFromRow(row, ['RUA', 'Rua', 'rua']) || '',
-                            RCK: this.extractFromRow(row, ['RACK', 'Rack', 'rack', 'RCK']) || '',
-                            LIN: this.extractFromRow(row, ['LINHA', 'Linha', 'linha', 'LIN']) || '',
-                            COL: this.extractFromRow(row, ['COLUNA', 'Coluna', 'coluna', 'COL']) || ''
+                            NOM: this.extractFromRow(row, ['NOME', 'Nome', 'nome', 'DESCRICAO', 'Descrição', 'descricao', 'PRODUTO', 'Produto']) || 'S/N',
+                            RUA: this.extractFromRow(row, ['RUA', 'Rua', 'rua', 'ENDERECO', 'Endereco', 'endereco', 'LOCAL', 'Local', 'local']) || '',
+                            RCK: this.extractFromRow(row, ['RACK', 'Rack', 'rack', 'RCK', 'PRATELEIRA', 'Prateleira', 'prateleira']) || '',
+                            LIN: this.extractFromRow(row, ['LINHA', 'Linha', 'linha', 'LIN', 'LINHA', 'Line', 'line']) || '',
+                            COL: this.extractFromRow(row, ['COLUNA', 'Coluna', 'coluna', 'COL', 'COLUNA', 'Column', 'column']) || ''
                         };
+                        
                         produtos[cod] = this.normalizeProduct(prod);
                     });
 
@@ -640,7 +731,12 @@
                     const merged = { ...existing, ...produtos };
 
                     await set(ref(db, "master_products"), merged);
-                    this.showToast("Produtos importados com sucesso!");
+                    
+                    // FORÇAR ATUALIZAÇÃO IMEDIATA
+                    const newSnap = await get(ref(db, "master_products"));
+                    this._updateInventoryFromSnapshot(newSnap);
+                    
+                    this.showToast("✅ Produtos importados!");
                     input.value = '';
                 };
                 reader.readAsArrayBuffer(file);
@@ -648,7 +744,10 @@
 
             extractFromRow(row, keys) {
                 for (let k of keys) {
-                    if (row[k] !== undefined) return String(row[k]).trim();
+                    if (row[k] !== undefined) {
+                        const val = String(row[k]).trim();
+                        if (val !== '') return val;
+                    }
                 }
                 return null;
             },
@@ -675,7 +774,7 @@
                 if (!confirm("Limpar toda a lista?")) return;
                 const path = this.mode === 'etiqueta' ? "print_queue" : "active_separation";
                 await remove(ref(db, path));
-                this.showToast("Lista limpa");
+                this.showToast("✅ Lista limpa");
             },
 
             printList() {
