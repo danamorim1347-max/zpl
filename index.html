@@ -3,162 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ZPL ZK47 PRO | Logística</title>
+    <title>ZK47 PRO | Enterprise Logistics</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
-        :root { --gold: #FFD700; --bg: #010409; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: #f8fafc; background-image: radial-gradient(circle at 50% -20%, #443308 0%, transparent 50%); }
-        .glass { background: #0d1117; border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 1.5rem; }
-        .input-pro { background: #000; border: 1px solid #30363d; color: white; outline: none; font-family: 'JetBrains Mono', monospace; border-radius: 12px; text-align: center; }
-        .input-pro:focus { border-color: var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
-        .input-pro:focus::placeholder { color: #aaa; }
-        .input-active { border-color: var(--gold) !important; background: #1a1608 !important; }
-        .btn-primary { background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%); border-radius: 14px; font-weight: 800; color: #000; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-secondary { background: #0d1117; border: 1px solid var(--gold); border-radius: 14px; font-weight: 800; color: var(--gold); cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-gold-outline { background: transparent; border: 2px solid var(--gold); border-radius: 14px; font-weight: 800; color: var(--gold); cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .btn-gold-outline:disabled { opacity: 0.5; cursor: not-allowed; }
-        .tab-btn { flex: 1; padding: 10px; font-size: 11px; font-weight: 900; text-transform: uppercase; color: #64748b; cursor: pointer; border-radius: 8px; }
-        .tab-btn.active { background-color: var(--gold); color: #000; }
-        .item-row.done { opacity: 0.3; background: #061108 !important; border-left: 4px solid #10b981; }
-        .kb-key { background: #161b22; border: 1px solid #30363d; border-radius: 12px; text-align: center; font-weight: 800; font-size: 1.4rem; color: #fff; cursor: pointer; user-select: none; }
-        .kb-key:active { background: var(--gold); color: #000; }
-        .kb-key:disabled { opacity: 0.3; }
-        @media print {
-            body { background: white !important; color: black !important; }
-            .no-print { display: none !important; }
-            .print-area .glass { display: flex !important; background: white; border: none; color: black; }
-            .glass { background: white; color: black; }
-            .item-row.done { opacity: 0.3; filter: grayscale(1); }
-            #mainTableBody, #mainTableBody * { color: black !important; }
-            .font-white { color: black !important; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+        
+        :root { 
+            --primary: #fbbf24; 
+            --bg-deep: #020617; 
+            --card-bg: #0f172a;
+            --accent: #38bdf8;
         }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-deep); 
+            color: #f1f5f9;
+            background-image: radial-gradient(circle at top right, #1e1b4b 0%, transparent 40%);
+            min-height: 100vh;
+        }
+
+        .glass-panel { 
+            background: rgba(15, 23, 42, 0.8); 
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-field { 
+            background: #020617; 
+            border: 2px solid #1e293b; 
+            color: white; 
+            transition: all 0.2s;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .input-field:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.15);
+            outline: none;
+        }
+
+        .btn-action {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-action:active { transform: scale(0.96); }
+
+        .tab-active {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+        }
+
+        .stock-badge {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .barcode-font { font-family: 'JetBrains Mono', monospace; }
+
+        /* Linhas entre os itens da tabela */
+        .row-divider {
+            border-bottom: 1px solid rgba(51, 65, 85, 0.8);
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; padding: 0 !important; }
+            .glass-panel { border: none !important; box-shadow: none !important; background: white !important; width: 100% !important; }
+            .row-divider { border-bottom: 1px solid #000 !important; }
+            .text-white, .text-slate-300, .text-slate-400 { color: black !important; }
+            .text-amber-500 { color: black !important; font-weight: bold !important; }
+            .stock-badge { border: 1px solid #000 !important; color: black !important; background: none !important; }
+            table { width: 100% !important; border-collapse: collapse !important; }
+            th, td { padding: 10px 5px !important; }
+            .item-done-print { opacity: 0.4 !important; text-decoration: line-through !important; }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
-<body class="min-h-screen p-2 flex flex-col items-center">
+<body class="p-4 md:p-6">
 
-    <!-- Loader global -->
-    <div id="loader" class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center hidden">
-        <div class="w-12 h-12 border-4 border-t-yellow-500 rounded-full animate-spin"></div>
+    <div id="loader" class="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center hidden">
+        <div class="flex flex-col items-center gap-4">
+            <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-amber-500 font-bold tracking-widest text-xs uppercase">Processando...</span>
+        </div>
     </div>
 
-    <!-- Toast -->
-    <div id="toast" class="fixed top-4 right-4 bg-yellow-500 text-black px-6 py-3 rounded-xl font-black text-xs opacity-0 transition-all duration-300 z-[9999]"><span></span></div>
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 px-8 py-4 rounded-2xl font-black text-sm opacity-0 transition-all duration-300 z-[9999] shadow-2xl flex items-center gap-3">
+        <i class="fa-solid fa-circle-info"></i>
+        <span></span>
+    </div>
 
-    <div class="w-full max-w-6xl space-y-4">
+    <div class="max-w-7xl mx-auto space-y-6">
+        
         <!-- Header -->
-        <header class="flex justify-between items-center glass p-4 no-print">
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-barcode text-yellow-500"></i>
-                <h1 class="font-black text-sm uppercase">ZK47 <span class="text-yellow-500">PRO</span></h1>
+        <header class="flex flex-col md:flex-row justify-between items-center gap-4 no-print">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-barcode text-slate-950 text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tighter uppercase leading-none">ZK47 <span class="text-amber-500 font-light">PRO</span></h1>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-none mt-1">Industrial Picking & Labels</p>
+                </div>
             </div>
-            <div class="flex gap-2">
-                <button id="syncBtn" onclick="App.syncInventory()" class="bg-yellow-900/20 text-yellow-500 px-3 py-2 rounded-xl text-[10px] font-black uppercase flex items-center gap-1">
-                    <i class="fa-solid fa-rotate"></i> Sincronizar
+            
+            <div class="flex flex-wrap justify-center gap-2">
+                <button onclick="App.syncInventory()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase flex items-center gap-2 transition-all">
+                    <i class="fa-solid fa-arrows-rotate"></i> Sincronizar
                 </button>
-                <label class="bg-slate-800 text-slate-400 px-3 py-2 rounded-xl text-[10px] font-black cursor-pointer uppercase flex items-center gap-1">
-                    <i class="fa-solid fa-database"></i> Importar Cadastro
+                <label class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase cursor-pointer flex items-center gap-2 border border-slate-700 transition-all">
+                    <i class="fa-solid fa-database text-amber-500"></i> Cadastro
                     <input type="file" class="hidden" accept=".xlsx,.xls,.csv" onchange="App.handleFileUpload(this)">
                 </label>
-                <label class="bg-blue-800/30 text-blue-400 px-3 py-2 rounded-xl text-[10px] font-black cursor-pointer uppercase flex items-center gap-1">
+                <label class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase cursor-pointer flex items-center gap-2 shadow-lg shadow-blue-500/20 transition-all">
                     <i class="fa-solid fa-file-import"></i> Importar Pedidos
                     <input type="file" class="hidden" accept=".xlsx,.xls,.csv" onchange="App.importOrderSheet(this)">
                 </label>
             </div>
         </header>
 
-        <!-- Conteúdo principal -->
-        <main class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <!-- Coluna esquerda (controles) -->
-            <div class="lg:col-span-4 space-y-4 no-print">
-                <section class="glass p-5">
-                    <!-- Abas -->
-                    <div class="flex p-1 bg-slate-900 rounded-xl mb-4 border border-slate-800">
-                        <button id="tabEti" onclick="App.setMode('etiqueta')" class="tab-btn active">Etiquetas</button>
-                        <button id="tabSep" onclick="App.setMode('separacao')" class="tab-btn">Separação</button>
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Controls -->
+            <div class="lg:col-span-4 space-y-6 no-print">
+                <section class="glass-panel p-6">
+                    <div class="flex p-1.5 bg-slate-950 rounded-2xl mb-6 border border-slate-800">
+                        <button id="tabEti" onclick="App.setMode('etiqueta')" class="flex-1 py-3 rounded-xl text-[11px] font-black uppercase transition-all flex items-center justify-center gap-2 tab-active">
+                            <i class="fa-solid fa-tags"></i> Etiquetas
+                        </button>
+                        <button id="tabSep" onclick="App.setMode('separacao')" class="flex-1 py-3 rounded-xl text-[11px] font-black uppercase transition-all flex items-center justify-center gap-2 text-slate-500">
+                            <i class="fa-solid fa-list-check"></i> Separação
+                        </button>
                     </div>
 
-                    <!-- View Etiqueta -->
+                    <!-- Label Form -->
                     <div id="etiquetaView" class="space-y-4">
-                        <input type="text" id="mainCode" class="input-pro w-full p-3" placeholder="Bipar Código" onfocus="App.setActiveInput(this)" oninput="App.updateSearch(this.value)">
-                        <div id="previewName" class="text-center font-black text-yellow-500 text-[11px] h-4 uppercase"></div>
-                        <div id="liveAddress" class="grid grid-cols-4 gap-1 opacity-0">
-                            <div class="bg-black/50 p-1 rounded text-center"><div class="text-[7px] text-slate-500">RUA</div><div id="lRua" class="text-xs font-bold">-</div></div>
-                            <div class="bg-black/50 p-1 rounded text-center"><div class="text-[7px] text-slate-500">RCK</div><div id="lRack" class="text-xs font-bold">-</div></div>
-                            <div class="bg-black/50 p-1 rounded text-center"><div class="text-[7px] text-slate-500">LIN</div><div id="lLin" class="text-xs font-bold">-</div></div>
-                            <div class="bg-black/50 p-1 rounded text-center"><div class="text-[7px] text-slate-500">COL</div><div id="lCol" class="text-xs font-bold">-</div></div>
+                        <input type="text" id="mainCode" class="input-field w-full px-6 py-4 rounded-2xl text-lg font-bold" placeholder="Bipar Código..." onfocus="App.setActiveInput(this)" oninput="App.updateSearch(this.value)">
+                        
+                        <div id="liveAddress" class="grid grid-cols-4 gap-2 opacity-0 transition-all duration-300">
+                            <div class="bg-slate-950 p-2 rounded-xl border border-slate-800 text-center">
+                                <span class="block text-[7px] text-slate-500 font-black uppercase">Rua</span>
+                                <span id="lRua" class="text-xs font-bold text-white">-</span>
+                            </div>
+                            <div class="bg-slate-950 p-2 rounded-xl border border-slate-800 text-center">
+                                <span class="block text-[7px] text-slate-500 font-black uppercase">Rck</span>
+                                <span id="lRack" class="text-xs font-bold text-white">-</span>
+                            </div>
+                            <div class="bg-slate-950 p-2 rounded-xl border border-slate-800 text-center">
+                                <span class="block text-[7px] text-slate-500 font-black uppercase">Lin</span>
+                                <span id="lLin" class="text-xs font-bold text-white">-</span>
+                            </div>
+                            <div class="bg-slate-950 p-2 rounded-xl border border-slate-800 text-center">
+                                <span class="block text-[7px] text-slate-500 font-black uppercase">Col</span>
+                                <span id="lCol" class="text-xs font-bold text-white">-</span>
+                            </div>
                         </div>
+
                         <div class="grid grid-cols-3 gap-2">
-                            <!-- DATA AUTOMÁTICA COM BARRA -->
-                            <input type="text" id="valDate" class="input-pro text-xs p-2" placeholder="MM/AAAA" maxlength="7" onfocus="App.setActiveInput(this); App.setCurrentDate(this);" oninput="App.formatDate(this)">
-                            <input type="text" id="valQtyEtq" class="input-pro text-xs p-2" value="1" onfocus="App.setActiveInput(this)" oninput="this.value = this.value.replace(/\D/g,'')">
-                            <input type="text" id="valQtyItens" class="input-pro text-xs p-2" placeholder="Qtd Itens" onfocus="App.setActiveInput(this)" oninput="this.value = this.value.replace(/\D/g,'')">
+                            <input type="text" id="valDate" class="input-field w-full p-3 rounded-xl text-xs" placeholder="Validade" onfocus="App.setActiveInput(this); App.setCurrentDate(this);">
+                            <input type="text" id="valQtyEtq" class="input-field w-full p-3 rounded-xl text-xs" value="1" placeholder="Etq" onfocus="App.setActiveInput(this)">
+                            <input type="text" id="valQtyItens" class="input-field w-full p-3 rounded-xl text-xs" placeholder="Emb" onfocus="App.setActiveInput(this)">
                         </div>
                         
-                        <!-- Botões de ação principais -->
-                        <div class="grid grid-cols-2 gap-2">
-                            <button id="btnGerarEtiquetasDownload" onclick="App.generateZPL('download')" class="btn-primary py-3 uppercase text-xs">
-                                <i class="fa-solid fa-download"></i> DOWNLOAD
-                            </button>
-                            <button id="btnGerarEtiquetasCopy" onclick="App.generateZPL('copy')" class="btn-gold-outline py-3 uppercase text-xs">
-                                <i class="fa-solid fa-copy"></i> COPIAR
-                            </button>
-                        </div>
-                        
-                        <button id="btnAddEtiqueta" onclick="App.addItemToQueue()" class="btn-secondary w-full py-3 uppercase text-xs">
-                            <i class="fa-solid fa-plus"></i> Adicionar
+                        <button onclick="App.addItemToQueue()" class="btn-action w-full bg-amber-500 text-slate-950 py-4 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20">
+                            <i class="fa-solid fa-plus-circle"></i> Adicionar à Fila
                         </button>
                     </div>
 
-                    <!-- View Separação -->
+                    <!-- Picking Form -->
                     <div id="separacaoView" class="hidden space-y-4">
-                        <textarea id="bulkList" class="input-pro w-full p-4 h-32 text-left" placeholder="Código | Nome | Quantidade (cole da planilha)" onfocus="App.setActiveInput(this)"></textarea>
-                        <button id="btnGerarChecklist" onclick="App.processBulkSeparation()" class="btn-primary w-full py-3 uppercase text-xs">
-                            <i class="fa-solid fa-list-check"></i> Gerar Checklist
-                        </button>
+                        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                            <textarea id="bulkList" class="bg-transparent w-full h-32 text-xs font-mono outline-none resize-none text-slate-300" placeholder="Cole os itens aqui..."></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="App.processBulkSeparation()" class="btn-action bg-blue-600 text-white py-4 rounded-2xl text-xs flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Gerar
+                            </button>
+                            <button onclick="window.print()" class="btn-action bg-slate-100 text-slate-900 py-4 rounded-2xl text-xs flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-print"></i> Imprimir
+                            </button>
+                        </div>
                     </div>
                 </section>
 
-                <!-- Teclado virtual -->
-                <section id="keyboard" class="grid grid-cols-3 gap-2 bg-slate-900/50 p-4 rounded-[2rem]"></section>
+                <!-- Keyboard -->
+                <section id="keyboard" class="grid grid-cols-3 gap-2 bg-slate-900/30 p-4 rounded-[2rem] border border-slate-800/50 no-print"></section>
             </div>
 
-            <!-- Coluna direita (lista) -->
-            <div class="lg:col-span-8 space-y-4 print-area">
-                <section class="glass p-6 min-h-[600px] flex flex-col">
-                    <div id="headerList" class="flex justify-between items-center mb-6">
-                        <h2 id="listTitle" class="font-black text-xs uppercase text-slate-400">
-                            <i class="fa-solid fa-list mr-1"></i> Fila
-                        </h2>
-                        <div class="flex gap-2 no-print">
-                            <button id="btnPrint" onclick="App.printList()" class="hidden border border-yellow-500/20 px-3 py-1 rounded text-yellow-500 text-[10px] flex items-center gap-1">
-                                <i class="fa-solid fa-print"></i> Imprimir
-                            </button>
-                            <button id="btnExportSeparation" onclick="App.exportSeparationToExcel()" class="hidden border border-green-500/20 px-3 py-1 rounded text-green-500 text-[10px] flex items-center gap-1">
-                                <i class="fa-solid fa-file-excel"></i> EXPORTAR EXCEL
-                            </button>
-                            <button onclick="App.clearCurrentCollection()" class="border border-red-500/20 px-3 py-1 rounded text-red-500 text-[10px] flex items-center gap-1">
-                                <i class="fa-solid fa-trash-can"></i> LIMPAR
+            <!-- List Display -->
+            <div class="lg:col-span-8">
+                <section class="glass-panel p-6 min-h-[700px] flex flex-col">
+                    <div class="flex justify-between items-center mb-6 no-print">
+                        <div class="flex items-center gap-3">
+                            <div class="w-1 h-6 bg-amber-500 rounded-full"></div>
+                            <h2 id="listTitle" class="font-black text-xs uppercase tracking-widest text-slate-400">Listagem Ativa</h2>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="App.clearCurrentCollection()" class="px-4 py-2 rounded-xl bg-rose-500/10 text-rose-500 text-[10px] font-black uppercase transition-all hover:bg-rose-500 hover:text-white">
+                                <i class="fa-solid fa-trash-can mr-1"></i> Limpar Lista
                             </button>
                         </div>
                     </div>
-                    <div class="flex-grow overflow-y-auto max-h-[400px]">
+
+                    <!-- Print Header (Somente Impressão) -->
+                    <div class="hidden print:block mb-8 border-b-2 border-black pb-4">
+                        <h1 class="text-2xl font-black uppercase">Checklist de Separação ZK47</h1>
+                        <p class="text-sm">Data: <span id="printDate"></span> | Total Itens: <span id="printTotal">0</span></p>
+                    </div>
+
+                    <div class="flex-grow overflow-y-auto">
                         <table class="w-full text-left">
-                            <tbody id="mainTableBody" class="divide-y divide-slate-800"></tbody>
+                            <tbody id="mainTableBody"></tbody>
                         </table>
                     </div>
-                    <div id="footerActions" class="mt-6 pt-4 border-t border-slate-800 flex flex-col gap-2"></div>
+
+                    <div id="footerActions" class="mt-6 pt-6 border-t border-slate-800 no-print"></div>
                 </section>
             </div>
         </main>
     </div>
 
     <script type="module">
-        // ==================== FIREBASE INICIALIZAÇÃO ====================
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, remove, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -171,25 +251,17 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // ==================== APLICATIVO ====================
         window.App = {
-            // Estado
             inventory: [],
             mode: 'etiqueta',
             activeInput: null,
-            unsubscribeQueue: null,
-            unsubscribeSeparation: null,
-            unsubscribeMaster: null,
-            toastTimeout: null,
 
-            // Utilitários
             extractId(code) {
                 if (!code) return '';
                 const str = String(code).replace(/\D/g, '');
                 return str.length === 13 ? str.substring(7, 12) : str;
             },
 
-            // ========== NORMALIZA PRODUTO ==========
             normalizeProduct(prod) {
                 if (!prod) return null;
                 return {
@@ -199,120 +271,64 @@
                     RCK: String(prod.RCK || prod.rack || '').trim(),
                     LIN: String(prod.LIN || prod.linha || '').trim(),
                     COL: String(prod.COL || prod.coluna || '').trim(),
-                    QTD_ITENS: String(prod.QTD_ITENS || prod.qtd_itens || prod.quantidade || '').trim()
+                    QTD_ITENS: String(prod.QTD_ITENS || prod.qtd_itens || prod.quantidade || '').trim(),
+                    QTD_ESTOQUE: String(prod.QTD_ESTOQUE || prod.qtd_estoque || '0').trim()
                 };
             },
 
-            // ========== DATA AUTOMÁTICA COM BARRA ==========
             setCurrentDate(input) {
                 if (!input.value) {
                     const now = new Date();
-                    const mes = String(now.getMonth() + 1).padStart(2, '0');
-                    const ano = now.getFullYear();
-                    input.value = `${mes}/${ano}`;
-                    this.validateDate(input);
+                    input.value = `${String(now.getMonth() + 1).padStart(2, '0')}${now.getFullYear()}`;
                 }
             },
 
-            // ========== FORMATADOR DE DATA COM BARRA ==========
-            formatDate(input) {
-                let v = input.value.replace(/\D/g, '');
-                if (v.length > 6) v = v.slice(0, 6);
-                
-                if (v.length >= 2) {
-                    v = v.slice(0, 2) + '/' + v.slice(2);
-                }
-                
-                input.value = v;
-                this.validateDate(input);
-            },
-
-            // ========== VALIDAÇÃO DE DATA ==========
-            validateDate(input) {
-                const v = input.value;
-                if (v.length === 7) { // Formato MM/AAAA
-                    const mes = parseInt(v.slice(0, 2), 10);
-                    if (mes < 1 || mes > 12) {
-                        this.showToast("Mês inválido", 3000);
-                        input.classList.add('border-red-500');
-                    } else {
-                        input.classList.remove('border-red-500');
-                    }
-                }
-            },
-
-            // ========== INVENTÁRIO EM TEMPO REAL ==========
             listenMasterProducts() {
-                if (this.unsubscribeMaster) this.unsubscribeMaster();
-                this.unsubscribeMaster = onValue(ref(db, "master_products"), (snap) => {
-                    this._updateInventoryFromSnapshot(snap);
-                }, (error) => {
-                    console.error("Erro ao ouvir master_products:", error);
+                onValue(ref(db, "master_products"), (snap) => {
+                    this.inventory = snap.exists() ? Object.values(snap.val()).map(p => this.normalizeProduct(p)) : [];
                 });
             },
 
-            _updateInventoryFromSnapshot(snap) {
-                if (snap.exists()) {
-                    const data = snap.val();
-                    this.inventory = Object.values(data)
-                        .filter(p => p.COD && String(p.COD).trim() !== '')
-                        .map(p => this.normalizeProduct(p));
-                    console.log("Inventário atualizado:", this.inventory.length, "itens");
-                } else {
-                    this.inventory = [];
-                    console.log("Inventário vazio");
-                }
-            },
-
-            // ========== GERENCIAMENTO DE LISTENERS ==========
             attachListener() {
-                if (this.unsubscribeQueue) this.unsubscribeQueue();
-                if (this.unsubscribeSeparation) this.unsubscribeSeparation();
-
                 const path = this.mode === 'etiqueta' ? "print_queue" : "active_separation";
-                if (this.mode === 'etiqueta') {
-                    this.unsubscribeQueue = onValue(ref(db, path), (snap) => {
-                        this.renderQueue(snap.val());
-                    });
-                } else {
-                    this.unsubscribeSeparation = onValue(ref(db, path), (snap) => {
-                        this.renderSeparation(snap.val());
-                    });
-                }
+                onValue(ref(db, path), (snap) => {
+                    const data = snap.val();
+                    if (this.mode === 'etiqueta') this.renderQueue(data); else this.renderSeparation(data);
+                    
+                    // Atualizar info de impressão
+                    if(data) {
+                        document.getElementById('printTotal').textContent = Object.keys(data).length;
+                        document.getElementById('printDate').textContent = new Date().toLocaleString();
+                    }
+                });
             },
 
-            // ========== RENDERIZAÇÃO ==========
             renderQueue(data) {
                 const items = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
                 const body = document.getElementById('mainTableBody');
                 body.innerHTML = items.map(i => `
-                    <tr class="text-[11px]">
-                        <td class="p-2 font-bold">
-                            ${i.tempName || ''}<br>
-                            <span class="text-slate-500">${i.codigo_barras || ''}</span>
+                    <tr class="row-divider">
+                        <td class="py-4 px-2">
+                            <span class="barcode-font text-[9px] text-amber-500/80 font-bold uppercase">${i.codigo_barras}</span>
+                            <p class="text-sm font-bold text-white uppercase">${i.tempName}</p>
                         </td>
-                        <td class="text-yellow-500 text-center">${i.validade || '-'}</td>
-                        <td class="text-right">
-                            ${i.qtdItens ? 'Q:' + i.qtdItens : ''}
-                            <button onclick="App.deleteItem('${i.id}')" class="text-red-500 no-print ml-2">
-                                <i class="fa-solid fa-times"></i>
+                        <td class="text-center py-4">
+                            <span class="barcode-font text-[10px] text-slate-400">VAL: ${i.validade || '--/----'}</span>
+                        </td>
+                        <td class="text-right py-4 px-2">
+                            <button onclick="App.deleteItem('${i.id}')" class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500">
+                                <i class="fa-solid fa-xmark"></i>
                             </button>
                         </td>
                     </tr>
                 `).join('');
                 
                 document.getElementById('footerActions').innerHTML = `
-                    <div class="grid grid-cols-2 gap-2">
-                        <button id="btnDownloadZpl" onclick="App.generateZPL('download')" class="btn-primary py-3 text-[10px]">
-                            <i class="fa-solid fa-download"></i> DOWNLOAD ZPL
-                        </button>
-                        <button id="btnCopyZpl" onclick="App.generateZPL('copy')" class="btn-secondary py-3 text-[10px]">
-                            <i class="fa-solid fa-copy"></i> COPIAR ZPL
-                        </button>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="App.generateZPL('download')" class="btn-action bg-amber-500 text-slate-950 py-3 rounded-xl text-[10px]">Baixar ZPL</button>
+                        <button onclick="App.generateZPL('copy')" class="btn-action bg-slate-800 text-amber-500 border border-amber-500/30 py-3 rounded-xl text-[10px]">Copiar ZPL</button>
                     </div>
                 `;
-                document.getElementById('btnPrint').classList.toggle('hidden', this.mode !== 'separacao');
-                document.getElementById('btnExportSeparation').classList.toggle('hidden', this.mode !== 'separacao');
             },
 
             renderSeparation(data) {
@@ -322,564 +338,231 @@
 
                 const body = document.getElementById('mainTableBody');
                 body.innerHTML = items.map(i => {
-                    const endereco = `${i.rua || '-'} ${i.rack || '-'} · ${i.lin || '-'}/${i.col || '-'}`;
+                    const isDone = i.status === 'done';
                     return `
-                    <tr class="item-row ${i.status === 'done' ? 'done' : ''} text-[11px]">
-                        <td class="p-2">
-                            <div class="bg-slate-800 text-white px-1 py-0.5 rounded text-[9px] uppercase" title="Endereço completo">
-                                ${endereco}
+                    <tr class="row-divider transition-all ${isDone ? 'opacity-30 print:item-done-print' : ''}">
+                        <td class="py-4 px-2">
+                            <div class="flex items-center gap-4">
+                                <div class="bg-slate-950 border border-slate-800 px-3 py-2 rounded-xl text-center min-w-[75px] print:border-black">
+                                    <span class="block text-[7px] text-slate-500 font-black print:text-black">ENDEREÇO</span>
+                                    <span class="text-xs font-black text-white print:text-black uppercase">${i.rua || '-'}${i.rack || '-'}</span>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="barcode-font text-[9px] text-slate-500 print:text-black">${i.code}</span>
+                                        <span class="stock-badge text-[8px] px-2 py-0.5 rounded-full font-black">ESTOQUE: ${i.stock || 0}</span>
+                                    </div>
+                                    <p class="text-sm font-black text-white uppercase print:text-black leading-tight">${i.name}</p>
+                                </div>
                             </div>
                         </td>
-                        <td class="p-2">
-                            <span class="text-[9px] text-slate-500">${i.code || ''}</span><br>
-                            <b class="uppercase">${i.name || ''}</b>
-                        </td>
-                        <td class="text-center">
-                            <div onclick="App.editQuantity('${i.id}', '${i.qty || 1}')" 
-                                 class="p-1 rounded bg-yellow-500/10 text-yellow-500 font-black cursor-pointer">
-                                ${i.qty || 1}
+                        <td class="text-center py-4">
+                            <div onclick="App.editQuantity('${i.id}', '${i.qty}')" class="cursor-pointer">
+                                <span class="block text-[8px] text-slate-500 font-black uppercase mb-1 print:text-black">Pedir</span>
+                                <span class="text-xl font-black text-amber-500 px-3 py-1 rounded-lg print:text-black">${i.qty || 1}</span>
                             </div>
                         </td>
-                        <td class="text-right no-print">
-                            <button onclick="App.toggleStatus('${i.id}', '${i.status || 'pending'}')" 
-                                    class="w-8 h-8 rounded-full border border-slate-700 ${i.status === 'done' ? 'bg-green-500 text-black' : ''}">
+                        <td class="text-right py-4 px-2 no-print">
+                            <button onclick="App.toggleStatus('${i.id}', '${i.status}')" 
+                                    class="w-10 h-10 rounded-xl border-2 ${isDone ? 'bg-emerald-500 border-emerald-500 text-slate-950' : 'border-slate-800 text-slate-700'} flex items-center justify-center transition-all">
                                 <i class="fa-solid fa-check"></i>
                             </button>
                         </td>
                     </tr>
                 `}).join('');
-                document.getElementById('footerActions').innerHTML = `
-                    <div class="text-center text-[9px] text-slate-500 uppercase">
-                        <i class="fa-solid fa-location-dot mr-1"></i> Ordenado por endereço
-                    </div>
-                `;
-                document.getElementById('btnPrint').classList.toggle('hidden', this.mode !== 'separacao');
-                document.getElementById('btnExportSeparation').classList.toggle('hidden', this.mode !== 'separacao');
+                document.getElementById('footerActions').innerHTML = `<p class="text-center text-[9px] text-slate-600 font-bold uppercase tracking-widest">Ordenado por Logística de Endereço</p>`;
             },
 
-            // ========== BUSCA E PREVIEW ==========
             updateSearch(val) {
                 const code = this.extractId(val);
                 const prod = this.inventory.find(i => i.COD && this.extractId(i.COD) === code);
                 const live = document.getElementById('liveAddress');
                 if (prod && val.length >= 5) {
-                    document.getElementById('previewName').textContent = prod.NOM || 'SEM NOME';
                     document.getElementById('lRua').textContent = prod.RUA || "-";
                     document.getElementById('lRack').textContent = prod.RCK || "-";
                     document.getElementById('lLin').textContent = prod.LIN || "-";
                     document.getElementById('lCol').textContent = prod.COL || "-";
                     live.style.opacity = "1";
-                    
-                    // PREENCHER QUANTIDADE DE ITENS DO CADASTRO
-                    if (prod.QTD_ITENS) {
-                        document.getElementById('valQtyItens').value = prod.QTD_ITENS;
-                    } else {
-                        document.getElementById('valQtyItens').value = '';
-                    }
+                    if (prod.QTD_ITENS) document.getElementById('valQtyItens').value = prod.QTD_ITENS;
                 } else {
                     live.style.opacity = "0";
-                    document.getElementById('previewName').textContent = val.length >= 5 ? "NÃO CADASTRADO" : "";
                 }
             },
 
-            // ========== MODO ==========
             setMode(m) {
                 this.mode = m;
-                document.querySelectorAll('.tab-btn').forEach(b => {
-                    b.classList.toggle('active', b.id === (m === 'etiqueta' ? 'tabEti' : 'tabSep'));
-                });
+                document.getElementById('tabEti').className = `flex-1 py-3 rounded-xl text-[11px] font-black uppercase transition-all flex items-center justify-center gap-2 ${m === 'etiqueta' ? 'tab-active' : 'text-slate-500'}`;
+                document.getElementById('tabSep').className = `flex-1 py-3 rounded-xl text-[11px] font-black uppercase transition-all flex items-center justify-center gap-2 ${m === 'separacao' ? 'tab-active' : 'text-slate-500'}`;
                 document.getElementById('etiquetaView').classList.toggle('hidden', m !== 'etiqueta');
                 document.getElementById('separacaoView').classList.toggle('hidden', m !== 'separacao');
-                document.getElementById('btnPrint').classList.toggle('hidden', m !== 'separacao');
-                document.getElementById('btnExportSeparation').classList.toggle('hidden', m !== 'separacao');
                 this.attachListener();
             },
 
-            // ========== ADICIONAR ETIQUETA ==========
             async addItemToQueue() {
                 const code = document.getElementById('mainCode').value;
-                if (!code) {
-                    this.showToast("Digite um código");
-                    return;
-                }
+                if (!code) return;
                 const prod = this.inventory.find(i => i.COD && this.extractId(i.COD) === this.extractId(code)) || { NOM: "AVULSO", COD: code };
-                const normalizedProd = this.normalizeProduct(prod);
-                const qtdEtq = parseInt(document.getElementById('valQtyEtq').value) || 1;
-                const validade = document.getElementById('valDate').value;
-                const qtdItens = document.getElementById('valQtyItens').value;
-
-                const btn = document.getElementById('btnAddEtiqueta');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Adicionando...';
-                try {
-                    for (let i = 0; i < qtdEtq; i++) {
-                        await push(ref(db, "print_queue"), {
-                            codigo_barras: code,
-                            validade: validade,
-                            qtdItens: qtdItens,
-                            tempName: normalizedProd.NOM,
-                            fullData: normalizedProd
-                        });
-                    }
-                    this.clearActiveInput();
-                    this.showToast(`${qtdEtq} etiqueta(s) adicionada(s)`);
-                } catch (e) {
-                    this.showToast("Erro ao adicionar", 3000);
-                    console.error(e);
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-plus"></i> Adicionar';
+                const n = this.normalizeProduct(prod);
+                const qEtq = parseInt(document.getElementById('valQtyEtq').value) || 1;
+                
+                document.getElementById('loader').classList.remove('hidden');
+                for (let i = 0; i < qEtq; i++) {
+                    await push(ref(db, "print_queue"), {
+                        codigo_barras: code,
+                        validade: document.getElementById('valDate').value,
+                        qtdItens: document.getElementById('valQtyItens').value,
+                        tempName: n.NOM,
+                        fullData: n
+                    });
                 }
+                document.getElementById('loader').classList.add('hidden');
+                this.showToast(`Adicionado: ${n.NOM}`);
+                document.getElementById('mainCode').value = "";
             },
 
-            // ========== GERAR ZPL ==========
             async generateZPL(action) {
                 const snap = await get(ref(db, "print_queue"));
                 const items = snap.val() ? Object.values(snap.val()) : [];
-                if (!items.length) {
-                    this.showToast("Nenhuma etiqueta na fila");
-                    return;
-                }
+                if (!items.length) return;
 
-                // Desabilitar botões
-                const btns = [
-                    document.getElementById('btnGerarEtiquetasDownload'),
-                    document.getElementById('btnGerarEtiquetasCopy'),
-                    document.getElementById('btnDownloadZpl'),
-                    document.getElementById('btnCopyZpl')
-                ];
-                btns.forEach(btn => {
-                    if (btn) {
-                        btn.disabled = true;
-                        if (btn.id.includes('Download')) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> GERANDO...';
-                        if (btn.id.includes('Copy')) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> COPIANDO...';
-                    }
-                });
+                let zpl = "";
+                const clean = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9\s\/\-.:,]/g, " ");
 
-                try {
-                    let zpl = "";
-                    const cleanText = (txt) => {
-                        if (!txt) return "";
-                        return String(txt)
-                            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-                            .toUpperCase()
-                            .replace(/[^A-Z0-9\s\/\-.:,]/g, " ");
-                    };
-
-                    for (let i = 0; i < items.length; i += 2) {
-                        zpl += "^XA\n^CI28\n^PW812\n^LL1218\n";
-                        
-                        // Etiqueta superior
-                        if (items[i]) {
-                            const item = items[i];
+                for (let i = 0; i < items.length; i += 2) {
+                    zpl += "^XA\n^CI28\n^PW812\n^LL1218\n";
+                    [0, 600].forEach((y, idx) => {
+                        const item = items[i + idx];
+                        if (item) {
                             const r = item.fullData || {};
-                            const codBarras = item.codigo_barras || '';
-                            const y = 0;
-                            
-                            zpl += `^FO20,${y+20}^A0N,110,100^FD${this.extractId(codBarras)}^FS\n`;
-                            
-                            if (item.validade && item.validade.trim() !== '') {
-                                zpl += `^FO235,${y+10}^GB550,70,80^FS\n`;
-                                zpl += `^FO250,${y+20}^A0N,105,100^FR^FDVAL: ${cleanText(item.validade)}^FS\n`;
-                            }
-                            
-                            zpl += `^FO20,${y+150}^A0N,60,60^FB770,2,0,L,0^FD${cleanText(item.tempName)}^FS\n`;
-                            
-                            const endereco = `${cleanText(r.RUA)} ${cleanText(r.RCK)}  ${cleanText(r.LIN)}/${cleanText(r.COL)}`.trim();
-                            zpl += `^FO20,${y+320}^A0N,45,45^FD${endereco || ''}^FS\n`;
-                            
-                            if (item.qtdItens) {
-                                zpl += `^FO580,${y+320}^A0N,80,80^FDQ:${item.qtdItens}^FS\n`;
-                            }
-                            
-                            zpl += `^BY3,3,180^FO60,${y+380}^BCN,180,Y,N,N^FD${codBarras}^FS\n`;
-                        }
-                        
-                        // Etiqueta inferior
-                        if (items[i + 1]) {
-                            const item = items[i + 1];
-                            const r = item.fullData || {};
-                            const codBarras = item.codigo_barras || '';
-                            const y = 600;
-                            
-                            zpl += `^FO20,${y+20}^A0N,110,100^FD${this.extractId(codBarras)}^FS\n`;
-                            
-                            if (item.validade && item.validade.trim() !== '') {
-                                zpl += `^FO235,${y+10}^GB550,70,80^FS\n`;
-                                zpl += `^FO250,${y+20}^A0N,105,100^FR^FDVAL: ${cleanText(item.validade)}^FS\n`;
-                            }
-                            
-                            zpl += `^FO20,${y+150}^A0N,60,60^FB770,2,0,L,0^FD${cleanText(item.tempName)}^FS\n`;
-                            
-                            const endereco = `${cleanText(r.RUA)} ${cleanText(r.RCK)}  ${cleanText(r.LIN)}/${cleanText(r.COL)}`.trim();
-                            zpl += `^FO20,${y+320}^A0N,45,45^FD${endereco || ''}^FS\n`;
-                            
-                            if (item.qtdItens) {
-                                zpl += `^FO580,${y+320}^A0N,80,80^FDQ:${item.qtdItens}^FS\n`;
-                            }
-                            
-                            zpl += `^BY3,3,180^FO60,${y+380}^BCN,180,Y,N,N^FD${codBarras}^FS\n`;
-                        }
-                        
-                        zpl += "^XZ\n";
-                    }
-
-                    if (action === 'copy') {
-                        await navigator.clipboard.writeText(zpl);
-                        this.showToast("✅ ZPL copiado! Fila limpa.");
-                    } else {
-                        const blob = new Blob([zpl], { type: 'text/plain' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `etiquetas_${new Date().getTime()}.zpl`;
-                        a.click();
-                        URL.revokeObjectURL(url);
-                        this.showToast("✅ Download iniciado! Fila limpa.");
-                    }
-
-                    // LIMPAR FILA AUTOMATICAMENTE
-                    await remove(ref(db, "print_queue"));
-
-                } catch (e) {
-                    this.showToast(`❌ Erro ao ${action === 'copy' ? 'copiar' : 'baixar'}`, 3000);
-                    console.error(e);
-                } finally {
-                    // Restaurar botões
-                    btns.forEach(btn => {
-                        if (btn) {
-                            btn.disabled = false;
-                            if (btn.id.includes('Download')) btn.innerHTML = '<i class="fa-solid fa-download"></i> DOWNLOAD';
-                            if (btn.id.includes('Copy')) btn.innerHTML = '<i class="fa-solid fa-copy"></i> COPIAR';
-                            if (btn.id === 'btnDownloadZpl') btn.innerHTML = '<i class="fa-solid fa-download"></i> DOWNLOAD ZPL';
-                            if (btn.id === 'btnCopyZpl') btn.innerHTML = '<i class="fa-solid fa-copy"></i> COPIAR ZPL';
+                            zpl += `^FO20,${y+20}^A0N,110,100^FD${this.extractId(item.codigo_barras)}^FS\n`;
+                            if (item.validade) zpl += `^FO235,${y+10}^GB550,70,80^FS\n^FO250,${y+20}^A0N,105,100^FR^FDVAL: ${clean(item.validade)}^FS\n`;
+                            zpl += `^FO20,${y+150}^A0N,60,60^FB770,2,0,L,0^FD${clean(item.tempName)}^FS\n`;
+                            zpl += `^FO20,${y+320}^A0N,45,45^FD${clean(r.RUA)} ${clean(r.RCK)}  ${clean(r.LIN)}/${clean(r.COL)}^FS\n`;
+                            if (item.qtdItens) zpl += `^FO580,${y+320}^A0N,80,80^FDQ:${item.qtdItens}^FS\n`;
+                            zpl += `^BY3,3,180^FO60,${y+380}^BCN,180,Y,N,N^FD${item.codigo_barras}^FS\n`;
                         }
                     });
+                    zpl += "^XZ\n";
                 }
+
+                if (action === 'copy') {
+                    await navigator.clipboard.writeText(zpl);
+                    this.showToast("ZPL Copiado!");
+                } else {
+                    const blob = new Blob([zpl], { type: 'text/plain' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob); a.download = `Etiquetas_${Date.now()}.zpl`; a.click();
+                }
+                await remove(ref(db, "print_queue"));
             },
 
-            // ========== EXPORTAR LISTA DE SEPARAÇÃO PARA EXCEL ==========
-            async exportSeparationToExcel() {
-                const snap = await get(ref(db, "active_separation"));
-                const items = snap.val() ? Object.keys(snap.val()).map(k => ({ id: k, ...snap.val()[k] })) : [];
-                if (!items.length) {
-                    this.showToast("Nenhum item na separação");
-                    return;
-                }
-
-                const btn = document.getElementById('btnExportSeparation');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> EXPORTANDO...';
-
-                try {
-                    const data = items.map(item => ({
-                        Código: item.code || '',
-                        Produto: item.name || '',
-                        Endereço: `${item.rua || ''} ${item.rack || ''} · ${item.lin || ''}/${item.col || ''}`.trim(),
-                        Quantidade: item.qty || 1,
-                        Status: item.status === 'done' ? 'Concluído' : 'Pendente'
-                    }));
-
-                    const wb = XLSX.utils.book_new();
-                    const ws = XLSX.utils.json_to_sheet(data);
-                    XLSX.utils.book_append_sheet(wb, ws, 'Separação');
-                    XLSX.writeFile(wb, `separacao_${new Date().getTime()}.xlsx`);
-                    this.showToast("✅ Checklist exportado!");
-                } catch (e) {
-                    this.showToast("❌ Erro ao exportar", 3000);
-                    console.error(e);
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-file-excel"></i> EXPORTAR EXCEL';
-                }
-            },
-
-            // ========== SEPARAÇÃO – PARSER INTELIGENTE ==========
             async processBulkSeparation() {
-                const textarea = document.getElementById('bulkList');
-                const lines = textarea.value.split('\n').filter(l => l.trim() !== '');
+                const lines = document.getElementById('bulkList').value.split('\n').filter(l => l.trim() !== '');
                 if (!lines.length) return;
 
-                const btn = document.getElementById('btnGerarChecklist');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> GERANDO...';
                 document.getElementById('loader').classList.remove('hidden');
-                
-                try {
-                    for (let line of lines) {
-                        const tokens = line.trim().split(/[\s|;,]+/).filter(t => t !== '');
-                        if (tokens.length === 0) continue;
-                        const code = tokens[0];
-                        let qty = 1;
-                        for (let i = tokens.length - 1; i >= 0; i--) {
-                            if (!isNaN(tokens[i]) && tokens[i] !== '') {
-                                qty = parseInt(tokens[i], 10);
-                                break;
-                            }
-                        }
-                        if (isNaN(qty) || qty <= 0) qty = 1;
-
-                        const prod = this.inventory.find(i => i.COD && this.extractId(i.COD) === this.extractId(code)) 
-                                    || { NOM: "NÃO CADASTRADO", COD: code };
-                        const normalized = this.normalizeProduct(prod);
-                        
-                        await push(ref(db, "active_separation"), {
-                            code,
-                            qty: String(qty),
-                            name: normalized.NOM,
-                            rua: normalized.RUA || '-',
-                            rack: normalized.RCK || '-',
-                            lin: normalized.LIN || '-',
-                            col: normalized.COL || '-',
-                            status: 'pending'
-                        });
-                    }
-                    textarea.value = "";
-                    this.showToast("✅ Checklist gerado!");
-                } catch (e) {
-                    this.showToast("❌ Erro ao processar", 3000);
-                    console.error(e);
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-list-check"></i> Gerar Checklist';
-                    document.getElementById('loader').classList.add('hidden');
+                for (let line of lines) {
+                    const tokens = line.trim().split(/[\s|;,]+/).filter(t => t !== '');
+                    if (!tokens.length) continue;
+                    const code = tokens[0];
+                    let qty = 1;
+                    for (let i = tokens.length - 1; i >= 0; i--) { if (!isNaN(tokens[i])) { qty = parseInt(tokens[i], 10); break; } }
+                    const prod = this.inventory.find(i => i.COD && this.extractId(i.COD) === this.extractId(code)) || { NOM: "NÃO CADASTRADO", COD: code };
+                    const n = this.normalizeProduct(prod);
+                    await push(ref(db, "active_separation"), {
+                        code, qty: String(qty), name: n.NOM,
+                        rua: n.RUA, rack: n.RCK, stock: n.QTD_ESTOQUE, status: 'pending'
+                    });
                 }
+                document.getElementById('bulkList').value = "";
+                document.getElementById('loader').classList.add('hidden');
             },
 
-            // ========== IMPORTAÇÃO DE PLANILHA DE PEDIDOS ==========
-            async importOrderSheet(input) {
-                const file = input.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-                    document.getElementById('loader').classList.remove('hidden');
-                    try {
-                        for (let i = 1; i < rows.length; i++) {
-                            const row = rows[i];
-                            if (!row || row.length < 2) continue;
-                            const code = String(row[0]).trim();
-                            if (!code) continue;
-                            
-                            let qty = parseInt(row[2] !== undefined ? row[2] : row[1], 10);
-                            if (isNaN(qty) || qty <= 0) qty = 1;
-
-                            const prod = this.inventory.find(p => p.COD && this.extractId(p.COD) === this.extractId(code))
-                                        || { NOM: "IMPORTADO", COD: code };
-                            const normalized = this.normalizeProduct(prod);
-
-                            await push(ref(db, "active_separation"), {
-                                code,
-                                qty: String(qty),
-                                name: normalized.NOM,
-                                rua: normalized.RUA || '-',
-                                rack: normalized.RCK || '-',
-                                lin: normalized.LIN || '-',
-                                col: normalized.COL || '-',
-                                status: 'pending'
-                            });
-                        }
-                        this.showToast("✅ Pedidos importados!");
-                    } catch (e) {
-                        this.showToast("❌ Erro ao importar", 3000);
-                        console.error(e);
-                    } finally {
-                        document.getElementById('loader').classList.add('hidden');
-                        input.value = '';
-                    }
-                };
-                reader.readAsArrayBuffer(file);
-            },
-
-            // ========== SINCRONIZAÇÃO MANUAL ==========
-            async syncInventory() {
-                const btn = document.getElementById('syncBtn');
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> SINCRONIZANDO...';
-                document.getElementById('loader').classList.remove('hidden');
-                try {
-                    const snap = await get(ref(db, "master_products"));
-                    this._updateInventoryFromSnapshot(snap);
-                    this.showToast(snap.exists() ? "✅ Inventário sincronizado" : "ℹ️ Nenhum produto cadastrado", 3000);
-                } catch (e) {
-                    this.showToast("❌ Erro na sincronia", 3000);
-                    console.error(e);
-                } finally {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-rotate"></i> Sincronizar';
-                    document.getElementById('loader').classList.add('hidden');
-                }
-            },
-
-            // ========== UPLOAD DE EXCEL PARA CADASTRO – PADRÃO FIXO ==========
-            // COLUNAS: A=Código, B=Descrição, E=Rua, F=Rack, G=Linha, H=Coluna
             async handleFileUpload(input) {
-                const file = input.files[0];
-                if (!file) return;
-
+                const file = input.files[0]; if (!file) return;
                 const reader = new FileReader();
                 reader.onload = async (e) => {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheetName = workbook.SheetNames[0];
-                    const sheet = workbook.Sheets[sheetName];
-                    
-                    // Converter para array de arrays (linhas e colunas)
-                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
+                    const rows = XLSX.utils.sheet_to_json(XLSX.read(new Uint8Array(e.target.result), { type: 'array' }).Sheets[XLSX.read(new Uint8Array(e.target.result), { type: 'array' }).SheetNames[0]], { header: 1 });
                     const produtos = {};
-                    
-                    // Pular cabeçalho (linha 0)
                     for (let i = 1; i < rows.length; i++) {
-                        const row = rows[i];
-                        if (!row || row.length < 1) continue;
-                        
-                        // Índices das colunas (0-based)
-                        // A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7
-                        const codigo = row[0] ? String(row[0]).trim() : '';        // Coluna A
-                        const descricao = row[1] ? String(row[1]).trim() : '';     // Coluna B
-                        const rua = row[4] ? String(row[4]).trim() : '';           // Coluna E
-                        const rack = row[5] ? String(row[5]).trim() : '';          // Coluna F
-                        const linha = row[6] ? String(row[6]).trim() : '';         // Coluna G
-                        const coluna = row[7] ? String(row[7]).trim() : '';        // Coluna H
-                        
-                        if (!codigo) continue;
-                        
-                        const prod = {
-                            COD: codigo,
-                            NOM: descricao || 'S/N',
-                            RUA: rua,
-                            RCK: rack,
-                            LIN: linha,
-                            COL: coluna,
-                            QTD_ITENS: '' // Opcional, pode adicionar coluna depois
-                        };
-                        
-                        produtos[codigo] = this.normalizeProduct(prod);
+                        const r = rows[i]; if (!r[0]) continue;
+                        produtos[r[0]] = this.normalizeProduct({ COD: r[0], NOM: r[1], RUA: r[4], RCK: r[5], LIN: r[6], COL: r[7], QTD_ESTOQUE: r[10] });
                     }
-
-                    // SUBSTITUI COMPLETAMENTE OS DADOS ANTIGOS
                     await set(ref(db, "master_products"), produtos);
-                    
-                    // ATUALIZAÇÃO IMEDIATA
-                    const newSnap = await get(ref(db, "master_products"));
-                    this._updateInventoryFromSnapshot(newSnap);
-                    
-                    this.showToast(`✅ ${Object.keys(produtos).length} produtos importados! Cadastro substituído.`);
-                    input.value = '';
+                    this.showToast("Cadastro Atualizado");
                 };
                 reader.readAsArrayBuffer(file);
             },
 
-            // ========== AÇÕES DA TABELA ==========
-            async deleteItem(id) {
-                await remove(ref(db, (this.mode === 'etiqueta' ? 'print_queue' : 'active_separation') + '/' + id));
-                this.showToast("Item removido");
+            async importOrderSheet(input) {
+                const file = input.files[0]; if (!file) return;
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const rows = XLSX.utils.sheet_to_json(XLSX.read(new Uint8Array(e.target.result), { type: 'array' }).Sheets[XLSX.read(new Uint8Array(e.target.result), { type: 'array' }).SheetNames[0]], { header: 1 });
+                    document.getElementById('loader').classList.remove('hidden');
+                    for (let r of rows) {
+                        if (!r[0]) continue;
+                        const code = String(r[0]).trim();
+                        const p = this.inventory.find(p => p.COD && this.extractId(p.COD) === this.extractId(code)) || { NOM: "IMPORTADO", COD: code };
+                        const n = this.normalizeProduct(p);
+                        await push(ref(db, "active_separation"), { code, qty: String(r[1] || 1), name: n.NOM, rua: n.RUA, rack: n.RCK, stock: n.QTD_ESTOQUE, status: 'pending' });
+                    }
+                    document.getElementById('loader').classList.add('hidden');
+                    input.value = "";
+                };
+                reader.readAsArrayBuffer(file);
             },
 
-            async toggleStatus(id, curStatus) {
-                const newStatus = curStatus === 'done' ? 'pending' : 'done';
-                await set(ref(db, `active_separation/${id}/status`), newStatus);
+            async deleteItem(id) { await remove(ref(db, (this.mode === 'etiqueta' ? 'print_queue' : 'active_separation') + '/' + id)); },
+            async toggleStatus(id, s) { await set(ref(db, `active_separation/${id}/status`), s === 'done' ? 'pending' : 'done'); },
+            async editQuantity(id, q) {
+                const nq = prompt("Alterar Quantidade:", q);
+                if (nq && !isNaN(nq)) await update(ref(db, `active_separation/${id}`), { qty: String(nq) });
+            },
+            async clearCurrentCollection() { if (confirm("Limpar toda a lista?")) await remove(ref(db, this.mode === 'etiqueta' ? "print_queue" : "active_separation")); },
+            async syncInventory() { 
+                document.getElementById('loader').classList.remove('hidden');
+                const snap = await get(ref(db, "master_products"));
+                this.inventory = snap.exists() ? Object.values(snap.val()).map(p => this.normalizeProduct(p)) : [];
+                document.getElementById('loader').classList.add('hidden');
+                this.showToast("Sincronizado");
             },
 
-            async editQuantity(id, curQty) {
-                const newQty = prompt("Nova quantidade:", curQty);
-                if (newQty && !isNaN(newQty) && newQty > 0) {
-                    await update(ref(db, `active_separation/${id}`), { qty: String(newQty) });
-                }
-            },
-
-            async clearCurrentCollection() {
-                if (!confirm("Limpar toda a lista?")) return;
-                const path = this.mode === 'etiqueta' ? "print_queue" : "active_separation";
-                await remove(ref(db, path));
-                this.showToast("✅ Lista limpa");
-            },
-
-            printList() {
-                window.print();
-            },
-
-            // ========== TECLADO VIRTUAL ==========
             initKeyboard() {
                 const kb = document.getElementById('keyboard');
-                kb.innerHTML = '';
-                for (let i = 1; i <= 9; i++) {
-                    kb.appendChild(this.createKey(i));
-                }
-                kb.appendChild(this.createKey('backspace', '<i class="fa-solid fa-delete-left"></i>'));
-                kb.appendChild(this.createKey(0));
-                kb.appendChild(this.createKey('clear', 'C'));
+                [1,2,3,4,5,6,7,8,9,'DEL',0,'CLR'].forEach(v => {
+                    const btn = document.createElement('button');
+                    btn.className = `h-14 rounded-xl font-black text-lg transition-all ${v === 'DEL' ? 'bg-rose-500/10 text-rose-500' : (v === 'CLR' ? 'bg-amber-500 text-slate-950' : 'bg-slate-950 text-white border border-slate-800')}`;
+                    btn.textContent = v;
+                    btn.onclick = () => {
+                        if (v === 'DEL') this.activeInput.value = this.activeInput.value.slice(0,-1);
+                        else if (v === 'CLR') this.activeInput.value = "";
+                        else this.activeInput.value += v;
+                        if(this.activeInput.id === 'mainCode') this.updateSearch(this.activeInput.value);
+                    };
+                    kb.appendChild(btn);
+                });
             },
 
-            createKey(val, html) {
-                const btn = document.createElement('button');
-                btn.className = 'kb-key p-4';
-                if (val === 'backspace') btn.classList.add('text-red-500');
-                if (val === 'clear') btn.classList.add('text-yellow-500');
-                btn.innerHTML = html !== undefined ? html : val;
-                btn.onclick = (e) => {
-                    e.preventDefault();
-                    if (val === 'backspace') this.backspace();
-                    else if (val === 'clear') this.clearActiveInput();
-                    else this.pressKey(String(val));
-                };
-                return btn;
+            setActiveInput(el) { 
+                this.activeInput = el; 
+                document.querySelectorAll('.input-field').forEach(i => i.classList.remove('ring-2', 'ring-amber-500'));
+                el.classList.add('ring-2', 'ring-amber-500'); 
             },
-
-            pressKey(v) {
-                if (this.activeInput) {
-                    this.activeInput.value += v;
-                    if (this.activeInput.id === 'mainCode') this.updateSearch(this.activeInput.value);
-                }
-            },
-
-            backspace() {
-                if (this.activeInput) {
-                    this.activeInput.value = this.activeInput.value.slice(0, -1);
-                    if (this.activeInput.id === 'mainCode') this.updateSearch(this.activeInput.value);
-                }
-            },
-
-            clearActiveInput() {
-                if (this.activeInput) {
-                    this.activeInput.value = "";
-                    if (this.activeInput.id === 'mainCode') this.updateSearch("");
-                }
-            },
-
-            setActiveInput(el) {
-                this.activeInput = el;
-                document.querySelectorAll('.input-pro').forEach(i => i.classList.remove('input-active'));
-                el.classList.add('input-active');
-            },
-
-            // ========== TOAST ==========
-            showToast(msg, duration = 2000) {
-                if (this.toastTimeout) clearTimeout(this.toastTimeout);
-                const toast = document.getElementById('toast');
-                toast.querySelector('span').textContent = msg;
-                toast.classList.remove('opacity-0');
-                this.toastTimeout = setTimeout(() => {
-                    toast.classList.add('opacity-0');
-                }, duration);
+            
+            showToast(msg) {
+                const t = document.getElementById('toast');
+                t.querySelector('span').textContent = msg;
+                t.classList.remove('opacity-0');
+                setTimeout(() => t.classList.add('opacity-0'), 2500);
             }
         };
 
-        // ==================== INICIALIZAÇÃO ====================
-        window.addEventListener('DOMContentLoaded', () => {
-            App.initKeyboard();
-            App.listenMasterProducts();
-            App.setMode('etiqueta');
-            App.updateSearch('');
+        window.addEventListener('DOMContentLoaded', () => { 
+            App.initKeyboard(); 
+            App.listenMasterProducts(); 
+            App.setMode('etiqueta'); 
         });
-
-        window.App = App;
     </script>
 </body>
 </html>
