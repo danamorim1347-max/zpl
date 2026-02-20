@@ -10,14 +10,110 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap');
         
-        :root { --primary: #fbbf24; --bg-deep: #020617; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-deep); color: #f1f5f9; min-height: 100vh; overflow-x: hidden; }
+        :root { 
+            --primary: #fbbf24; 
+            --bg-deep: #020617; 
+            --bg-surface: #0f172a;
+            --border-color: #1e293b;
+        }
+        
+        * {
+            transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.3s ease, transform 0.1s ease;
+        }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-deep); 
+            color: #f1f5f9; 
+            min-height: 100vh; 
+            overflow-x: hidden; 
+        }
 
-        .glass-panel { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; }
-        .input-field { background: #020617; border: 2px solid #1e293b; color: white; font-family: 'JetBrains Mono', monospace; border-radius: 0.75rem; text-align: center; }
-        .tab-active { background: var(--primary); color: #000; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3); }
+        .glass-panel { 
+            background: rgba(15, 23, 42, 0.8); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 1rem; 
+        }
+        
+        .input-field { 
+            background: #020617; 
+            border: 2px solid #1e293b; 
+            color: white; 
+            font-family: 'JetBrains Mono', monospace; 
+            border-radius: 0.75rem; 
+            text-align: center; 
+            transition: all 0.2s ease;
+        }
+        
+        .input-field:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+        }
+        
+        .input-field.valid {
+            border-color: #10b981;
+        }
+        
+        .input-field.invalid {
+            border-color: #ef4444;
+        }
+        
+        .tab-active { 
+            background: var(--primary); 
+            color: #000; 
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3); 
+        }
 
-        .row-divider { border-bottom: 1px solid rgba(51, 65, 85, 0.5); }
+        .row-divider { 
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5); 
+        }
+        
+        .keyboard-btn {
+            transform: scale(1);
+            transition: all 0.1s ease;
+        }
+        
+        .keyboard-btn:active {
+            transform: scale(0.95);
+            filter: brightness(0.9);
+        }
+        
+        #loader {
+            transition: opacity 0.3s ease;
+        }
+        
+        #loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        #toast {
+            transition: opacity 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        /* Feedback visual para itens concluídos */
+        tr.item-done {
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        
+        tr.item-done:hover {
+            opacity: 0.8;
+        }
 
         @media print {
             @page { margin: 0.4cm; }
@@ -41,30 +137,54 @@
 </head>
 <body class="p-4">
 
-    <div id="loader" class="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-md flex items-center justify-center hidden">
+    <!-- Loader com transição suave -->
+    <div id="loader" class="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-md flex items-center justify-center">
         <div class="flex flex-col items-center">
             <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
             <p class="mt-4 text-amber-500 font-bold uppercase text-xs tracking-widest">Sincronização em Tempo Real...</p>
         </div>
     </div>
 
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 px-8 py-4 rounded-2xl font-black text-sm opacity-0 transition-all duration-300 z-[9999] shadow-2xl text-center"><span></span></div>
+    <!-- Toast aprimorado -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 px-8 py-4 rounded-2xl font-black text-sm opacity-0 transition-all duration-300 z-[9999] shadow-2xl text-center">
+        <span></span>
+    </div>
+
+    <!-- Modal de confirmação customizado -->
+    <div id="confirmModal" class="modal-overlay fixed inset-0 z-[9998] flex items-center justify-center hidden">
+        <div class="glass-panel p-6 max-w-sm w-full mx-4">
+            <h3 class="text-lg font-black mb-4" id="confirmTitle">Confirmar</h3>
+            <p class="text-sm text-slate-300 mb-6" id="confirmMessage"></p>
+            <div class="flex gap-3 justify-end">
+                <button id="confirmCancel" class="px-4 py-2 rounded-lg bg-slate-800 text-white text-xs font-black uppercase hover:bg-slate-700">Cancelar</button>
+                <button id="confirmOk" class="px-4 py-2 rounded-lg bg-amber-500 text-slate-950 text-xs font-black uppercase hover:brightness-110">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
     <div class="max-w-7xl mx-auto space-y-4">
         <header class="flex flex-col md:flex-row justify-between items-center gap-4 no-print">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center shadow-lg"><i class="fa-solid fa-bolt text-slate-950 text-xl"></i></div>
+                <div class="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-bolt text-slate-950 text-xl"></i>
+                </div>
                 <div>
-                    <h1 class="text-lg font-black uppercase tracking-tighter text-white leading-none">ZK47 <span class="text-amber-500 font-light">PRO</span></h1>
+                    <h1 class="text-lg font-black uppercase tracking-tighter text-white leading-none">
+                        ZK47 <span class="text-amber-500 font-light">PRO</span>
+                    </h1>
                     <span class="text-[8px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-1 mt-1">
-                        <i class="fa-solid fa-circle text-[5px] animate-pulse"></i> Base Master Sincronizada
+                        <i class="fa-solid fa-circle text-[5px] animate-pulse"></i> 
+                        Base Master Sincronizada
                     </span>
                 </div>
             </div>
             <div class="flex gap-2">
+                <button onclick="App.ui.toggleTheme()" class="bg-slate-800 text-slate-100 px-4 py-3 rounded-xl text-[11px] font-black uppercase border border-slate-700 hover:bg-slate-700 transition-all flex items-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-circle-half-stroke text-amber-500"></i> Tema
+                </button>
                 <label class="bg-slate-800 text-slate-100 px-6 py-3 rounded-xl text-[11px] font-black uppercase cursor-pointer border border-slate-700 hover:bg-slate-700 transition-all flex items-center gap-2 shadow-lg">
                     <i class="fa-solid fa-cloud-arrow-up text-amber-500"></i> Atualizar Base Master
-                    <input type="file" class="hidden" onchange="App.handleFileUpload(this)">
+                    <input type="file" class="hidden" accept=".xlsx,.xls" onchange="App.fileHandler.handleUpload(this)">
                 </label>
             </div>
         </header>
@@ -73,54 +193,111 @@
             <div class="lg:col-span-4 space-y-4 no-print">
                 <section class="glass-panel p-5">
                     <div class="flex p-1 bg-slate-950 rounded-xl mb-4 border border-slate-800">
-                        <button id="tabEti" onclick="App.setMode('etiqueta')" class="flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase transition-all tab-active">Etiquetas</button>
-                        <button id="tabSep" onclick="App.setMode('separacao')" class="flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase transition-all text-slate-500">Separação</button>
+                        <button id="tabEti" onclick="App.ui.setMode('etiqueta')" class="flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase transition-all tab-active">
+                            Etiquetas
+                        </button>
+                        <button id="tabSep" onclick="App.ui.setMode('separacao')" class="flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase transition-all text-slate-500">
+                            Separação
+                        </button>
                     </div>
 
+                    <!-- Modo Etiqueta -->
                     <div id="etiquetaView" class="space-y-4">
-                        <input type="text" id="mainCode" class="input-field w-full px-4 py-4 text-md font-bold" placeholder="Bipar Código..." onfocus="App.setActiveInput(this)" oninput="App.updateSearch(this.value)">
+                        <div class="relative">
+                            <input type="text" id="mainCode" class="input-field w-full px-4 py-4 text-md font-bold pr-12" 
+                                   placeholder="Bipar Código..." 
+                                   onfocus="App.ui.setActiveInput(this)" 
+                                   oninput="App.inventory.updateSearch(this.value)"
+                                   autocomplete="off">
+                            <span id="codeStatus" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold hidden"></span>
+                        </div>
+                        
                         <div id="liveAddress" class="grid grid-cols-4 gap-1 opacity-0 transition-opacity">
-                            <div class="bg-slate-950 p-1 rounded border border-slate-800 text-center"><span class="block text-[6px] text-slate-500 uppercase">Rua</span><span id="lRua" class="text-[10px] font-bold text-white">-</span></div>
-                            <div class="bg-slate-950 p-1 rounded border border-slate-800 text-center"><span class="block text-[6px] text-slate-500 uppercase">Rack</span><span id="lRack" class="text-[10px] font-bold text-white">-</span></div>
-                            <div class="bg-slate-950 p-1 rounded border border-slate-800 text-center"><span class="block text-[6px] text-slate-500 uppercase">Lin</span><span id="lLin" class="text-[10px] font-bold text-white">-</span></div>
-                            <div class="bg-slate-950 p-1 rounded border border-slate-800 text-center"><span class="block text-[6px] text-slate-500 uppercase">Col</span><span id="lCol" class="text-[10px] font-bold text-white">-</span></div>
+                            <div class="bg-slate-950 p-1 rounded border border-slate-800 text-center">
+                                <span class="block text-[6px] text-slate-500 uppercase">Rua</span>
+                                <span id="lRua" class="text-[10px] font-bold text-white">-</span>
+                            </div>
+                            <div class="bg-slate-950 p-1 rounded border border-slate-800 text-center">
+                                <span class="block text-[6px] text-slate-500 uppercase">Rack</span>
+                                <span id="lRack" class="text-[10px] font-bold text-white">-</span>
+                            </div>
+                            <div class="bg-slate-950 p-1 rounded border border-slate-800 text-center">
+                                <span class="block text-[6px] text-slate-500 uppercase">Lin</span>
+                                <span id="lLin" class="text-[10px] font-bold text-white">-</span>
+                            </div>
+                            <div class="bg-slate-950 p-1 rounded border border-slate-800 text-center">
+                                <span class="block text-[6px] text-slate-500 uppercase">Col</span>
+                                <span id="lCol" class="text-[10px] font-bold text-white">-</span>
+                            </div>
                         </div>
+                        
                         <div class="grid grid-cols-3 gap-2">
-                            <input type="text" id="valDate" class="input-field w-full p-2 text-xs" placeholder="Validade" onfocus="App.setActiveInput(this); App.setCurrentDate(this);">
-                            <input type="text" id="valQtyEtq" class="input-field w-full p-2 text-xs" value="1" onfocus="App.setActiveInput(this)">
-                            <input type="text" id="valQtyItens" class="input-field w-full p-2 text-xs" placeholder="Itens" onfocus="App.setActiveInput(this)">
+                            <input type="text" id="valDate" class="input-field w-full p-2 text-xs" 
+                                   placeholder="Validade" 
+                                   onfocus="App.ui.setActiveInput(this); App.ui.setCurrentDate(this);"
+                                   autocomplete="off">
+                            <input type="text" id="valQtyEtq" class="input-field w-full p-2 text-xs" 
+                                   value="1" 
+                                   onfocus="App.ui.setActiveInput(this)"
+                                   oninput="App.validation.validateQuantity(this)"
+                                   autocomplete="off">
+                            <input type="text" id="valQtyItens" class="input-field w-full p-2 text-xs" 
+                                   placeholder="Itens" 
+                                   onfocus="App.ui.setActiveInput(this)"
+                                   oninput="App.validation.validateQuantity(this)"
+                                   autocomplete="off">
                         </div>
-                        <button onclick="App.addItemToQueue()" class="w-full bg-amber-500 text-slate-950 py-4 rounded-xl text-xs font-black uppercase shadow-lg hover:brightness-110 transition-all">Adicionar à Fila</button>
+                        
+                        <button onclick="App.queue.addItem()" 
+                                class="w-full bg-amber-500 text-slate-950 py-4 rounded-xl text-xs font-black uppercase shadow-lg hover:brightness-110 transition-all active:scale-95">
+                            Adicionar à Fila
+                        </button>
                     </div>
 
+                    <!-- Modo Separação -->
                     <div id="separacaoView" class="hidden space-y-4">
-                        <textarea id="bulkList" class="bg-slate-950 border border-slate-800 w-full h-32 p-3 text-xs font-mono rounded-xl text-slate-300 outline-none" placeholder="Código | Quantidade..."></textarea>
+                        <textarea id="bulkList" class="bg-slate-950 border border-slate-800 w-full h-32 p-3 text-xs font-mono rounded-xl text-slate-300 outline-none focus:border-amber-500" 
+                                  placeholder="Código | Quantidade..."></textarea>
                         <div class="grid grid-cols-2 gap-2">
-                            <button onclick="App.processBulkSeparation()" class="bg-blue-600 text-white py-4 rounded-xl text-xs font-black uppercase">Gerar Lista</button>
-                            <button onclick="window.print()" class="bg-white text-slate-900 py-4 rounded-xl text-xs font-black uppercase"><i class="fa-solid fa-print"></i> Imprimir</button>
+                            <button onclick="App.separation.processBulk()" 
+                                    class="bg-blue-600 text-white py-4 rounded-xl text-xs font-black uppercase hover:brightness-110 transition-all active:scale-95">
+                                Gerar Lista
+                            </button>
+                            <button onclick="window.print()" 
+                                    class="bg-white text-slate-900 py-4 rounded-xl text-xs font-black uppercase hover:brightness-90 transition-all active:scale-95">
+                                <i class="fa-solid fa-print"></i> Imprimir
+                            </button>
                         </div>
                     </div>
                 </section>
+
+                <!-- Teclado Virtual Aprimorado -->
                 <section id="keyboard" class="grid grid-cols-3 gap-1.5 bg-slate-900/40 p-3 rounded-3xl border border-slate-800/50 no-print"></section>
             </div>
 
+            <!-- Área Principal da Tabela -->
             <div class="lg:col-span-8">
                 <section class="glass-panel p-5 min-h-[600px] flex flex-col text-white">
                     <div class="hidden print:flex header-print">
                         <h1 class="text-xl font-black uppercase tracking-tighter">Checklist de Separação</h1>
                         <div class="text-right text-[10px] font-bold">
                             <p>Data: <span id="pDate"></span></p>
-                            <p>Total Itens: <span id="pTotal"></span></p>
+                            <p>Total Itens: <span id="pTotal">0</span></p>
                         </div>
                     </div>
-                    <div class="flex-grow">
+                    
+                    <div class="flex-grow overflow-x-auto">
                         <table class="w-full text-left">
                             <tbody id="mainTableBody"></tbody>
                         </table>
                     </div>
+                    
                     <div id="footerActions" class="mt-4 no-print border-t border-slate-800 pt-4 flex justify-between items-center px-2">
-                        <span id="footerInfo" class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Sincronizado</span>
-                        <button onclick="App.clearCurrentCollection()" class="text-rose-500 text-[10px] font-black uppercase flex items-center gap-1">
+                        <span id="footerInfo" class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">
+                            <i class="fa-regular fa-circle-check text-emerald-500"></i> Sincronizado
+                        </span>
+                        <button onclick="App.ui.clearCurrentList()" 
+                                class="text-rose-500 text-[10px] font-black uppercase flex items-center gap-1 hover:text-rose-400 transition-all">
                             <i class="fa-solid fa-trash-can"></i> Limpar Lista
                         </button>
                     </div>
@@ -133,248 +310,789 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, remove, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // Configuração Firebase (em produção, mover para variáveis de ambiente)
         const firebaseConfig = {
             apiKey: "AIzaSyCiy4DOVPYYr_UtglmnVWUdZ8SqM26Neo8",
             authDomain: "zpl47-f751d.firebaseapp.com",
             projectId: "zpl47-f751d",
             databaseURL: "https://zpl47-f751d-default-rtdb.firebaseio.com"
         };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
 
+        // Inicialização Firebase
+        const firebaseApp = initializeApp(firebaseConfig);
+        const db = getDatabase(firebaseApp);
+
+        // Módulos da Aplicação
         window.App = {
-            inventory: [],
-            mode: 'etiqueta',
-            activeInput: null,
-
-            findProduct(code) {
-                if (!code) return null;
-                const searchCode = String(code).trim();
-                const cleanedSearch = this.cleanId(searchCode);
-                return this.inventory.find(i => String(i.COD).trim() === searchCode || this.cleanId(i.COD) === cleanedSearch);
+            // Estado global
+            state: {
+                mode: 'etiqueta',
+                inventory: [],
+                activeInput: null,
+                currentListener: null,
+                theme: localStorage.getItem('theme') || 'dark'
             },
 
-            cleanId(code) {
-                if (!code) return '';
-                const str = String(code).replace(/\D/g, '');
-                return str.length === 13 ? str.substring(7, 12) : str;
-            },
+            // Utilitários de Formatação
+            formatting: {
+                cleanId(code) {
+                    if (!code) return '';
+                    const str = String(code).replace(/\D/g, '');
+                    return str.length === 13 ? str.substring(7, 12) : str;
+                },
 
-            // LIMPEZA DE COORDENADAS: Remove RUA, RACK, RCK e R do início para não duplicar
-            formatCoord(val) {
-                let s = String(val || '').trim();
-                return s.replace(/^(rua|rack|rck|r)\s*/gi, '').trim();
-            },
+                formatCoord(val) {
+                    let s = String(val || '').trim();
+                    return s.replace(/^(rua|rack|rck|r)\s*/gi, '').trim();
+                },
 
-            normalizeProduct(p) {
-                if (!p) return null;
-                return {
-                    COD: String(p.COD || p.codigo || '').trim(),
-                    NOM: String(p.NOM || p.nome || p.descricao || 'S/N').trim(),
-                    RUA: this.formatCoord(p.RUA || p.rua),
-                    RCK: this.formatCoord(p.RCK || p.rack),
-                    LIN: String(p.LIN || p.linha || '?').trim(),
-                    COL: String(p.COL || p.coluna || '?').trim(),
-                    QTD_ESTOQUE: String(p.QTD_ESTOQUE || p.qtd_estoque || '0').trim()
-                };
-            },
+                normalizeProduct(p) {
+                    if (!p) return null;
+                    return {
+                        COD: String(p.COD || p.codigo || '').trim(),
+                        NOM: String(p.NOM || p.nome || p.descricao || 'S/N').trim(),
+                        RUA: this.formatCoord(p.RUA || p.rua),
+                        RCK: this.formatCoord(p.RCK || p.rack),
+                        LIN: String(p.LIN || p.linha || '?').trim(),
+                        COL: String(p.COL || p.coluna || '?').trim(),
+                        QTD_ESTOQUE: String(p.QTD_ESTOQUE || p.qtd_estoque || '0').trim()
+                    };
+                },
 
-            setCurrentDate(input) {
-                const now = new Date();
-                input.value = `${String(now.getMonth() + 1).padStart(2, '0')}${now.getFullYear()}`;
-            },
+                formatAddress(product) {
+                    if (!product) return 'R: - | R: - | -/-';
+                    return `R: ${product.RUA || '-'} | R: ${product.RCK || '-'} | ${product.LIN || '-'}/${product.COL || '-'}`;
+                },
 
-            listenMasterProducts() {
-                onValue(ref(db, "master_products"), (snap) => {
-                    this.inventory = snap.exists() ? Object.values(snap.val()).map(p => this.normalizeProduct(p)) : [];
-                });
-            },
-
-            attachListener() {
-                const path = this.mode === 'etiqueta' ? "print_queue" : "active_separation";
-                onValue(ref(db, path), (snap) => {
-                    const data = snap.val();
-                    if (this.mode === 'etiqueta') this.renderQueue(data); else this.renderSeparation(data);
-                    if(data) document.getElementById('pTotal').textContent = Object.keys(data).length;
-                });
-            },
-
-            renderQueue(data) {
-                const items = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
-                const body = document.getElementById('mainTableBody');
-                body.innerHTML = items.map(i => `
-                    <tr class="row-divider">
-                        <td class="py-3 px-2">
-                            <span class="text-[10px] text-amber-500 font-bold font-mono uppercase">${i.codigo_barras}</span>
-                            <p class="text-sm font-bold text-white uppercase truncate">${i.tempName}</p>
-                        </td>
-                        <td class="text-right py-3 px-2">
-                            <button onclick="App.deleteItem('${i.id}')" class="text-rose-500 hover:text-white transition-all w-8 h-8 rounded-lg hover:bg-rose-500/20"><i class="fa-solid fa-trash-can"></i></button>
-                        </td>
-                    </tr>
-                `).join('');
-                document.getElementById('footerActions').innerHTML = `
-                    <div class="grid grid-cols-2 gap-3 w-full">
-                        <button onclick="App.generateZPL('download')" class="bg-amber-500 text-slate-950 py-3 rounded-xl text-[10px] font-black uppercase transition-all">Baixar ZPL</button>
-                        <button onclick="App.generateZPL('copy')" class="bg-slate-800 text-amber-500 py-3 rounded-xl text-[10px] font-black uppercase border border-amber-500/30 transition-all">Copiar ZPL</button>
-                    </div>
-                `;
-            },
-
-            renderSeparation(data) {
-                let items = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
-                const collator = new Intl.Collator('pt', { numeric: true });
-                const body = document.getElementById('mainTableBody');
-                body.innerHTML = items.sort((a,b) => {
-                    const mA = this.findProduct(a.code) || a;
-                    const mB = this.findProduct(b.code) || b;
-                    return collator.compare((mA.RUA||'')+(mA.RCK||'')+(mA.LIN||''), (mB.RUA||'')+(mB.RCK||'')+(mB.LIN||''));
-                }).map(i => {
-                    const master = this.findProduct(i.code) || i;
-                    const isDone = i.status === 'done';
-                    const displayAddr = `R ${this.formatCoord(master.RUA)} | R ${this.formatCoord(master.RCK)} | ${master.LIN}/${master.COL}`;
-                    return `
-                    <tr class="row-divider ${isDone ? 'opacity-20' : ''} hover:bg-slate-900/30 transition-all">
-                        <td class="py-3 px-1">
-                            <div class="print-address text-amber-500 uppercase font-black tracking-tighter text-[13px]">${displayAddr}</div>
-                            <div class="mt-1">
-                                <span class="print-code text-[14px] text-white font-mono font-bold leading-none">${i.code}</span>
-                                <p class="print-name text-[11px] font-semibold text-slate-300 uppercase leading-none mt-1">
-                                    ${master.NOM || i.name} 
-                                    <span class="no-print text-[9px] font-black text-blue-400 ml-2 uppercase">EST: ${master.QTD_ESTOQUE || 0}</span>
-                                </p>
-                            </div>
-                        </td>
-                        <td class="text-center py-2 no-print w-20">
-                            <div onclick="App.editQuantity('${i.id}', '${i.qty}')" class="cursor-pointer">
-                                <span class="text-xl font-black text-amber-500 bg-amber-500/10 px-3 py-1 rounded-lg block">${i.qty || 1}</span>
-                                <span class="text-[7px] text-slate-500 font-bold uppercase mt-1 block">Pedir</span>
-                            </div>
-                        </td>
-                        <td class="hidden print:table-cell text-center py-2 w-20"><span class="print-qty">${i.qty || 1}</span></td>
-                        <td class="text-right py-2 px-1 no-print w-16">
-                            <button onclick="App.toggleStatus('${i.id}', '${i.status}')" class="w-11 h-11 rounded-xl border border-slate-700 ${isDone ? 'bg-emerald-500 border-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20' : 'text-slate-600'} transition-all flex items-center justify-center">
-                                <i class="fa-solid fa-check text-xl"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `}).join('');
-            },
-
-            updateSearch(val) {
-                const prod = this.findProduct(val);
-                const live = document.getElementById('liveAddress');
-                if (prod && val.length >= 5) {
-                    document.getElementById('lRua').textContent = prod.RUA || "-";
-                    document.getElementById('lRack').textContent = prod.RCK || "-";
-                    document.getElementById('lLin').textContent = prod.LIN || "-";
-                    document.getElementById('lCol').textContent = prod.COL || "-";
-                    live.style.opacity = "1";
-                } else { live.style.opacity = "0"; }
-            },
-
-            setMode(m) {
-                this.mode = m;
-                document.getElementById('tabEti').className = `flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase transition-all ${m === 'etiqueta' ? 'tab-active' : 'text-slate-500'}`;
-                document.getElementById('tabSep').className = `flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase transition-all ${m === 'separacao' ? 'tab-active' : 'text-slate-500'}`;
-                document.getElementById('etiquetaView').classList.toggle('hidden', m !== 'etiqueta');
-                document.getElementById('separacaoView').classList.toggle('hidden', m !== 'separacao');
-                this.attachListener();
-            },
-
-            async handleFileUpload(input) {
-                const file = input.files[0]; if (!file) return;
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    document.getElementById('loader').classList.remove('hidden');
-                    const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
-                    const produtos = {};
-                    for (let i = 1; i < rows.length; i++) {
-                        const r = rows[i]; if (!r[0]) continue;
-                        produtos[r[0]] = { COD: String(r[0]), NOM: String(r[1] || 'S/N'), RUA: String(r[4] || ''), RCK: String(r[5] || ''), LIN: String(r[6] || ''), COL: String(r[7] || ''), QTD_ESTOQUE: String(r[10] || '0') };
-                    }
-                    await set(ref(db, "master_products"), produtos);
-                    document.getElementById('loader').classList.add('hidden');
-                    this.showToast("Base Master Atualizada!");
-                    input.value = "";
-                };
-                reader.readAsArrayBuffer(file);
-            },
-
-            async processBulkSeparation() {
-                const area = document.getElementById('bulkList');
-                const lines = area.value.split('\n').filter(l => l.trim() !== '');
-                if (!lines.length) return;
-                document.getElementById('loader').classList.remove('hidden');
-                for (let line of lines) {
-                    const tokens = line.trim().split(/[\s|;,]+/);
-                    const code = tokens[0];
-                    let qty = 1;
-                    for (let i = tokens.length - 1; i >= 0; i--) { if (!isNaN(tokens[i])) { qty = parseInt(tokens[i]); break; } }
-                    await push(ref(db, "active_separation"), { code, qty: String(qty), status: 'pending' });
+                sanitizeText(text) {
+                    return String(text || "")
+                        .normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                        .toUpperCase();
                 }
-                area.value = "";
-                document.getElementById('loader').classList.add('hidden');
-                this.showToast("Lista Gerada!");
             },
 
-            async generateZPL(action) {
-                const snap = await get(ref(db, "print_queue"));
-                const items = snap.val() ? Object.values(snap.val()) : [];
-                if (!items.length) { this.showToast("Fila Vazia!"); return; }
-                let zpl = "";
-                const clean = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
-                for (let i = 0; i < items.length; i += 2) {
-                    zpl += "^XA\n^CI28\n^PW812\n^LL1218\n";
-                    [0, 600].forEach((y, idx) => {
-                        const it = items[i + idx];
-                        if (it) {
-                            const r = it.fullData || {};
-                            // MONTAGEM DO ENDEREÇO DA ETIQUETA: RUA: [VALOR] RCK: [VALOR]
-                            const addrStr = `RUA: ${clean(r.RUA)} RCK: ${clean(r.RCK)}  ${clean(r.LIN)}/${clean(r.COL)}`;
-                            zpl += `^FO20,${y+20}^A0N,110,100^FD${this.cleanId(it.codigo_barras)}^FS\n`;
-                            if (it.validade) zpl += `^FO235,${y+10}^GB550,70,80^FS\n^FO250,${y+20}^A0N,105,100^FR^FDVAL: ${clean(it.validade)}^FS\n`;
-                            zpl += `^FO20,${y+150}^A0N,60,60^FB770,2,0,L,0^FD${clean(it.tempName)}^FS\n`;
-                            zpl += `^FO20,${y+320}^A0N,45,45^FD${addrStr}^FS\n`;
-                            if (it.qtdItens) zpl += `^FO580,${y+320}^A0N,80,80^FDQ:${it.qtdItens}^FS\n`;
-                            zpl += `^BY3,3,180^FO60,${y+380}^BCN,180,Y,N,N^FD${it.codigo_barras}^FS\n`;
+            // Validações
+            validation: {
+                validateCode(code) {
+                    if (!code || code.length < 5) {
+                        App.ui.showToast('Código muito curto', 'error');
+                        return false;
+                    }
+                    return true;
+                },
+
+                validateQuantity(input) {
+                    const val = parseInt(input.value);
+                    if (isNaN(val) || val < 1) {
+                        input.classList.add('invalid');
+                        input.classList.remove('valid');
+                        return false;
+                    } else {
+                        input.classList.add('valid');
+                        input.classList.remove('invalid');
+                        return true;
+                    }
+                },
+
+                validateFile(file) {
+                    if (!file.name.match(/\.(xlsx|xls)$/)) {
+                        throw new Error('Formato inválido. Use .xlsx ou .xls');
+                    }
+                    if (file.size > 10 * 1024 * 1024) { // 10MB
+                        throw new Error('Arquivo muito grande. Máximo 10MB');
+                    }
+                    return true;
+                }
+            },
+
+            // Módulo Firebase
+            firebase: {
+                db: db,
+
+                async get(path) {
+                    try {
+                        const snap = await get(ref(this.db, path));
+                        return snap.exists() ? snap.val() : null;
+                    } catch (error) {
+                        console.error('Firebase get error:', error);
+                        App.ui.showToast('Erro ao carregar dados', 'error');
+                        return null;
+                    }
+                },
+
+                async set(path, data) {
+                    try {
+                        await set(ref(this.db, path), data);
+                    } catch (error) {
+                        console.error('Firebase set error:', error);
+                        App.ui.showToast('Erro ao salvar dados', 'error');
+                    }
+                },
+
+                async push(path, data) {
+                    try {
+                        return await push(ref(this.db, path), data);
+                    } catch (error) {
+                        console.error('Firebase push error:', error);
+                        App.ui.showToast('Erro ao adicionar item', 'error');
+                    }
+                },
+
+                async remove(path) {
+                    try {
+                        await remove(ref(this.db, path));
+                    } catch (error) {
+                        console.error('Firebase remove error:', error);
+                        App.ui.showToast('Erro ao remover item', 'error');
+                    }
+                },
+
+                async update(path, data) {
+                    try {
+                        await update(ref(this.db, path), data);
+                    } catch (error) {
+                        console.error('Firebase update error:', error);
+                        App.ui.showToast('Erro ao atualizar', 'error');
+                    }
+                },
+
+                listen(path, callback) {
+                    if (App.state.currentListener) {
+                        App.state.currentListener();
+                    }
+                    App.state.currentListener = onValue(ref(this.db, path), callback);
+                }
+            },
+
+            // Módulo de Inventário
+            inventory: {
+                findProduct(code) {
+                    if (!code) return null;
+                    const searchCode = String(code).trim();
+                    const cleanedSearch = App.formatting.cleanId(searchCode);
+                    return App.state.inventory.find(i => 
+                        String(i.COD).trim() === searchCode || 
+                        App.formatting.cleanId(i.COD) === cleanedSearch
+                    );
+                },
+
+                updateSearch(val) {
+                    const prod = this.findProduct(val);
+                    const live = document.getElementById('liveAddress');
+                    const codeInput = document.getElementById('mainCode');
+                    
+                    if (prod && val.length >= 5) {
+                        document.getElementById('lRua').textContent = prod.RUA || "-";
+                        document.getElementById('lRack').textContent = prod.RCK || "-";
+                        document.getElementById('lLin').textContent = prod.LIN || "-";
+                        document.getElementById('lCol').textContent = prod.COL || "-";
+                        live.style.opacity = "1";
+                        codeInput.classList.add('valid');
+                        codeInput.classList.remove('invalid');
+                        
+                        // Mostrar status encontrado
+                        const status = document.getElementById('codeStatus');
+                        status.className = 'absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 text-xs font-bold';
+                        status.innerHTML = '<i class="fa-solid fa-check"></i>';
+                        status.classList.remove('hidden');
+                    } else {
+                        live.style.opacity = "0";
+                        codeInput.classList.remove('valid');
+                        if (val.length > 0) {
+                            codeInput.classList.add('invalid');
+                            const status = document.getElementById('codeStatus');
+                            status.className = 'absolute right-3 top-1/2 -translate-y-1/2 text-rose-500 text-xs font-bold';
+                            status.innerHTML = '<i class="fa-solid fa-exclamation"></i>';
+                            status.classList.remove('hidden');
+                        } else {
+                            document.getElementById('codeStatus').classList.add('hidden');
+                        }
+                    }
+                },
+
+                async syncFromFirebase() {
+                    App.ui.showLoader();
+                    try {
+                        const data = await App.firebase.get('master_products');
+                        App.state.inventory = data ? Object.values(data).map(p => App.formatting.normalizeProduct(p)) : [];
+                        App.ui.showToast('Base sincronizada!', 'success');
+                    } catch (error) {
+                        console.error('Sync error:', error);
+                        App.ui.showToast('Erro na sincronização', 'error');
+                    } finally {
+                        App.ui.hideLoader();
+                    }
+                },
+
+                listenToUpdates() {
+                    App.firebase.listen('master_products', (snap) => {
+                        App.state.inventory = snap.exists() ? 
+                            Object.values(snap.val()).map(p => App.formatting.normalizeProduct(p)) : [];
+                    });
+                }
+            },
+
+            // Módulo de UI
+            ui: {
+                setMode(mode) {
+                    App.state.mode = mode;
+                    
+                    // Atualizar abas
+                    document.getElementById('tabEti').className = `flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase transition-all ${mode === 'etiqueta' ? 'tab-active' : 'text-slate-500'}`;
+                    document.getElementById('tabSep').className = `flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase transition-all ${mode === 'separacao' ? 'tab-active' : 'text-slate-500'}`;
+                    
+                    // Mostrar/esconder views
+                    document.getElementById('etiquetaView').classList.toggle('hidden', mode !== 'etiqueta');
+                    document.getElementById('separacaoView').classList.toggle('hidden', mode !== 'separacao');
+                    
+                    // Atualizar listener
+                    this.attachListener();
+                },
+
+                attachListener() {
+                    const path = App.state.mode === 'etiqueta' ? 'print_queue' : 'active_separation';
+                    App.firebase.listen(path, (snap) => {
+                        const data = snap.val();
+                        if (App.state.mode === 'etiqueta') {
+                            App.queue.render(data);
+                        } else {
+                            App.separation.render(data);
+                        }
+                        if (data) {
+                            document.getElementById('pTotal').textContent = Object.keys(data).length;
+                        } else {
+                            document.getElementById('pTotal').textContent = '0';
                         }
                     });
-                    zpl += "^XZ\n";
+                },
+
+                setActiveInput(el) {
+                    App.state.activeInput = el;
+                    document.querySelectorAll('.input-field').forEach(i => {
+                        i.classList.remove('ring-2', 'ring-amber-500');
+                    });
+                    el.classList.add('ring-2', 'ring-amber-500');
+                },
+
+                setCurrentDate(input) {
+                    const now = new Date();
+                    input.value = `${String(now.getMonth() + 1).padStart(2, '0')}${now.getFullYear()}`;
+                },
+
+                showToast(message, type = 'info') {
+                    const toast = document.getElementById('toast');
+                    const span = toast.querySelector('span');
+                    
+                    // Configurar cor baseado no tipo
+                    toast.className = `fixed bottom-6 left-1/2 -translate-x-1/2 px-8 py-4 rounded-2xl font-black text-sm opacity-0 transition-all duration-300 z-[9999] shadow-2xl text-center ${
+                        type === 'error' ? 'bg-rose-500 text-white' :
+                        type === 'success' ? 'bg-emerald-500 text-slate-950' :
+                        'bg-amber-500 text-slate-950'
+                    }`;
+                    
+                    span.textContent = message;
+                    toast.classList.remove('opacity-0');
+                    
+                    setTimeout(() => {
+                        toast.classList.add('opacity-0');
+                    }, 2500);
+                },
+
+                showLoader() {
+                    document.getElementById('loader').classList.remove('hidden');
+                },
+
+                hideLoader() {
+                    document.getElementById('loader').classList.add('hidden');
+                },
+
+                async confirmAction(title, message) {
+                    return new Promise((resolve) => {
+                        const modal = document.getElementById('confirmModal');
+                        document.getElementById('confirmTitle').textContent = title;
+                        document.getElementById('confirmMessage').textContent = message;
+                        
+                        modal.classList.remove('hidden');
+                        
+                        const handleConfirm = () => {
+                            modal.classList.add('hidden');
+                            cleanup();
+                            resolve(true);
+                        };
+                        
+                        const handleCancel = () => {
+                            modal.classList.add('hidden');
+                            cleanup();
+                            resolve(false);
+                        };
+                        
+                        const cleanup = () => {
+                            document.getElementById('confirmOk').removeEventListener('click', handleConfirm);
+                            document.getElementById('confirmCancel').removeEventListener('click', handleCancel);
+                        };
+                        
+                        document.getElementById('confirmOk').addEventListener('click', handleConfirm);
+                        document.getElementById('confirmCancel').addEventListener('click', handleCancel);
+                    });
+                },
+
+                async clearCurrentList() {
+                    const confirmed = await this.confirmAction(
+                        'Limpar Lista',
+                        'Tem certeza que deseja limpar toda a lista?'
+                    );
+                    
+                    if (confirmed) {
+                        const path = App.state.mode === 'etiqueta' ? 'print_queue' : 'active_separation';
+                        await App.firebase.remove(path);
+                        this.showToast('Lista limpa!', 'success');
+                    }
+                },
+
+                toggleTheme() {
+                    const root = document.documentElement;
+                    App.state.theme = App.state.theme === 'dark' ? 'light' : 'dark';
+                    
+                    if (App.state.theme === 'light') {
+                        root.style.setProperty('--bg-deep', '#f1f5f9');
+                        root.style.setProperty('--bg-surface', '#e2e8f0');
+                        root.style.setProperty('--border-color', '#cbd5e1');
+                        document.body.style.color = '#020617';
+                    } else {
+                        root.style.setProperty('--bg-deep', '#020617');
+                        root.style.setProperty('--bg-surface', '#0f172a');
+                        root.style.setProperty('--border-color', '#1e293b');
+                        document.body.style.color = '#f1f5f9';
+                    }
+                    
+                    localStorage.setItem('theme', App.state.theme);
+                },
+
+                initKeyboard() {
+                    const kb = document.getElementById('keyboard');
+                    const keys = [1, 2, 3, 4, 5, 6, 7, 8, 9, '⌫', 0, '🗑️'];
+                    
+                    keys.forEach(v => {
+                        const btn = document.createElement('button');
+                        btn.className = `keyboard-btn h-12 rounded-xl font-bold text-md transition-all 
+                            active:scale-95 active:brightness-90
+                            ${v === '⌫' ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20' : 
+                              v === '🗑️' ? 'bg-amber-500 text-slate-950 hover:brightness-110' : 
+                              'bg-slate-950 text-white border border-slate-800 hover:bg-slate-900'}`;
+                        btn.textContent = v;
+                        btn.setAttribute('aria-label', `Tecla ${v}`);
+                        
+                        btn.onclick = () => {
+                            if (!App.state.activeInput) {
+                                this.showToast('Selecione um campo', 'error');
+                                return;
+                            }
+                            
+                            if (v === '⌫') {
+                                App.state.activeInput.value = App.state.activeInput.value.slice(0, -1);
+                            } else if (v === '🗑️') {
+                                App.state.activeInput.value = "";
+                            } else {
+                                App.state.activeInput.value += v;
+                            }
+                            
+                            // Trigger eventos
+                            if (App.state.activeInput.id === 'mainCode') {
+                                App.inventory.updateSearch(App.state.activeInput.value);
+                            }
+                            
+                            // Feedback tátil (se disponível)
+                            if (window.navigator && window.navigator.vibrate) {
+                                window.navigator.vibrate(20);
+                            }
+                        };
+                        
+                        kb.appendChild(btn);
+                    });
                 }
-                if (action === 'copy') { await navigator.clipboard.writeText(zpl); this.showToast("ZPL Copiado!"); }
-                else { const blob = new Blob([zpl], { type: 'text/plain' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Labels_${Date.now()}.zpl`; a.click(); }
-                await remove(ref(db, "print_queue"));
             },
 
-            async deleteItem(id) { await remove(ref(db, (this.mode === 'etiqueta' ? 'print_queue' : 'active_separation') + '/' + id)); },
-            async toggleStatus(id, s) { await set(ref(db, `active_separation/${id}/status`), s === 'done' ? 'pending' : 'done'); },
-            async editQuantity(id, q) { const nq = prompt("Qtd:", q); if (nq && !isNaN(nq)) await update(ref(db, `active_separation/${id}`), { qty: String(nq) }); },
-            async clearCurrentCollection() { if (confirm("Limpar lista?")) await remove(ref(db, this.mode === 'etiqueta' ? "print_queue" : "active_separation")); },
-            async syncInventory() { const snap = await get(ref(db, "master_products")); this.inventory = snap.exists() ? Object.values(snap.val()).map(p => this.normalizeProduct(p)) : []; this.showToast("Sincronizado!"); },
-            initKeyboard() {
-                const kb = document.getElementById('keyboard');
-                [1,2,3,4,5,6,7,8,9,'DEL',0,'CLR'].forEach(v => {
-                    const btn = document.createElement('button');
-                    btn.className = `h-12 rounded-xl font-bold text-md transition-all ${v === 'DEL' ? 'bg-rose-500/10 text-rose-500' : (v === 'CLR' ? 'bg-amber-500 text-slate-950' : 'bg-slate-950 text-white border border-slate-800')}`;
-                    btn.textContent = v;
-                    btn.onclick = () => { if (!this.activeInput) return; if (v === 'DEL') this.activeInput.value = this.activeInput.value.slice(0,-1); else if (v === 'CLR') this.activeInput.value = ""; else this.activeInput.value += v; if(this.activeInput.id === 'mainCode') this.updateSearch(this.activeInput.value); };
-                    kb.appendChild(btn);
-                });
+            // Módulo de Fila de Etiquetas
+            queue: {
+                async addItem() {
+                    const code = document.getElementById('mainCode').value;
+                    if (!App.validation.validateCode(code)) return;
+                    
+                    const product = App.inventory.findProduct(code) || { NOM: "AVULSO", COD: code };
+                    const qty = parseInt(document.getElementById('valQtyEtq').value) || 1;
+                    
+                    if (!App.validation.validateQuantity(document.getElementById('valQtyEtq'))) return;
+                    
+                    App.ui.showLoader();
+                    
+                    try {
+                        for (let i = 0; i < qty; i++) {
+                            await App.firebase.push('print_queue', {
+                                codigo_barras: code,
+                                validade: document.getElementById('valDate').value,
+                                qtdItens: document.getElementById('valQtyItens').value,
+                                tempName: product.NOM,
+                                fullData: App.formatting.normalizeProduct(product),
+                                timestamp: Date.now()
+                            });
+                        }
+                        
+                        document.getElementById('mainCode').value = "";
+                        document.getElementById('codeStatus').classList.add('hidden');
+                        App.ui.showToast('Item adicionado!', 'success');
+                    } catch (error) {
+                        console.error('Add item error:', error);
+                        App.ui.showToast('Erro ao adicionar', 'error');
+                    } finally {
+                        App.ui.hideLoader();
+                    }
+                },
+
+                render(data) {
+                    const items = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+                    const body = document.getElementById('mainTableBody');
+                    
+                    body.innerHTML = items.map(item => `
+                        <tr class="row-divider hover:bg-slate-900/30 transition-all">
+                            <td class="py-3 px-2">
+                                <span class="text-[10px] text-amber-500 font-bold font-mono uppercase">${item.codigo_barras}</span>
+                                <p class="text-sm font-bold text-white uppercase truncate">${item.tempName}</p>
+                                ${item.validade ? `<span class="text-[8px] text-slate-500">Val: ${item.validade}</span>` : ''}
+                            </td>
+                            <td class="text-right py-3 px-2">
+                                <button onclick="App.queue.deleteItem('${item.id}')" 
+                                        class="text-rose-500 hover:text-white transition-all w-8 h-8 rounded-lg hover:bg-rose-500/20">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+
+                    // Atualizar rodapé
+                    document.getElementById('footerActions').innerHTML = items.length > 0 ? `
+                        <div class="grid grid-cols-2 gap-3 w-full">
+                            <button onclick="App.queue.generateZPL('download')" 
+                                    class="bg-amber-500 text-slate-950 py-3 rounded-xl text-[10px] font-black uppercase hover:brightness-110 transition-all active:scale-95">
+                                Baixar ZPL
+                            </button>
+                            <button onclick="App.queue.generateZPL('copy')" 
+                                    class="bg-slate-800 text-amber-500 py-3 rounded-xl text-[10px] font-black uppercase border border-amber-500/30 hover:bg-slate-700 transition-all active:scale-95">
+                                Copiar ZPL
+                            </button>
+                        </div>
+                    ` : `
+                        <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">
+                            <i class="fa-regular fa-circle-check text-emerald-500"></i> Sincronizado
+                        </span>
+                        <button onclick="App.ui.clearCurrentList()" 
+                                class="text-rose-500 text-[10px] font-black uppercase flex items-center gap-1 hover:text-rose-400 transition-all">
+                            <i class="fa-solid fa-trash-can"></i> Limpar Lista
+                        </button>
+                    `;
+                },
+
+                async deleteItem(id) {
+                    const confirmed = await App.ui.confirmAction('Remover Item', 'Remover este item da fila?');
+                    if (confirmed) {
+                        await App.firebase.remove('print_queue/' + id);
+                        App.ui.showToast('Item removido!', 'success');
+                    }
+                },
+
+                async generateZPL(action) {
+                    const snap = await get(ref(db, "print_queue"));
+                    const items = snap.val() ? Object.values(snap.val()) : [];
+                    
+                    if (!items.length) {
+                        App.ui.showToast('Fila vazia!', 'error');
+                        return;
+                    }
+                    
+                    App.ui.showLoader();
+                    
+                    try {
+                        let zpl = "";
+                        for (let i = 0; i < items.length; i += 2) {
+                            zpl += "^XA\n^CI28\n^PW812\n^LL1218\n";
+                            
+                            [0, 600].forEach((y, idx) => {
+                                const it = items[i + idx];
+                                if (it) {
+                                    const r = it.fullData || {};
+                                    const addrStr = `RUA: ${App.formatting.sanitizeText(r.RUA)} RCK: ${App.formatting.sanitizeText(r.RCK)}  ${r.LIN}/${r.COL}`;
+                                    
+                                    zpl += `^FO20,${y+20}^A0N,110,100^FD${App.formatting.cleanId(it.codigo_barras)}^FS\n`;
+                                    
+                                    if (it.validade) {
+                                        zpl += `^FO235,${y+10}^GB550,70,80^FS\n`;
+                                        zpl += `^FO250,${y+20}^A0N,105,100^FR^FDVAL: ${App.formatting.sanitizeText(it.validade)}^FS\n`;
+                                    }
+                                    
+                                    zpl += `^FO20,${y+150}^A0N,60,60^FB770,2,0,L,0^FD${App.formatting.sanitizeText(it.tempName)}^FS\n`;
+                                    zpl += `^FO20,${y+320}^A0N,45,45^FD${addrStr}^FS\n`;
+                                    
+                                    if (it.qtdItens) {
+                                        zpl += `^FO580,${y+320}^A0N,80,80^FDQ:${it.qtdItens}^FS\n`;
+                                    }
+                                    
+                                    zpl += `^BY3,3,180^FO60,${y+380}^BCN,180,Y,N,N^FD${it.codigo_barras}^FS\n`;
+                                }
+                            });
+                            
+                            zpl += "^XZ\n";
+                        }
+                        
+                        if (action === 'copy') {
+                            await navigator.clipboard.writeText(zpl);
+                            App.ui.showToast('ZPL copiado!', 'success');
+                        } else {
+                            const blob = new Blob([zpl], { type: 'text/plain' });
+                            const a = document.createElement('a');
+                            a.href = URL.createObjectURL(blob);
+                            a.download = `Labels_${Date.now()}.zpl`;
+                            a.click();
+                            URL.revokeObjectURL(a.href);
+                            App.ui.showToast('ZPL baixado!', 'success');
+                        }
+                        
+                        await App.firebase.remove('print_queue');
+                    } catch (error) {
+                        console.error('ZPL generation error:', error);
+                        App.ui.showToast('Erro ao gerar ZPL', 'error');
+                    } finally {
+                        App.ui.hideLoader();
+                    }
+                }
             },
-            setActiveInput(el) { this.activeInput = el; document.querySelectorAll('.input-field').forEach(i => i.classList.remove('ring-2', 'ring-amber-500')); el.classList.add('ring-2', 'ring-amber-500'); },
-            showToast(msg) { const t = document.getElementById('toast'); t.querySelector('span').textContent = msg; t.classList.remove('opacity-0'); setTimeout(() => t.classList.add('opacity-0'), 2500); },
-            async addItemToQueue() {
-                const val = document.getElementById('mainCode').value; if (!val) return;
-                const p = this.findProduct(val) || { NOM: "AVULSO", COD: val };
-                const qEtq = parseInt(document.getElementById('valQtyEtq').value) || 1;
-                for (let i = 0; i < qEtq; i++) { await push(ref(db, "print_queue"), { codigo_barras: val, validade: document.getElementById('valDate').value, qtdItens: document.getElementById('valQtyItens').value, tempName: p.NOM, fullData: this.normalizeProduct(p) }); }
-                document.getElementById('mainCode').value = ""; this.showToast("Item Adicionado!");
+
+            // Módulo de Separação
+            separation: {
+                async processBulk() {
+                    const area = document.getElementById('bulkList');
+                    const lines = area.value.split('\n').filter(l => l.trim() !== '');
+                    
+                    if (!lines.length) {
+                        App.ui.showToast('Digite os códigos!', 'error');
+                        return;
+                    }
+                    
+                    App.ui.showLoader();
+                    
+                    try {
+                        for (let line of lines) {
+                            const tokens = line.trim().split(/[\s|;,]+/);
+                            const code = tokens[0];
+                            
+                            let qty = 1;
+                            for (let i = tokens.length - 1; i >= 0; i--) {
+                                if (!isNaN(tokens[i])) {
+                                    qty = parseInt(tokens[i]);
+                                    break;
+                                }
+                            }
+                            
+                            await App.firebase.push('active_separation', {
+                                code,
+                                qty: String(qty),
+                                status: 'pending',
+                                timestamp: Date.now()
+                            });
+                        }
+                        
+                        area.value = "";
+                        App.ui.showToast('Lista gerada!', 'success');
+                    } catch (error) {
+                        console.error('Bulk process error:', error);
+                        App.ui.showToast('Erro ao processar', 'error');
+                    } finally {
+                        App.ui.hideLoader();
+                    }
+                },
+
+                render(data) {
+                    let items = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
+                    const collator = new Intl.Collator('pt', { numeric: true });
+                    const body = document.getElementById('mainTableBody');
+                    
+                    // Ordenar por endereço
+                    items.sort((a,b) => {
+                        const mA = App.inventory.findProduct(a.code) || a;
+                        const mB = App.inventory.findProduct(b.code) || b;
+                        return collator.compare(
+                            (mA.RUA||'') + (mA.RCK||'') + (mA.LIN||''), 
+                            (mB.RUA||'') + (mB.RCK||'') + (mB.LIN||'')
+                        );
+                    });
+
+                    body.innerHTML = items.map(i => {
+                        const master = App.inventory.findProduct(i.code) || i;
+                        const isDone = i.status === 'done';
+                        const displayAddr = App.formatting.formatAddress(master);
+                        
+                        return `
+                        <tr class="row-divider ${isDone ? 'item-done' : ''} hover:bg-slate-900/30 transition-all">
+                            <td class="py-3 px-1">
+                                <div class="print-address text-amber-500 uppercase font-black tracking-tighter text-[13px]">
+                                    ${displayAddr}
+                                </div>
+                                <div class="mt-1">
+                                    <span class="print-code text-[14px] text-white font-mono font-bold leading-none">${i.code}</span>
+                                    <p class="print-name text-[11px] font-semibold text-slate-300 uppercase leading-none mt-1">
+                                        ${master.NOM || i.name} 
+                                        <span class="no-print text-[9px] font-black text-blue-400 ml-2 uppercase">
+                                            EST: ${master.QTD_ESTOQUE || 0}
+                                        </span>
+                                    </p>
+                                </div>
+                            </td>
+                            <td class="text-center py-2 no-print w-20">
+                                <div onclick="App.separation.editQuantity('${i.id}', '${i.qty}')" 
+                                     class="cursor-pointer hover:opacity-80 transition-all">
+                                    <span class="text-xl font-black text-amber-500 bg-amber-500/10 px-3 py-1 rounded-lg block">
+                                        ${i.qty || 1}
+                                    </span>
+                                    <span class="text-[7px] text-slate-500 font-bold uppercase mt-1 block">Pedir</span>
+                                </div>
+                            </td>
+                            <td class="hidden print:table-cell text-center py-2 w-20">
+                                <span class="print-qty">${i.qty || 1}</span>
+                            </td>
+                            <td class="text-right py-2 px-1 no-print w-16">
+                                <button onclick="App.separation.toggleStatus('${i.id}', '${i.status}')" 
+                                        class="w-11 h-11 rounded-xl border border-slate-700 ${isDone ? 'bg-emerald-500 border-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20' : 'text-slate-600 hover:bg-slate-800'} transition-all flex items-center justify-center">
+                                    <i class="fa-solid fa-check text-xl"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `}).join('');
+
+                    // Atualizar rodapé
+                    document.getElementById('footerActions').innerHTML = items.length > 0 ? `
+                        <div class="flex justify-between items-center w-full">
+                            <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">
+                                <i class="fa-regular fa-circle-check text-emerald-500"></i> ${items.filter(i => i.status === 'done').length}/${items.length} concluídos
+                            </span>
+                            <button onclick="App.ui.clearCurrentList()" 
+                                    class="text-rose-500 text-[10px] font-black uppercase flex items-center gap-1 hover:text-rose-400 transition-all">
+                                <i class="fa-solid fa-trash-can"></i> Limpar Lista
+                            </button>
+                        </div>
+                    ` : `
+                        <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">
+                            <i class="fa-regular fa-circle-check text-emerald-500"></i> Sincronizado
+                        </span>
+                        <button onclick="App.ui.clearCurrentList()" 
+                                class="text-rose-500 text-[10px] font-black uppercase flex items-center gap-1 hover:text-rose-400 transition-all">
+                            <i class="fa-solid fa-trash-can"></i> Limpar Lista
+                        </button>
+                    `;
+                },
+
+                async toggleStatus(id, currentStatus) {
+                    const newStatus = currentStatus === 'done' ? 'pending' : 'done';
+                    await App.firebase.update(`active_separation/${id}`, { status: newStatus });
+                    
+                    // Feedback visual com vibração (se disponível)
+                    if (newStatus === 'done' && window.navigator && window.navigator.vibrate) {
+                        window.navigator.vibrate(50);
+                    }
+                },
+
+                async editQuantity(id, currentQty) {
+                    const newQty = prompt('Quantidade:', currentQty);
+                    if (newQty && !isNaN(newQty) && parseInt(newQty) > 0) {
+                        await App.firebase.update(`active_separation/${id}`, { qty: String(newQty) });
+                        App.ui.showToast('Quantidade atualizada!', 'success');
+                    }
+                }
+            },
+
+            // Módulo de Upload
+            fileHandler: {
+                async handleUpload(input) {
+                    const file = input.files[0];
+                    if (!file) return;
+                    
+                    try {
+                        App.validation.validateFile(file);
+                        App.ui.showLoader();
+                        
+                        const reader = new FileReader();
+                        
+                        reader.onload = async (e) => {
+                            try {
+                                const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                                const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+                                
+                                const produtos = {};
+                                for (let i = 1; i < rows.length; i++) {
+                                    const r = rows[i];
+                                    if (!r[0]) continue;
+                                    
+                                    produtos[r[0]] = {
+                                        COD: String(r[0]),
+                                        NOM: String(r[1] || 'S/N'),
+                                        RUA: String(r[4] || ''),
+                                        RCK: String(r[5] || ''),
+                                        LIN: String(r[6] || ''),
+                                        COL: String(r[7] || ''),
+                                        QTD_ESTOQUE: String(r[10] || '0')
+                                    };
+                                }
+                                
+                                await App.firebase.set('master_products', produtos);
+                                App.ui.showToast('Base master atualizada!', 'success');
+                                
+                            } catch (error) {
+                                console.error('File processing error:', error);
+                                App.ui.showToast('Erro ao processar arquivo', 'error');
+                            } finally {
+                                App.ui.hideLoader();
+                                input.value = "";
+                            }
+                        };
+                        
+                        reader.onerror = () => {
+                            App.ui.hideLoader();
+                            App.ui.showToast('Erro ao ler arquivo', 'error');
+                            input.value = "";
+                        };
+                        
+                        reader.readAsArrayBuffer(file);
+                        
+                    } catch (error) {
+                        App.ui.showToast(error.message, 'error');
+                        input.value = "";
+                    }
+                }
             }
         };
 
-        window.addEventListener('DOMContentLoaded', () => { App.initKeyboard(); App.listenMasterProducts(); App.setMode('etiqueta'); });
+        // Inicialização
+        window.addEventListener('DOMContentLoaded', () => {
+            // Configurar data atual
+            const today = new Date();
+            document.getElementById('pDate').textContent = today.toLocaleDateString('pt-BR');
+            
+            // Inicializar teclado
+            App.ui.initKeyboard();
+            
+            // Sincronizar inventário
+            App.inventory.syncFromFirebase();
+            App.inventory.listenToUpdates();
+            
+            // Iniciar modo etiqueta
+            App.ui.setMode('etiqueta');
+            
+            // Aplicar tema salvo
+            if (App.state.theme === 'light') {
+                App.ui.toggleTheme();
+            }
+            
+            // Esconder loader inicial
+            setTimeout(() => App.ui.hideLoader(), 500);
+        });
     </script>
 </body>
 </html>
