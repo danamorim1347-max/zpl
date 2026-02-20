@@ -105,7 +105,6 @@
             pointer-events: none;
         }
         
-        /* Feedback visual para itens concluídos */
         tr.item-done {
             opacity: 0.5;
             transition: opacity 0.3s ease;
@@ -133,6 +132,15 @@
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        
+        .badge-new {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
     </style>
 </head>
 <body class="p-4">
@@ -141,12 +149,12 @@
     <div id="loader" class="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-md flex items-center justify-center">
         <div class="flex flex-col items-center">
             <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-            <p class="mt-4 text-amber-500 font-bold uppercase text-xs tracking-widest">Sincronização em Tempo Real...</p>
+            <p class="mt-4 text-amber-500 font-bold uppercase text-xs tracking-widest" id="loaderMessage">Sincronização em Tempo Real...</p>
         </div>
     </div>
 
     <!-- Toast aprimorado -->
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 px-8 py-4 rounded-2xl font-black text-sm opacity-0 transition-all duration-300 z-[9999] shadow-2xl text-center">
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 px-8 py-4 rounded-2xl font-black text-sm opacity-0 transition-all duration-300 z-[9999] shadow-2xl text-center">
         <span></span>
     </div>
 
@@ -174,7 +182,8 @@
                     </h1>
                     <span class="text-[8px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-1 mt-1">
                         <i class="fa-solid fa-circle text-[5px] animate-pulse"></i> 
-                        Base Master Sincronizada
+                        <span id="syncStatus">Base Master Sincronizada</span>
+                        <span id="totalItems" class="ml-2 text-amber-500">(0 itens)</span>
                     </span>
                 </div>
             </div>
@@ -186,6 +195,9 @@
                     <i class="fa-solid fa-cloud-arrow-up text-amber-500"></i> Atualizar Base Master
                     <input type="file" class="hidden" accept=".xlsx,.xls" onchange="App.fileHandler.handleUpload(this)">
                 </label>
+                <button onclick="App.inventory.forceRefresh()" class="bg-slate-800 text-slate-100 px-4 py-3 rounded-xl text-[11px] font-black uppercase border border-slate-700 hover:bg-slate-700 transition-all flex items-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-rotate text-amber-500"></i> Recarregar
+                </button>
             </div>
         </header>
 
@@ -208,6 +220,7 @@
                                    placeholder="Bipar Código..." 
                                    onfocus="App.ui.setActiveInput(this)" 
                                    oninput="App.inventory.updateSearch(this.value)"
+                                   onkeypress="App.ui.handleEnterKey(event)"
                                    autocomplete="off">
                             <span id="codeStatus" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold hidden"></span>
                         </div>
@@ -273,6 +286,23 @@
 
                 <!-- Teclado Virtual Aprimorado -->
                 <section id="keyboard" class="grid grid-cols-3 gap-1.5 bg-slate-900/40 p-3 rounded-3xl border border-slate-800/50 no-print"></section>
+                
+                <!-- Estatísticas Rápidas -->
+                <section class="glass-panel p-3 no-print">
+                    <div class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mb-2">
+                        <i class="fa-solid fa-chart-simple"></i> Estatísticas
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-center">
+                        <div class="bg-slate-950 p-2 rounded-lg">
+                            <span class="block text-amber-500 font-black text-sm" id="statTotalProdutos">0</span>
+                            <span class="text-[7px] text-slate-500 uppercase">Produtos</span>
+                        </div>
+                        <div class="bg-slate-950 p-2 rounded-lg">
+                            <span class="block text-amber-500 font-black text-sm" id="statComEstoque">0</span>
+                            <span class="text-[7px] text-slate-500 uppercase">Com Estoque</span>
+                        </div>
+                    </div>
+                </section>
             </div>
 
             <!-- Área Principal da Tabela -->
@@ -288,7 +318,14 @@
                     
                     <div class="flex-grow overflow-x-auto">
                         <table class="w-full text-left">
-                            <tbody id="mainTableBody"></tbody>
+                            <tbody id="mainTableBody">
+                                <tr>
+                                    <td colspan="3" class="text-center py-8 text-slate-500 text-xs">
+                                        <i class="fa-solid fa-box-open text-2xl mb-2 block"></i>
+                                        Nenhum item na lista
+                                    </td>
+                                </tr>
+                            </tbody>
                         </table>
                     </div>
                     
@@ -310,7 +347,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, remove, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // Configuração Firebase (em produção, mover para variáveis de ambiente)
+        // Configuração Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCiy4DOVPYYr_UtglmnVWUdZ8SqM26Neo8",
             authDomain: "zpl47-f751d.firebaseapp.com",
@@ -330,7 +367,8 @@
                 inventory: [],
                 activeInput: null,
                 currentListener: null,
-                theme: localStorage.getItem('theme') || 'dark'
+                theme: localStorage.getItem('theme') || 'dark',
+                lastUpdate: null
             },
 
             // Utilitários de Formatação
@@ -471,16 +509,29 @@
                     if (!code) return null;
                     const searchCode = String(code).trim();
                     const cleanedSearch = App.formatting.cleanId(searchCode);
-                    return App.state.inventory.find(i => 
+                    
+                    // Log para debug
+                    console.log('Buscando produto:', { searchCode, cleanedSearch, inventorySize: App.state.inventory.length });
+                    
+                    const found = App.state.inventory.find(i => 
                         String(i.COD).trim() === searchCode || 
                         App.formatting.cleanId(i.COD) === cleanedSearch
                     );
+                    
+                    if (found) {
+                        console.log('Produto encontrado:', found);
+                    } else {
+                        console.log('Produto não encontrado');
+                    }
+                    
+                    return found;
                 },
 
                 updateSearch(val) {
                     const prod = this.findProduct(val);
                     const live = document.getElementById('liveAddress');
                     const codeInput = document.getElementById('mainCode');
+                    const status = document.getElementById('codeStatus');
                     
                     if (prod && val.length >= 5) {
                         document.getElementById('lRua').textContent = prod.RUA || "-";
@@ -491,8 +542,6 @@
                         codeInput.classList.add('valid');
                         codeInput.classList.remove('invalid');
                         
-                        // Mostrar status encontrado
-                        const status = document.getElementById('codeStatus');
                         status.className = 'absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500 text-xs font-bold';
                         status.innerHTML = '<i class="fa-solid fa-check"></i>';
                         status.classList.remove('hidden');
@@ -501,22 +550,33 @@
                         codeInput.classList.remove('valid');
                         if (val.length > 0) {
                             codeInput.classList.add('invalid');
-                            const status = document.getElementById('codeStatus');
                             status.className = 'absolute right-3 top-1/2 -translate-y-1/2 text-rose-500 text-xs font-bold';
                             status.innerHTML = '<i class="fa-solid fa-exclamation"></i>';
                             status.classList.remove('hidden');
                         } else {
-                            document.getElementById('codeStatus').classList.add('hidden');
+                            status.classList.add('hidden');
                         }
                     }
                 },
 
                 async syncFromFirebase() {
-                    App.ui.showLoader();
+                    App.ui.showLoader('Carregando base master...');
                     try {
                         const data = await App.firebase.get('master_products');
                         App.state.inventory = data ? Object.values(data).map(p => App.formatting.normalizeProduct(p)) : [];
-                        App.ui.showToast('Base sincronizada!', 'success');
+                        
+                        // Atualizar estatísticas
+                        this.updateStats();
+                        
+                        // Mostrar toast com quantidade
+                        App.ui.showToast(`${App.state.inventory.length} produtos carregados!`, 'success');
+                        
+                        // Atualizar status na interface
+                        document.getElementById('syncStatus').textContent = 'Base Master Sincronizada';
+                        document.getElementById('totalItems').textContent = `(${App.state.inventory.length} itens)`;
+                        
+                        console.log('Inventário sincronizado:', App.state.inventory.length, 'itens');
+                        
                     } catch (error) {
                         console.error('Sync error:', error);
                         App.ui.showToast('Erro na sincronização', 'error');
@@ -525,10 +585,29 @@
                     }
                 },
 
+                updateStats() {
+                    const total = App.state.inventory.length;
+                    const comEstoque = App.state.inventory.filter(p => parseInt(p.QTD_ESTOQUE) > 0).length;
+                    
+                    document.getElementById('statTotalProdutos').textContent = total;
+                    document.getElementById('statComEstoque').textContent = comEstoque;
+                },
+
+                forceRefresh() {
+                    this.syncFromFirebase();
+                },
+
                 listenToUpdates() {
                     App.firebase.listen('master_products', (snap) => {
+                        console.log('Firebase update received');
                         App.state.inventory = snap.exists() ? 
                             Object.values(snap.val()).map(p => App.formatting.normalizeProduct(p)) : [];
+                        
+                        this.updateStats();
+                        document.getElementById('totalItems').textContent = `(${App.state.inventory.length} itens)`;
+                        
+                        // Mostrar badge de atualização
+                        App.ui.showToast('Base master atualizada!', 'success');
                     });
                 }
             },
@@ -538,15 +617,12 @@
                 setMode(mode) {
                     App.state.mode = mode;
                     
-                    // Atualizar abas
                     document.getElementById('tabEti').className = `flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase transition-all ${mode === 'etiqueta' ? 'tab-active' : 'text-slate-500'}`;
                     document.getElementById('tabSep').className = `flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase transition-all ${mode === 'separacao' ? 'tab-active' : 'text-slate-500'}`;
                     
-                    // Mostrar/esconder views
                     document.getElementById('etiquetaView').classList.toggle('hidden', mode !== 'etiqueta');
                     document.getElementById('separacaoView').classList.toggle('hidden', mode !== 'separacao');
                     
-                    // Atualizar listener
                     this.attachListener();
                 },
 
@@ -575,6 +651,13 @@
                     el.classList.add('ring-2', 'ring-amber-500');
                 },
 
+                handleEnterKey(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        App.queue.addItem();
+                    }
+                },
+
                 setCurrentDate(input) {
                     const now = new Date();
                     input.value = `${String(now.getMonth() + 1).padStart(2, '0')}${now.getFullYear()}`;
@@ -584,7 +667,6 @@
                     const toast = document.getElementById('toast');
                     const span = toast.querySelector('span');
                     
-                    // Configurar cor baseado no tipo
                     toast.className = `fixed bottom-6 left-1/2 -translate-x-1/2 px-8 py-4 rounded-2xl font-black text-sm opacity-0 transition-all duration-300 z-[9999] shadow-2xl text-center ${
                         type === 'error' ? 'bg-rose-500 text-white' :
                         type === 'success' ? 'bg-emerald-500 text-slate-950' :
@@ -599,8 +681,10 @@
                     }, 2500);
                 },
 
-                showLoader() {
-                    document.getElementById('loader').classList.remove('hidden');
+                showLoader(message = 'Sincronização em Tempo Real...') {
+                    const loader = document.getElementById('loader');
+                    document.getElementById('loaderMessage').textContent = message;
+                    loader.classList.remove('hidden');
                 },
 
                 hideLoader() {
@@ -697,12 +781,10 @@
                                 App.state.activeInput.value += v;
                             }
                             
-                            // Trigger eventos
                             if (App.state.activeInput.id === 'mainCode') {
                                 App.inventory.updateSearch(App.state.activeInput.value);
                             }
                             
-                            // Feedback tátil (se disponível)
                             if (window.navigator && window.navigator.vibrate) {
                                 window.navigator.vibrate(20);
                             }
@@ -724,7 +806,7 @@
                     
                     if (!App.validation.validateQuantity(document.getElementById('valQtyEtq'))) return;
                     
-                    App.ui.showLoader();
+                    App.ui.showLoader('Adicionando item...');
                     
                     try {
                         for (let i = 0; i < qty; i++) {
@@ -740,7 +822,8 @@
                         
                         document.getElementById('mainCode').value = "";
                         document.getElementById('codeStatus').classList.add('hidden');
-                        App.ui.showToast('Item adicionado!', 'success');
+                        App.ui.showToast(`${qty} item(ns) adicionado(s)!`, 'success');
+                        
                     } catch (error) {
                         console.error('Add item error:', error);
                         App.ui.showToast('Erro ao adicionar', 'error');
@@ -753,23 +836,33 @@
                     const items = data ? Object.keys(data).map(k => ({ id: k, ...data[k] })) : [];
                     const body = document.getElementById('mainTableBody');
                     
-                    body.innerHTML = items.map(item => `
-                        <tr class="row-divider hover:bg-slate-900/30 transition-all">
-                            <td class="py-3 px-2">
-                                <span class="text-[10px] text-amber-500 font-bold font-mono uppercase">${item.codigo_barras}</span>
-                                <p class="text-sm font-bold text-white uppercase truncate">${item.tempName}</p>
-                                ${item.validade ? `<span class="text-[8px] text-slate-500">Val: ${item.validade}</span>` : ''}
-                            </td>
-                            <td class="text-right py-3 px-2">
-                                <button onclick="App.queue.deleteItem('${item.id}')" 
-                                        class="text-rose-500 hover:text-white transition-all w-8 h-8 rounded-lg hover:bg-rose-500/20">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('');
+                    if (items.length === 0) {
+                        body.innerHTML = `
+                            <tr>
+                                <td colspan="2" class="text-center py-8 text-slate-500 text-xs">
+                                    <i class="fa-solid fa-tag text-2xl mb-2 block"></i>
+                                    Nenhuma etiqueta na fila
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        body.innerHTML = items.map(item => `
+                            <tr class="row-divider hover:bg-slate-900/30 transition-all">
+                                <td class="py-3 px-2">
+                                    <span class="text-[10px] text-amber-500 font-bold font-mono uppercase">${item.codigo_barras}</span>
+                                    <p class="text-sm font-bold text-white uppercase truncate">${item.tempName}</p>
+                                    ${item.validade ? `<span class="text-[8px] text-slate-500">Val: ${item.validade}</span>` : ''}
+                                </td>
+                                <td class="text-right py-3 px-2">
+                                    <button onclick="App.queue.deleteItem('${item.id}')" 
+                                            class="text-rose-500 hover:text-white transition-all w-8 h-8 rounded-lg hover:bg-rose-500/20">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
 
-                    // Atualizar rodapé
                     document.getElementById('footerActions').innerHTML = items.length > 0 ? `
                         <div class="grid grid-cols-2 gap-3 w-full">
                             <button onclick="App.queue.generateZPL('download')" 
@@ -809,7 +902,7 @@
                         return;
                     }
                     
-                    App.ui.showLoader();
+                    App.ui.showLoader('Gerando ZPL...');
                     
                     try {
                         let zpl = "";
@@ -877,7 +970,7 @@
                         return;
                     }
                     
-                    App.ui.showLoader();
+                    App.ui.showLoader('Processando lista...');
                     
                     try {
                         for (let line of lines) {
@@ -915,7 +1008,18 @@
                     const collator = new Intl.Collator('pt', { numeric: true });
                     const body = document.getElementById('mainTableBody');
                     
-                    // Ordenar por endereço
+                    if (items.length === 0) {
+                        body.innerHTML = `
+                            <tr>
+                                <td colspan="3" class="text-center py-8 text-slate-500 text-xs">
+                                    <i class="fa-solid fa-clipboard-list text-2xl mb-2 block"></i>
+                                    Nenhum item para separar
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+                    
                     items.sort((a,b) => {
                         const mA = App.inventory.findProduct(a.code) || a;
                         const mB = App.inventory.findProduct(b.code) || b;
@@ -967,25 +1071,18 @@
                         </tr>
                     `}).join('');
 
-                    // Atualizar rodapé
-                    document.getElementById('footerActions').innerHTML = items.length > 0 ? `
+                    const doneCount = items.filter(i => i.status === 'done').length;
+                    
+                    document.getElementById('footerActions').innerHTML = `
                         <div class="flex justify-between items-center w-full">
                             <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">
-                                <i class="fa-regular fa-circle-check text-emerald-500"></i> ${items.filter(i => i.status === 'done').length}/${items.length} concluídos
+                                <i class="fa-regular fa-circle-check text-emerald-500"></i> ${doneCount}/${items.length} concluídos
                             </span>
                             <button onclick="App.ui.clearCurrentList()" 
                                     class="text-rose-500 text-[10px] font-black uppercase flex items-center gap-1 hover:text-rose-400 transition-all">
                                 <i class="fa-solid fa-trash-can"></i> Limpar Lista
                             </button>
                         </div>
-                    ` : `
-                        <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">
-                            <i class="fa-regular fa-circle-check text-emerald-500"></i> Sincronizado
-                        </span>
-                        <button onclick="App.ui.clearCurrentList()" 
-                                class="text-rose-500 text-[10px] font-black uppercase flex items-center gap-1 hover:text-rose-400 transition-all">
-                            <i class="fa-solid fa-trash-can"></i> Limpar Lista
-                        </button>
                     `;
                 },
 
@@ -993,7 +1090,6 @@
                     const newStatus = currentStatus === 'done' ? 'pending' : 'done';
                     await App.firebase.update(`active_separation/${id}`, { status: newStatus });
                     
-                    // Feedback visual com vibração (se disponível)
                     if (newStatus === 'done' && window.navigator && window.navigator.vibrate) {
                         window.navigator.vibrate(50);
                     }
@@ -1008,7 +1104,7 @@
                 }
             },
 
-            // Módulo de Upload
+            // Módulo de Upload CORRIGIDO
             fileHandler: {
                 async handleUpload(input) {
                     const file = input.files[0];
@@ -1016,40 +1112,70 @@
                     
                     try {
                         App.validation.validateFile(file);
-                        App.ui.showLoader();
+                        App.ui.showLoader('Processando planilha...');
                         
                         const reader = new FileReader();
                         
                         reader.onload = async (e) => {
                             try {
+                                console.log('Arquivo carregado, processando...');
+                                
                                 const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-                                const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+                                const sheetName = workbook.SheetNames[0];
+                                const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+                                
+                                console.log(`Planilha processada: ${rows.length} linhas`);
                                 
                                 const produtos = {};
-                                for (let i = 1; i < rows.length; i++) {
+                                let count = 0;
+                                
+                                for (let i = 1; i < rows.length; i++) { // Pula cabeçalho
                                     const r = rows[i];
-                                    if (!r[0]) continue;
+                                    if (!r || !r[0]) continue; // Pula linhas vazias
                                     
-                                    produtos[r[0]] = {
-                                        COD: String(r[0]),
-                                        NOM: String(r[1] || 'S/N'),
-                                        RUA: String(r[4] || ''),
-                                        RCK: String(r[5] || ''),
-                                        LIN: String(r[6] || ''),
-                                        COL: String(r[7] || ''),
-                                        QTD_ESTOQUE: String(r[10] || '0')
-                                    };
+                                    const codigo = String(r[0]).trim();
+                                    if (codigo) {
+                                        produtos[codigo] = {
+                                            COD: codigo,
+                                            NOM: String(r[1] || 'S/N').trim(),
+                                            RUA: String(r[4] || '').trim(),
+                                            RCK: String(r[5] || '').trim(),
+                                            LIN: String(r[6] || '').trim(),
+                                            COL: String(r[7] || '').trim(),
+                                            QTD_ESTOQUE: String(r[10] || '0').trim()
+                                        };
+                                        count++;
+                                    }
                                 }
                                 
+                                console.log(`${count} produtos extraídos da planilha`);
+                                
+                                if (count === 0) {
+                                    throw new Error('Nenhum produto encontrado na planilha');
+                                }
+                                
+                                // Enviar para o Firebase
+                                App.ui.showLoader(`Salvando ${count} produtos...`);
                                 await App.firebase.set('master_products', produtos);
-                                App.ui.showToast('Base master atualizada!', 'success');
+                                
+                                console.log('Dados salvos no Firebase');
+                                
+                                // FORÇAR atualização do inventário local
+                                App.ui.showLoader('Atualizando lista local...');
+                                await App.inventory.syncFromFirebase();
+                                
+                                // Mostrar sucesso
+                                App.ui.showToast(`${count} produtos atualizados!`, 'success');
+                                
+                                // Atualizar estatísticas
+                                App.inventory.updateStats();
                                 
                             } catch (error) {
-                                console.error('File processing error:', error);
-                                App.ui.showToast('Erro ao processar arquivo', 'error');
+                                console.error('Erro no processamento:', error);
+                                App.ui.showToast('Erro: ' + error.message, 'error');
                             } finally {
                                 App.ui.hideLoader();
-                                input.value = "";
+                                input.value = ""; // Limpar input file
                             }
                         };
                         
@@ -1071,6 +1197,8 @@
 
         // Inicialização
         window.addEventListener('DOMContentLoaded', () => {
+            console.log('Inicializando aplicação...');
+            
             // Configurar data atual
             const today = new Date();
             document.getElementById('pDate').textContent = today.toLocaleDateString('pt-BR');
@@ -1078,8 +1206,12 @@
             // Inicializar teclado
             App.ui.initKeyboard();
             
-            // Sincronizar inventário
-            App.inventory.syncFromFirebase();
+            // Sincronizar inventário (FORÇAR CARREGAMENTO)
+            App.inventory.syncFromFirebase().then(() => {
+                console.log('Inventário inicial carregado');
+            });
+            
+            // Ouvir atualizações em tempo real
             App.inventory.listenToUpdates();
             
             // Iniciar modo etiqueta
@@ -1092,6 +1224,8 @@
             
             // Esconder loader inicial
             setTimeout(() => App.ui.hideLoader(), 500);
+            
+            console.log('Aplicação inicializada');
         });
     </script>
 </body>
