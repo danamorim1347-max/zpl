@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ER LOGISTICS PRO | Smart System</title>
+    <title>SB LOGISTICS PRO | Smart System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,11 +21,39 @@
         
         .glass { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 1rem; }
         
-        .nav-bar { display: flex; gap: 4px; background: #000; padding: 5px; border-radius: 1rem; border: 1px solid #1e293b; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 4px; border-radius: 0.75rem; color: #475569; cursor: pointer; transition: 0.2s; }
-        .nav-item i { font-size: 1.1rem; margin-bottom: 3px; }
-        .nav-item span { font-size: 9px; font-weight: 800; text-transform: uppercase; }
-        .nav-item.active { background: var(--brand); color: white; font-weight: 900; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        /* Navegação na parte inferior */
+        .nav-bar-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #000;
+            padding: 8px 16px;
+            border-top: 1px solid #1e293b;
+            display: flex;
+            gap: 4px;
+            z-index: 50;
+        }
+        .nav-item-bottom {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 4px;
+            border-radius: 0.75rem;
+            color: #475569;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.7rem;
+        }
+        .nav-item-bottom i { font-size: 1rem; margin-bottom: 2px; }
+        .nav-item-bottom span { font-size: 8px; font-weight: 800; text-transform: uppercase; }
+        .nav-item-bottom.active { background: var(--brand); color: white; font-weight: 900; }
+
+        /* Ajuste para o conteúdo não ficar atrás da navegação */
+        .main-content {
+            padding-bottom: 70px;
+        }
 
         .loc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; }
         .loc-card { background: var(--primary); padding: 15px 5px; border-radius: 0.75rem; text-align: center; box-shadow: 0 8px 20px rgba(251, 191, 36, 0.2); }
@@ -171,8 +199,6 @@
         .btn-clean:hover { background: #059669; }
         .btn-delete { background: #ef4444; color: white; transition: all 0.2s; }
         .btn-delete:hover { background: #dc2626; }
-        .btn-edit { background: #f59e0b; color: white; transition: all 0.2s; }
-        .btn-edit:hover { background: #d97706; }
         
         .sku-highlight {
             font-size: 1.1rem;
@@ -213,24 +239,27 @@
             font-size: 1.1rem;
         }
 
-        /* Estilos de impressão simplificados */
+        /* Estilos de impressão otimizados para caber muitos itens */
         @media print {
             body * {
                 visibility: hidden;
             }
             #print-area, #print-area * {
-                visibility: visible;
+                visibility: visible !important;
+                display: block !important;
             }
             #print-area {
                 position: absolute;
                 left: 0;
                 top: 0;
                 width: 100%;
-                padding: 10px;
+                padding: 5px;
                 background: white;
                 color: black;
-                font-family: 'Courier New', monospace;
-                font-size: 10pt;
+                font-family: 'Courier New', monospace, 'Arial', sans-serif;
+                font-size: 9pt;
+                line-height: 1.2;
+                z-index: 9999;
             }
             .no-print {
                 display: none !important;
@@ -239,15 +268,63 @@
                 text-align: center;
                 font-weight: bold;
                 font-size: 14pt;
-                margin-bottom: 10px;
+                margin-bottom: 5px;
                 border-bottom: 1px solid #000;
-                padding-bottom: 5px;
+                padding-bottom: 3px;
+            }
+            .print-subheader {
+                font-size: 10pt;
+                font-weight: bold;
+                margin: 8px 0 3px 0;
+                color: #2563eb;
+                border-bottom: 1px dotted #999;
+                padding-bottom: 2px;
             }
             .print-item {
                 display: flex;
                 justify-content: space-between;
                 padding: 2px 0;
                 border-bottom: 1px dotted #ccc;
+                font-size: 9pt;
+            }
+            .print-code {
+                font-weight: bold;
+                font-family: 'Courier New', monospace;
+                min-width: 80px;
+            }
+            .print-address {
+                font-weight: 600;
+                color: #2563eb;
+                margin-left: 10px;
+                font-size: 8.5pt;
+            }
+            .print-name {
+                flex: 1;
+                margin-left: 5px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 200px;
+            }
+            .print-qty {
+                font-weight: bold;
+                color: #ef4444;
+                min-width: 35px;
+                text-align: right;
+            }
+            .print-total {
+                margin-top: 10px;
+                padding-top: 5px;
+                border-top: 2px solid #000;
+                font-weight: bold;
+                text-align: right;
+                font-size: 10pt;
+            }
+            /* Layout em colunas para economizar espaço */
+            .print-row {
+                display: flex;
+                align-items: center;
+                gap: 5px;
             }
         }
 
@@ -452,9 +529,18 @@
             font-weight: 800;
             color: #fbbf24;
         }
+        .stock-badge {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 5px;
+        }
     </style>
 </head>
-<body class="p-4 lg:p-8">
+<body class="p-4 lg:p-8 main-content">
 
     <!-- Container de Notificações -->
     <div id="notification-container" class="notification-container"></div>
@@ -487,17 +573,10 @@
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg"><i class="fa-solid fa-layer-group text-white text-2xl"></i></div>
                 <div>
-                    <h1 class="text-2xl font-black uppercase tracking-tighter">ER <span class="text-blue-500">LOGISTICS</span></h1>
+                    <h1 class="text-2xl font-black uppercase tracking-tighter">SB <span class="text-blue-500">LOGISTICS</span></h1>
                     <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Dev: Benilson Amorim</p>
                 </div>
             </div>
-
-            <nav class="nav-bar w-full md:w-auto md:min-w-[480px]">
-                <div onclick="App.ui.setMode('locate')" id="btn-locate" class="nav-item active"><i class="fa-solid fa-magnifying-glass"></i><span>Localizar</span></div>
-                <div onclick="App.ui.setMode('labels')" id="btn-labels" class="nav-item"><i class="fa-solid fa-barcode"></i><span>Etiquetas</span></div>
-                <div onclick="App.ui.setMode('picking')" id="btn-picking" class="nav-item"><i class="fa-solid fa-truck-ramp-box"></i><span>Reposição</span></div>
-                <div onclick="App.ui.setMode('dash')" id="btn-dash" class="nav-item"><i class="fa-solid fa-chart-pie"></i><span>Status</span></div>
-            </nav>
 
             <label class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 rounded-xl text-[10px] font-black uppercase cursor-pointer border border-slate-800 transition-all">
                 <i class="fa-solid fa-sync text-blue-500"></i> Atualizar Excel
@@ -507,6 +586,14 @@
 
         <main id="main-view" class="min-h-[60vh]"></main>
     </div>
+
+    <!-- Navegação na parte inferior -->
+    <nav class="nav-bar-bottom no-print">
+        <div onclick="App.ui.setMode('locate')" id="btn-locate" class="nav-item-bottom active"><i class="fa-solid fa-magnifying-glass"></i><span>Localizar</span></div>
+        <div onclick="App.ui.setMode('labels')" id="btn-labels" class="nav-item-bottom"><i class="fa-solid fa-barcode"></i><span>Etiquetas</span></div>
+        <div onclick="App.ui.setMode('picking')" id="btn-picking" class="nav-item-bottom"><i class="fa-solid fa-truck-ramp-box"></i><span>Reposição</span></div>
+        <div onclick="App.ui.setMode('dash')" id="btn-dash" class="nav-item-bottom"><i class="fa-solid fa-chart-pie"></i><span>Status</span></div>
+    </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -561,7 +648,7 @@
                     notification.classList.add('show');
                 }, 10);
                 
-                // Auto-remover após duração (exceto se for confirmação)
+                // Auto-remover após duração
                 if (duration > 0) {
                     setTimeout(() => {
                         notification.classList.remove('show');
@@ -640,8 +727,11 @@
             ui: {
                 setMode(mode) {
                     App.state.mode = mode;
-                    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                    
+                    // Atualizar navegação inferior
+                    document.querySelectorAll('.nav-item-bottom').forEach(el => el.classList.remove('active'));
                     const btn = document.getElementById(`btn-${mode}`); if(btn) btn.classList.add('active');
+                    
                     const main = document.getElementById('main-view'); main.innerHTML = '';
 
                     if (mode === 'dash') this.renderDash();
@@ -782,7 +872,12 @@
                                     <i class="fa-solid fa-broom"></i> Limpar Fila
                                 </button>
                             </div>
-                            <div class="lg:col-span-8 glass p-8"><div id="queue-box"></div><div id="queue-foot" class="mt-6"></div></div>
+                            <div class="lg:col-span-8 glass p-8">
+                                <div id="queue-box"></div>
+                                <div id="queue-foot" class="mt-6">
+                                    <button onclick="App.logic.copyLabelsZPL()" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase shadow-xl">Copiar ZPL</button>
+                                </div>
+                            </div>
                         </div>`;
                 },
 
@@ -799,10 +894,13 @@
                                     <i class="fa-solid fa-broom"></i> Limpar Fila
                                 </button>
                                 <button onclick="App.logic.printList()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-2xl font-black uppercase shadow-lg flex items-center justify-center gap-2 transition-all">
-                                    <i class="fa-solid fa-print"></i> Imprimir Lista (Simplificado)
+                                    <i class="fa-solid fa-print"></i> Imprimir Lista
                                 </button>
                             </div>
-                            <div class="lg:col-span-7 glass p-8"><div id="queue-box"></div><div id="queue-foot" class="mt-6"></div></div>
+                            <div class="lg:col-span-7 glass p-8">
+                                <div id="queue-box"></div>
+                                <div id="queue-foot" class="mt-6"></div>
+                            </div>
                         </div>`;
                 },
 
@@ -838,18 +936,26 @@
                     
                     if (!data) { 
                         box.innerHTML = '<div class="py-20 text-center text-slate-500 font-bold uppercase text-xs">Nenhum item na fila</div>'; 
-                        foot.innerHTML = ''; 
+                        if (foot) foot.innerHTML = ''; 
                         return; 
                     }
                     
                     let items = Object.entries(data).map(([id, val]) => ({ id, ...val }));
                     items.sort((a, b) => String(a.rua + a.rck).localeCompare(String(b.rua + b.rck)));
 
-                    // Versão simplificada da lista
-                    box.innerHTML = items.map(i => `
+                    // Buscar estoque disponível para cada item
+                    const inventoryMap = {};
+                    App.state.inventory.forEach(item => {
+                        inventoryMap[item.COD] = item.EST || 0;
+                    });
+
+                    // Versão simplificada da lista com quantidade disponível
+                    box.innerHTML = items.map(i => {
+                        const estoque = inventoryMap[i.codigo] || 0;
+                        return `
                         <div class="simple-list-item" data-id="${i.id}">
                             <div>
-                                <div class="simple-list-code">${i.codigo}</div>
+                                <div class="simple-list-code">${i.codigo} <span class="stock-badge"> Disp: ${estoque}</span></div>
                                 <div class="simple-list-name">${i.nome.substring(0, 40)}${i.nome.length > 40 ? '...' : ''}</div>
                                 <div class="text-xs text-slate-500 mt-1">${clean(i.rua)}.${clean(i.rck)}.${clean(i.lin)}/${clean(i.col)}</div>
                             </div>
@@ -862,9 +968,15 @@
                                     <i class="fa-solid fa-check"></i>
                                 </button>
                             </div>
-                        </div>`).join('');
+                        </div>`;
+                    }).join('');
                     
-                    foot.innerHTML = `<button onclick="App.logic.copyLabelsZPL()" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase shadow-xl">Copiar ZPL</button>`;
+                    // Remover botão Copiar ZPL do modo separação
+                    if (App.state.mode === 'labels' && foot) {
+                        foot.innerHTML = `<button onclick="App.logic.copyLabelsZPL()" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase shadow-xl">Copiar ZPL</button>`;
+                    } else if (foot) {
+                        foot.innerHTML = '';
+                    }
                 }
             },
 
@@ -998,11 +1110,11 @@
                                 nome: p.NOM, 
                                 val: document.getElementById('etq-val').value, 
                                 qty: 1, 
-                                rua: p.RUA||'', 
-                                rck: p.RCK||'', 
-                                lin: p.LIN||'', 
-                                col: p.COL||'', 
-                                est: p.EST||0 
+                                rua: clean(p.RUA || ''), 
+                                rck: clean(p.RCK || ''), 
+                                lin: clean(p.LIN || ''), 
+                                col: clean(p.COL || ''), 
+                                est: p.EST || 0 
                             });
                         }
                         Notifications.success(`${qty} etiqueta(s) adicionada(s) à fila!`);
@@ -1038,10 +1150,10 @@
                                 nome: p.NOM, 
                                 qty: parseInt(qty) || 1, 
                                 status: 'pending', 
-                                rua: p.RUA || '?', 
-                                rck: p.RCK || '?', 
-                                lin: p.LIN || '?', 
-                                col: p.COL || '?', 
+                                rua: clean(p.RUA || '?'), 
+                                rck: clean(p.RCK || '?'), 
+                                lin: clean(p.LIN || '?'), 
+                                col: clean(p.COL || '?'), 
                                 est: p.EST || 0 
                             });
                             count++;
@@ -1066,34 +1178,54 @@
                     const items = Object.values(snap.val());
                     const printArea = document.getElementById('print-area');
                     
-                    // Agrupar por endereço para impressão otimizada
-                    const grouped = {};
-                    items.forEach(item => {
-                        const addr = `${clean(item.rua)}.${clean(item.rck)}.${clean(item.lin)}/${clean(item.col)}`;
-                        if (!grouped[addr]) {
-                            grouped[addr] = [];
-                        }
-                        grouped[addr].push(item);
-                    });
-
-                    let printHtml = '<div class="print-header">LISTA DE REPOSIÇÃO</div>';
-                    printHtml += `<div>Data: ${new Date().toLocaleDateString()}</div>`;
-                    printHtml += '<hr/>';
+                    // Formatar data atual
+                    const now = new Date();
+                    const dataStr = now.toLocaleDateString('pt-BR');
+                    const horaStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                     
-                    // Versão extremamente simplificada para impressão
-                    items.forEach(item => {
-                        printHtml += `<div class="print-item">`;
-                        printHtml += `<span>${item.codigo}</span>`;
-                        printHtml += `<span style="font-weight: bold;">${item.qty}</span>`;
-                        printHtml += `</div>`;
+                    // Criar conteúdo HTML para impressão - OTIMIZADO PARA CABER MUITOS ITENS
+                    let printHtml = `
+                        <div class="print-header">SB LOGISTICS - LISTA DE REPOSIÇÃO</div>
+                        <div style="text-align: right; margin-bottom: 5px; font-size: 8pt;">${dataStr} ${horaStr}</div>
+                    `;
+                    
+                    // Ordenar itens por endereço
+                    const sortedItems = [...items].sort((a, b) => {
+                        const addrA = `${a.rua || ''}.${a.rck || ''}.${a.lin || ''}/${a.col || ''}`;
+                        const addrB = `${b.rua || ''}.${b.rck || ''}.${b.lin || ''}/${b.col || ''}`;
+                        return addrA.localeCompare(addrB);
                     });
+                    
+                    // Listar itens em formato compacto
+                    sortedItems.forEach(item => {
+                        const endereco = `${clean(item.rua)}.${clean(item.rck)}.${clean(item.lin)}/${clean(item.col)}`;
+                        printHtml += `
+                            <div class="print-item">
+                                <span class="print-code">${item.codigo}</span>
+                                <span class="print-address">${endereco}</span>
+                                <span class="print-name">${item.nome.substring(0, 25)}</span>
+                                <span class="print-qty">${item.qty}x</span>
+                            </div>
+                        `;
+                    });
+                    
+                    // Total de itens
+                    const totalItens = items.reduce((acc, item) => acc + (parseInt(item.qty) || 0), 0);
+                    printHtml += `<div class="print-total">Total de itens: ${totalItens}</div>`;
                     
                     printArea.innerHTML = printHtml;
                     printArea.style.display = 'block';
                     
-                    window.print();
+                    // Forçar um pequeno delay para garantir que o conteúdo seja renderizado
+                    setTimeout(() => {
+                        window.print();
+                        
+                        // Esconder área de impressão após impressão
+                        setTimeout(() => {
+                            printArea.style.display = 'none';
+                        }, 100);
+                    }, 100);
                     
-                    printArea.style.display = 'none';
                     Notifications.info('Lista enviada para impressão');
                 },
 
@@ -1113,23 +1245,63 @@
                     let zpl = "";
                     const cz = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
                     
+                    // Processar em pares para 2 etiquetas por folha
                     for (let i = 0; i < items.length; i += 2) {
                         zpl += "^XA^CI28^PW812^LL1218\n";
-                        [0, 600].forEach((y, idx) => {
-                            const it = items[i + idx]; if (!it) return;
-                            const addr = `RUA: ${cz(it.rua)} RCK: ${cz(it.rck)}  ${it.lin}/${it.col}`;
-                            zpl += `^FO20,${y+20}^A0N,110,100^FD${String(it.codigo).slice(-5)}^FS\n`;
-                            if (it.val) zpl += `^FO235,${y+10}^GB550,70,80^FS^FO250,${y+20}^A0N,105,100^FR^FDVAL: ${it.val}^FS\n`;
-                            zpl += `^FO20,${y+150}^A0N,60,60^FB770,2,0,L,0^FD${cz(it.nome)}^FS\n`;
-                            zpl += `^FO20,${y+320}^A0N,45,45^FD${addr}^FS\n`;
-                            if (it.qty) zpl += `^FO580,${y+320}^A0N,80,80^FDQ:1^FS\n`;
-                            zpl += `^BY3,3,180^FO60,${y+380}^BCN,180,Y,N,N^FD${it.codigo}^FS\n`;
-                        });
+                        
+                        // Primeira etiqueta (posição superior)
+                        const it1 = items[i];
+                        if (it1) {
+                            const endereco1 = `RUA ${it1.rua || ''}|RACK ${it1.rck || ''}|${it1.lin || ''}/${it1.col || ''}`;
+                            const validade1 = it1.val ? `VAL: ${it1.val}` : '';
+                            
+                            zpl += `^FO20,20^A0N,110,100^FD${String(it1.codigo).slice(-5)}^FS\n`;
+                            
+                            if (validade1) {
+                                zpl += `^FO275,10^GB550,70,105^FS^FO275,20^A0N,100,95^FR^FD${validade1}^FS\n`;
+                            }
+                            
+                            zpl += `^FO20,150^A0N,60,60^FB770,2,0,L,0^FD${cz(it1.nome)}^FS\n`;
+                            zpl += `^FO20,320^A0N,45,45^FD${endereco1}^FS\n`;
+                            
+                            // Quantidade apenas se fornecida e maior que 1
+                            if (it1.qty && it1.qty > 1) {
+                                zpl += `^FO580,320^A0N,80,80^FDQ:${it1.qty}^FS\n`;
+                            }
+                            
+                            zpl += `^BY3,3,180^FO60,380^BCN,180,Y,N,N^FD${it1.codigo}^FS\n`;
+                        }
+                        
+                        // Segunda etiqueta (posição inferior - offset de 600 na coordenada Y)
+                        const it2 = items[i + 1];
+                        if (it2) {
+                            const endereco2 = `RUA ${it2.rua || ''}|RACK ${it2.rck || ''}|${it2.lin || ''}/${it2.col || ''}`;
+                            const validade2 = it2.val ? `VAL: ${it2.val}` : '';
+                            
+                            zpl += `^FO20,620^A0N,110,100^FD${String(it2.codigo).slice(-5)}^FS\n`;
+                            
+                            if (validade2) {
+                                zpl += `^FO275,610^GB550,70,105^FS^FO275,620^A0N,100,95^FR^FD${validade2}^FS\n`;
+                            }
+                            
+                            zpl += `^FO20,750^A0N,60,60^FB770,2,0,L,0^FD${cz(it2.nome)}^FS\n`;
+                            zpl += `^FO20,920^A0N,45,45^FD${endereco2}^FS\n`;
+                            
+                            // Quantidade apenas se fornecida e maior que 1
+                            if (it2.qty && it2.qty > 1) {
+                                zpl += `^FO580,920^A0N,80,80^FDQ:${it2.qty}^FS\n`;
+                            }
+                            
+                            zpl += `^BY3,3,180^FO60,980^BCN,180,Y,N,N^FD${it2.codigo}^FS\n`;
+                        }
+                        
                         zpl += "^XZ\n";
                     }
                     
                     navigator.clipboard.writeText(zpl).then(() => {
                         Notifications.success(`${items.length} etiqueta(s) copiadas!`);
+                    }).catch(() => {
+                        Notifications.error('Erro ao copiar ZPL');
                     });
                 },
 
