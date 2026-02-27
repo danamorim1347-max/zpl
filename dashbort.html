@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HUB Operacional - Pinheiro</title>
+    <title>HUB Operacional - Pinheiro (Premium Dashboard)</title>
+    
+    <!-- Scripts Firebase (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -11,146 +16,159 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020617; color: #f1f5f9; }
+        /* CONFIGURAÇÃO GERAL */
+        html, body { min-height: 100vh; overflow-y: auto; overflow-x: hidden; background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9; scroll-behavior: smooth; }
         .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        #timer-bar { height: 4px; background: #3b82f6; width: 0%; transition: width 0.1s linear; }
-        .active-filter { background: #3b82f6 !important; color: white !important; transform: translateY(-2px); box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
+        #timer-bar { height: 4px; background: #3b82f6; width: 0%; transition: width 0.1s linear; position: fixed; top: 0; left: 0; z-index: 9999; border-radius: 0 4px 4px 0; }
         
-        /* Molduras Ranking */
-        .gold-border { border: 6px solid #FFD700; box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); }
-        .silver-border { border: 5px solid #C0C0C0; box-shadow: 0 0 20px rgba(192, 192, 192, 0.4); }
-        .bronze-border { border: 4px solid #CD7F32; box-shadow: 0 0 15px rgba(205, 127, 50, 0.3); }
+        /* Molduras Pódio */
+        .gold-border { border: 4px solid #FFD700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
+        .silver-border { border: 3px solid #C0C0C0; box-shadow: 0 0 15px rgba(192, 192, 192, 0.3); }
+        .bronze-border { border: 2px solid #CD7F32; box-shadow: 0 0 10px rgba(205, 127, 50, 0.3); }
 
-        /* ESTILOS REPOSIÇÃO ER */
-        .er-section { font-family: 'Inter', sans-serif; margin-top: 50px; }
-        .er-header { 
-            background: #0f172a; color: white; padding: 40px; border-radius: 24px; 
-            text-align: center; cursor: pointer; transition: all 0.3s;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3); position: relative;
+        /* EFEITO DE ULTRAPASSAGEM (RANKING) */
+        #ranking-compact-list { position: relative; width: 100%; }
+        .ranking-item-compact { 
+            position: absolute; width: 100%;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
-        .er-header:hover { transform: scale(1.01); background: #1e293b; }
-        .er-header h1 { font-size: 3rem; font-weight: 900; letter-spacing: 4px; text-transform: uppercase; margin: 0; }
-        .er-container { 
-            background: #f8fafc; color: #1e293b; border-radius: 0 0 24px 24px; 
-            margin-top: -10px; padding: 20px; display: none;
-            animation: slideDown 0.4s ease-out forwards;
-        }
-        .er-table { width: 100%; border-collapse: collapse; background: white; border-radius: 20px; overflow: hidden; }
+
+        /* ESTILO REPOSIÇÃO ER ORIGINAL */
+        .er-section { margin-top: 2rem; margin-bottom: 5rem; }
+        .er-header { cursor: pointer; transition: transform 0.3s; }
+        .er-header:hover { transform: scale(1.005); }
+        .er-style { font-family: 'Inter', sans-serif; background: #f8fafc; color: #1e293b; border-radius: 24px; overflow: hidden; }
+        .er-content { display: none; background: #ffffff; }
+        .er-content.open { display: block; animation: slideDown 0.4s forwards; }
+        
+        .er-table { width: 100%; border-collapse: collapse; }
         .er-table th { background: #fdfdfd; padding: 18px; text-align: left; font-size: 0.8rem; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #e2e8f0; }
-        .er-table td { padding: 18px; font-size: 0.95rem; border-bottom: 1px solid #f1f5f9; }
+        .er-table td { padding: 18px; font-size: 0.95rem; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
         .er-table tr:nth-child(even) { background-color: #f1f5f9; }
-
-        .badge-open {
-            display: inline-flex; align-items: center; padding: 8px 14px; border-radius: 10px;
-            font-size: 0.75rem; font-weight: 800; background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe;
-        }
-        .dot { height: 10px; width: 10px; background: #2563eb; border-radius: 50%; margin-right: 10px; position: relative; }
+        
+        .badge-open { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 800; background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; }
+        .dot { height: 8px; width: 8px; background: #2563eb; border-radius: 50%; margin-right: 8px; position: relative; }
         .dot::after { content: ''; position: absolute; inset: 0; background: #2563eb; border-radius: 50%; animation: pulse 2s infinite; }
         
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(4); opacity: 0; } }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .btn-copy-er {
-            background: #2563eb; color: white; border: none; padding: 18px; border-radius: 14px;
-            font-weight: 700; width: 100%; margin-bottom: 20px; cursor: pointer; transition: 0.3s;
-        }
+        
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
-    <div class="fixed top-0 left-0 w-full bg-slate-900 h-1.5 z-50">
-        <div id="timer-bar"></div>
-    </div>
+    <div id="timer-bar"></div>
 
-    <div class="max-w-7xl mx-auto">
-        <!-- HEADER SEPARAÇÃO -->
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+    <div class="max-w-[1750px] mx-auto space-y-8">
+        
+        <!-- HEADER -->
+        <header class="flex flex-col md:flex-row justify-between items-center gap-6 glass p-6 rounded-[2rem]">
             <div>
-                <h1 class="text-3xl font-black tracking-tighter text-white uppercase italic">Operação <span class="text-blue-500">Logística</span></h1>
-                <div class="flex items-center gap-2 mt-1">
+                <h1 class="text-3xl font-black italic uppercase tracking-tighter">HUB <span class="text-blue-500">OPERACIONAL</span></h1>
+                <div class="flex items-center gap-2">
                     <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <p class="text-blue-400 text-[10px] font-bold uppercase tracking-widest italic">Sincronizado</p>
+                    <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest italic">Sincronizado via Firebase</p>
                 </div>
             </div>
-            <div class="flex gap-2 bg-slate-900/90 p-1.5 rounded-2xl glass">
-                <button onclick="changeFilter('hoje')" id="btn-hoje" class="px-6 py-2 rounded-xl transition-all font-bold text-[10px]">HOJE</button>
-                <button onclick="changeFilter('semana')" id="btn-semana" class="px-6 py-2 rounded-xl transition-all font-bold text-[10px]">SEMANA</button>
-                <button onclick="changeFilter('mes')" id="btn-mes" class="px-6 py-2 rounded-xl transition-all font-bold text-[10px]">MÊS</button>
+            <div class="flex gap-2 bg-black/30 p-1.5 rounded-2xl border border-white/5">
+                <button id="btn-hoje" class="px-8 py-3 rounded-xl text-xs font-black transition-all">HOJE</button>
+                <button id="btn-semana" class="px-8 py-3 rounded-xl text-xs font-black transition-all">SEMANA</button>
+                <button id="btn-mes" class="px-8 py-3 rounded-xl text-xs font-black transition-all">MÊS</button>
             </div>
         </header>
 
         <!-- DASHBOARD SUPERIOR -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-            <div class="lg:col-span-2 glass p-8 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-around">
-                <div class="text-center md:text-left mb-6">
-                    <h3 class="text-lg font-black text-white mb-2 uppercase italic tracking-tighter">Participação (%)</h3>
-                    <div id="chart-legend" class="grid grid-cols-1 gap-2 text-[10px] font-bold uppercase text-slate-400"></div>
+        <div class="flex flex-col gap-8">
+            <!-- Linha 1: Gráfico e Totais -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-2 glass p-8 rounded-[2.5rem] flex items-center justify-around h-64">
+                    <div style="height: 200px; width: 200px;"><canvas id="teamChart"></canvas></div>
+                    <div id="chart-legend" class="text-xs font-bold uppercase space-y-2 text-slate-400"></div>
                 </div>
-                <div style="height: 250px; width: 250px; position: relative;">
-                    <canvas id="teamChart"></canvas>
+                <div class="flex flex-col gap-4">
+                    <div class="glass p-6 rounded-[2.5rem] border-l-4 border-blue-500 flex-1 flex flex-col justify-center text-center">
+                        <p class="text-[10px] text-slate-500 uppercase font-black mb-1">Total de Pedidos</p>
+                        <h2 id="global-total" class="text-5xl font-black text-white">0</h2>
+                    </div>
+                    <div class="glass p-6 rounded-[2.5rem] border-l-4 border-emerald-500 flex-1 flex flex-col justify-center text-center">
+                        <p class="text-[10px] text-slate-500 uppercase font-black mb-1">Média da Equipe</p>
+                        <h2 id="global-avg" class="text-5xl font-black text-white">0</h2>
+                    </div>
                 </div>
             </div>
-            <div class="flex flex-col gap-6 text-center">
-                <div class="glass p-8 rounded-[2.5rem] border-l-4 border-blue-500">
-                    <p class="text-slate-500 text-[10px] font-bold uppercase mb-2 tracking-widest">Total Pedidos</p>
-                    <h2 id="global-total" class="text-6xl font-black text-white leading-none">0</h2>
-                </div>
-                <div class="glass p-8 rounded-[2.5rem] border-l-4 border-emerald-500">
-                    <p class="text-slate-500 text-[10px] font-bold uppercase mb-2 tracking-widest">Média da Equipe</p>
-                    <h2 id="global-avg" class="text-5xl font-black text-white leading-none">0</h2>
+
+            <!-- Linha 2: Pódio e Ranking (ALINHADOS) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Pódio (Esquerda) -->
+                <div id="podium-area" class="glass p-8 rounded-[2.5rem] flex justify-center items-end gap-10 h-[480px]"></div>
+                
+                <!-- Ranking Performance (Direita) -->
+                <div class="glass rounded-[2.5rem] p-8 flex flex-col h-[480px]">
+                    <h3 class="text-center text-slate-500 font-black uppercase text-xs mb-8 tracking-widest italic">Performance da Equipe</h3>
+                    <div class="flex-1 overflow-y-auto custom-scroll pr-2">
+                        <div id="ranking-compact-list"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- PODIUM -->
-        <div id="podium-area" class="flex flex-wrap justify-center items-end gap-10 md:gap-20 mb-20 min-h-[380px]"></div>
-
-        <!-- TABELA SEPARAÇÃO -->
-        <div class="glass rounded-[2rem] overflow-hidden shadow-2xl mb-20">
-            <table class="w-full text-left">
-                <thead>
-                    <tr class="text-slate-500 text-[10px] uppercase border-b border-white/5 font-black">
-                        <th class="px-8 py-5">Posição</th>
-                        <th class="px-8 py-4">Colaborador</th>
-                        <th class="px-8 py-4 text-center">Pedidos</th>
-                        <th class="px-8 py-4 text-center">Participação</th>
-                        <th class="px-8 py-4 text-center">vs Média</th>
-                    </tr>
-                </thead>
-                <tbody id="ranking-body" class="divide-y divide-white/5"></tbody>
-            </table>
-        </div>
-
-        <!-- SEÇÃO REPOSIÇÃO ER (LAYOUT ORIGINAL) -->
+        <!-- SEÇÃO INFERIOR: REPOSIÇÃO ER -->
         <div class="er-section">
-            <div class="er-header" onclick="toggleER()">
-                <h1>REPOSIÇÃO ER</h1>
-                <div class="counter-pill" id="er-status-summary" style="display:inline-flex; background: rgba(255, 255, 255, 0.1); padding: 8px 20px; border-radius: 999px; font-size: 0.9rem; font-weight: 600; margin-top: 15px; border: 1px solid rgba(255, 255, 255, 0.2);">Carregando pendências...</div>
-            </div>
-
-            <div class="er-container" id="er-content">
-                <button id="er-copy-btn" class="btn-copy-er">COPIAR LISTA (CÓDIGO | QUANTIDADE)</button>
-                <div class="overflow-x-auto">
-                    <table class="er-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 100px;">Data</th>
-                                <th style="width: 180px;">Solicitante</th>
-                                <th style="width: 140px;">Código</th>
-                                <th>Descrição Completa</th>
-                                <th style="width: 90px; text-align: center;">Qtd</th>
-                                <th style="width: 140px;">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="er-body"></tbody>
-                    </table>
+            <div class="er-style shadow-2xl">
+                <div class="bg-[#0f172a] p-10 text-center er-header" onclick="toggleER()">
+                    <h2 class="text-4xl font-black text-white tracking-[0.2em] uppercase">Reposição ER</h2>
+                    <div id="er-count-container" class="mt-4 flex flex-col items-center">
+                        <span id="er-count-num" class="text-6xl font-black text-blue-500">0</span>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Itens Pendentes</span>
+                    </div>
+                    <p class="text-slate-500 text-[9px] mt-6 uppercase font-bold tracking-widest italic animate-pulse">Clique para abrir/fechar visualização</p>
                 </div>
-                <div id="er-empty" class="hidden text-center p-20 font-bold text-slate-400">✅ Tudo pronto! Nenhuma pendência encontrada.</div>
+                
+                <div id="er-toggle-content" class="er-content">
+                    <div class="p-6 bg-white border-b flex justify-center">
+                        <button id="er-copy-btn" class="max-w-md w-full bg-[#2563eb] text-white py-5 rounded-2xl font-black text-sm uppercase hover:bg-blue-700 transition-all shadow-xl">COPIAR LISTA (CÓDIGO | QUANTIDADE)</button>
+                    </div>
+                    <div class="bg-white overflow-x-auto">
+                        <table class="er-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 100px;">Data</th>
+                                    <th style="width: 220px;">Solicitante</th>
+                                    <th style="width: 150px;">Código</th>
+                                    <th>Descrição Completa</th>
+                                    <th style="width: 100px; text-align: center;">Qtd</th>
+                                    <th style="width: 150px; text-align: right;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="er-body"></tbody>
+                        </table>
+                        <div id="er-empty" class="hidden p-20 text-center text-slate-300 font-bold uppercase text-lg italic">✅ TUDO PRONTO - NENHUM ITEM PENDENTE</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Upload Input -->
+    <input type="file" id="uploadInput" class="hidden" accept="image/*">
+
     <script>
+        // CONFIGURAÇÕES FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyDlp5p7c3xpc42cRa1un_-zd3HNwqnGuQU",
+            authDomain: "petisco-a5880.firebaseapp.com",
+            databaseURL: "https://petisco-a5880-default-rtdb.firebaseio.com",
+            projectId: "petisco-a5880",
+            storageBucket: "petisco-a5880.firebasestorage.app",
+            messagingSenderId: "211799950005",
+            appId: "1:211799950005:web:836bb02c084bc906bdf4fc"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const API_KEY_IMGBB = "6161a9db426f51baa788f0823269c981";
         const CONFIG = {
             SEP_ID: '1CInfRwxUS7nMFWqzYaQIoQyUGq76RULk-XMp6cASVRg',
             SEP_ABA: 'Separação - FEV/26',
@@ -158,246 +176,209 @@
             REPO_ABA: 'REPOSIÇÃO DEZ/25'
         };
 
-        let allSepData = [];
-        let filteredRepoData = [];
-        let currentFilter = 'hoje';
-        let chartInstance = null;
-        let timer = 0;
+        let allSepData = [], fotoCache = {}, currentFilter = 'hoje', chartInstance = null, timer = 0;
+        const colorPalette = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e', '#fb923c'];
 
         Chart.register(ChartDataLabels);
 
-        // Paleta de Cores Premium para os Separadores
-        const colorPalette = [
-            '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', 
-            '#06b6d4', '#f43f5e', '#14b8a6', '#6366f1', '#fb923c'
-        ];
+        // Escutar fotos do Firebase
+        db.ref('fotos_separadores').on('value', snap => {
+            fotoCache = snap.val() || {};
+            renderSeparacao();
+        });
 
-        function toggleER() {
-            const content = document.getElementById('er-content');
-            content.style.display = (content.style.display === 'block') ? 'none' : 'block';
+        // Função de Upload (ImgBB -> Firebase)
+        function triggerUpload(nome) {
+            const input = document.getElementById('uploadInput');
+            input.onchange = async e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const formData = new FormData();
+                formData.append('image', file);
+                try {
+                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY_IMGBB}`, { method: 'POST', body: formData });
+                    const result = await res.json();
+                    if (result.success) {
+                        db.ref('fotos_separadores/' + nome.replace(/\s/g, '_').replace(/\./g, '_')).set(result.data.url);
+                        alert(`Foto de ${nome} salva no sistema!`);
+                    }
+                } catch (err) { alert("Erro no upload."); }
+            };
+            input.click();
         }
 
-        // --- LÓGICA SEPARAÇÃO ---
-        function fetchSeparacao() {
-            const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SEP_ID}/gviz/tq?tqx=responseHandler:processSep&sheet=${encodeURIComponent(CONFIG.SEP_ABA)}`;
-            const script = document.createElement('script');
-            script.src = url;
-            document.body.appendChild(script);
+        function animateCounter(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            if (!obj) return;
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString();
+                if (progress < 1) window.requestAnimationFrame(step);
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        function toggleER() {
+            document.getElementById('er-toggle-content').classList.toggle('open');
+        }
+
+        async function updateDashboard() {
+            try {
+                const resRepo = await fetch(`https://opensheet.elk.sh/${CONFIG.REPO_ID}/${encodeURIComponent(CONFIG.REPO_ABA)}`);
+                const dataRepo = await resRepo.json();
+                const filtered = dataRepo.filter(i => {
+                    const keys = Object.keys(i);
+                    const status = String(i[keys.find(k => /situa|separa|status|ok/i.test(k))] || '').trim();
+                    const codCol = keys.find(k => /cód|cod|part/i.test(k));
+                    return String(i[codCol] || '').trim() !== "" && status === "";
+                });
+                renderReposicao(filtered);
+            } catch (e) {}
+
+            const urlSep = `https://docs.google.com/spreadsheets/d/${CONFIG.SEP_ID}/gviz/tq?tqx=responseHandler:processSep&sheet=${encodeURIComponent(CONFIG.SEP_ABA)}`;
+            const script = document.createElement('script'); script.src = urlSep; document.body.appendChild(script);
         }
 
         window.processSep = function(response) {
-            try {
-                const rows = response.table.rows;
-                allSepData = rows.map(r => ({
-                    dataStr: r.c[0] ? (r.c[0].f || r.c[0].v.toString()) : "",
-                    nome: r.c[2] ? r.c[2].v : "",
-                    qtd: r.c[3] ? r.c[3].v : 0,
-                    foto: r.c[4] ? r.c[4].v : null
-                })).filter(r => r.nome && r.nome !== "" && r.nome !== "Estoquista");
-                renderSeparacao();
-            } catch(e) { console.error(e); }
+            allSepData = response.table.rows.map(r => ({
+                dataStr: r.c[0] ? (r.c[0].f || r.c[0].v.toString()) : "",
+                nome: r.c[2] ? String(r.c[2].v).trim().toUpperCase() : "",
+                qtd: r.c[3] ? Number(r.c[3].v) : 0
+            })).filter(r => r.nome && r.nome !== "ESTOQUISTA");
+            renderSeparacao();
         };
 
         function renderSeparacao() {
             const now = new Date(); now.setHours(0,0,0,0);
             const summary = {};
-            
             allSepData.forEach(item => {
-                const parts = item.dataStr.split('/');
-                const itemDate = new Date(parts[2] || now.getFullYear(), parts[1]-1, parts[0]);
-                let include = false;
-                if (currentFilter === 'hoje' && itemDate.getTime() === now.getTime()) include = true;
-                else if (currentFilter === 'semana' && (now - itemDate) / (1000*60*60*24) <= 7) include = true;
-                else if (currentFilter === 'mes' && itemDate.getMonth() === now.getMonth()) include = true;
-
-                if (include) {
-                    if (!summary[item.nome]) summary[item.nome] = { pedidos: 0, foto: item.foto };
-                    summary[item.nome].pedidos += item.qtd;
+                const p = item.dataStr.split('/');
+                const d = new Date(p[2] || now.getFullYear(), p[1]-1, p[0]);
+                let inc = false;
+                if (currentFilter === 'hoje' && d.getTime() === now.getTime()) inc = true;
+                else if (currentFilter === 'semana' && (now - d) / 86400000 <= 7) inc = true;
+                else if (currentFilter === 'mes' && d.getMonth() === now.getMonth()) inc = true;
+                if (inc) {
+                    if (!summary[item.nome]) summary[item.nome] = { qtd: 0 };
+                    summary[item.nome].qtd += item.qtd;
                 }
             });
 
-            const stats = Object.entries(summary).map(([nome, d], index) => ({
-                nome, 
-                pedidos: d.pedidos, 
-                foto: d.foto, 
-                color: colorPalette[index % colorPalette.length]
-            })).sort((a,b) => b.pedidos - a.pedidos);
+            const stats = Object.entries(summary).map(([nome, d], i) => ({
+                nome, qtd: d.qtd, color: colorPalette[i % colorPalette.length],
+                foto: fotoCache[nome.replace(/\s/g, '_').replace(/\./g, '_')] || `https://ui-avatars.com/api/?name=${nome}&background=334155&color=fff`
+            })).sort((a,b) => b.qtd - a.qtd);
 
-            updateSepUI(stats);
+            animateCounter('global-total', 0, stats.reduce((a, b) => a + b.qtd, 0), 1000);
+            animateCounter('global-avg', 0, stats.length ? Math.round(stats.reduce((a,b)=>a+b.qtd,0)/stats.length) : 0, 1000);
+
+            renderPodium(stats);
+            renderRanking(stats, stats.reduce((a,b)=>a+b.qtd,0));
+            updateChart(stats, stats.reduce((a,b)=>a+b.qtd,0));
         }
 
-        function updateSepUI(stats) {
-            const total = stats.reduce((a, b) => a + b.pedidos, 0);
-            const media = stats.length ? Math.round(total / stats.length) : 0;
-            document.getElementById('global-total').innerText = total.toLocaleString();
-            document.getElementById('global-avg').innerText = media.toLocaleString();
-
-            // Pódio com porcentagens
+        function renderPodium(stats) {
             const [p1, p2, p3] = stats;
-            const perc = (val) => total > 0 ? ((val / total) * 100).toFixed(1) + '%' : '0%';
-
-            document.getElementById('podium-area').innerHTML = `
-                <div class="flex flex-col items-center order-2">
-                    <div class="relative">
-                        <div class="w-32 h-32 silver-border rounded-full overflow-hidden bg-slate-800">
-                            <img src="${p2?.foto || ''}" onerror="this.src='https://ui-avatars.com/api/?name=${p2?.nome}&background=C0C0C0&color=fff'" class="w-full h-full object-cover">
-                        </div>
-                        <span class="absolute -bottom-2 right-0 bg-slate-400 text-slate-900 font-bold px-2 py-0.5 rounded text-[10px]">2º</span>
-                    </div>
-                    <p class="mt-4 font-bold text-slate-300 uppercase text-[10px] tracking-widest">${p2?.nome || ''}</p>
-                    <p class="text-2xl font-black">${p2?.pedidos || 0}</p>
-                    <p class="text-[10px] font-bold text-slate-500">${perc(p2?.pedidos || 0)}</p>
+            const area = document.getElementById('podium-area');
+            area.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <div class="w-20 h-20 silver-border rounded-full overflow-hidden bg-slate-800"><img src="${p2?.foto || ''}" class="w-full h-full object-cover"></div>
+                    <p class="text-[10px] font-black mt-2 text-slate-400">2º ${p2?.nome || ''}</p>
+                    <p class="text-3xl font-black">${p2?.qtd || 0}</p>
                 </div>
-                <div class="flex flex-col items-center order-1 mb-10">
-                    <i class="fas fa-crown text-yellow-400 text-4xl mb-2 animate-bounce"></i>
-                    <div class="relative">
-                        <div class="w-48 h-48 gold-border rounded-full overflow-hidden bg-slate-800">
-                            <img src="${p1?.foto || ''}" onerror="this.src='https://ui-avatars.com/api/?name=${p1?.nome}&background=FFD700&color=000'" class="w-full h-full object-cover">
-                        </div>
-                        <span class="absolute -bottom-4 right-2 bg-yellow-500 text-slate-900 font-black px-4 py-1 rounded-full text-sm italic">1º</span>
-                    </div>
-                    <p class="mt-4 text-xl font-black text-yellow-500 uppercase tracking-tighter">${p1?.nome || ''}</p>
-                    <p class="text-5xl font-black">${p1?.pedidos || 0}</p>
-                    <p class="text-xs font-bold text-blue-400 mt-1">${perc(p1?.pedidos || 0)} DO TOTAL</p>
+                <div class="flex flex-col items-center pb-8">
+                    <i class="fas fa-crown text-yellow-400 text-3xl mb-1 animate-bounce"></i>
+                    <div class="w-36 h-36 gold-border rounded-full overflow-hidden bg-slate-800"><img src="${p1?.foto || ''}" class="w-full h-full object-cover"></div>
+                    <p class="text-xs font-black mt-3 text-yellow-500 uppercase tracking-widest text-center">${p1?.nome || ''}</p>
+                    <p class="text-5xl font-black">${p1?.qtd || 0}</p>
                 </div>
-                <div class="flex flex-col items-center order-3">
-                    <div class="relative">
-                        <div class="w-28 h-28 bronze-border rounded-full overflow-hidden bg-slate-800">
-                            <img src="${p3?.foto || ''}" onerror="this.src='https://ui-avatars.com/api/?name=${p3?.nome}&background=CD7F32&color=fff'" class="w-full h-full object-cover">
-                        </div>
-                        <span class="absolute -bottom-2 right-0 bg-orange-700 text-white font-bold px-2 py-0.5 rounded text-[10px]">3º</span>
-                    </div>
-                    <p class="mt-4 font-bold text-slate-400 uppercase text-[10px] tracking-widest">${p3?.nome || ''}</p>
-                    <p class="text-2xl font-black">${p3?.pedidos || 0}</p>
-                    <p class="text-[10px] font-bold text-slate-500">${perc(p3?.pedidos || 0)}</p>
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 bronze-border rounded-full overflow-hidden bg-slate-800"><img src="${p3?.foto || ''}" class="w-full h-full object-cover"></div>
+                    <p class="text-[10px] font-black mt-2 text-slate-400">3º ${p3?.nome || ''}</p>
+                    <p class="text-3xl font-black">${p3?.qtd || 0}</p>
                 </div>`;
+        }
 
-            // Tabela com cores e porcentagem
-            document.getElementById('ranking-body').innerHTML = stats.map((s, i) => `
-                <tr class="hover:bg-white/5 transition-all">
-                    <td class="px-8 py-5 font-black text-slate-700 italic text-lg">#${i+1}</td>
-                    <td class="px-8 py-5 flex items-center gap-4">
-                        <div class="w-2 h-8 rounded-full" style="background: ${s.color}"></div>
-                        <span class="font-bold text-slate-200 uppercase text-xs tracking-wider">${s.nome}</span>
-                    </td>
-                    <td class="px-8 py-5 text-center font-black text-blue-400 text-2xl">${s.pedidos}</td>
-                    <td class="px-8 py-5 text-center font-bold text-slate-400 text-xs">${perc(s.pedidos)}</td>
-                    <td class="px-8 py-5 text-center font-bold ${s.pedidos >= media ? 'text-emerald-500' : 'text-rose-500'}">
-                        ${s.pedidos >= media ? '+' : ''}${s.pedidos - media}
-                    </td>
-                </tr>`).join('');
-            
-            updateChart(stats, total);
+        function renderRanking(stats, total) {
+            const container = document.getElementById('ranking-compact-list');
+            const rowH = 68;
+            container.style.height = `${stats.length * rowH}px`;
+            stats.forEach((s, idx) => {
+                let el = document.getElementById(`rank-${s.nome.replace(/\s/g, '_')}`);
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = `rank-${s.nome.replace(/\s/g, '_')}`;
+                    el.className = 'ranking-item-compact flex items-center gap-3 p-3 glass rounded-2xl cursor-pointer hover:bg-white/5 transition-all';
+                    el.onclick = () => triggerUpload(s.nome);
+                    container.appendChild(el);
+                }
+                const perc = total > 0 ? ((s.qtd/total)*100).toFixed(1) : 0;
+                el.style.top = `${idx * rowH}px`;
+                el.innerHTML = `
+                    <span class="text-sm font-black text-slate-600 w-6">#${idx+1}</span>
+                    <div class="w-10 h-10 rounded-full overflow-hidden border border-white/20 bg-slate-800"><img src="${s.foto}" class="w-full h-full object-cover"></div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-center"><span class="text-xs font-black uppercase text-slate-200 truncate pr-2">${s.nome}</span><span class="text-lg font-black text-blue-400">${s.qtd}</span></div>
+                        <div class="w-full h-1 bg-white/5 mt-1 rounded-full overflow-hidden"><div class="h-full" style="width: ${perc}%; background:${s.color}; shadow: 0 0 10px ${s.color};"></div></div>
+                    </div><span class="text-[9px] font-bold text-slate-500 w-10 text-right">${perc}%</span>`;
+            });
         }
 
         function updateChart(stats, total) {
             const ctx = document.getElementById('teamChart').getContext('2d');
-            const legend = document.getElementById('chart-legend');
-            legend.innerHTML = '';
-            
-            if (chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: stats.map(s => s.nome),
-                    datasets: [{ 
-                        data: stats.map(s => s.pedidos), 
-                        backgroundColor: stats.map(s => s.color), 
-                        borderWidth: 0,
-                        hoverOffset: 15 
-                    }]
-                },
-                options: { 
-                    cutout: '75%', 
-                    plugins: { 
-                        legend: false, 
-                        datalabels: { 
-                            color: '#fff', 
-                            font: { weight: 'bold', size: 10 }, 
-                            formatter: v => total > 0 ? Math.round((v/total)*100)+'%' : '' 
-                        } 
-                    } 
-                }
-            });
-
-            // Legenda do Gráfico com porcentagem
-            stats.slice(0, 6).forEach(s => {
-                const p = total > 0 ? ((s.pedidos/total)*100).toFixed(1) : 0;
-                legend.innerHTML += `<div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full" style="background:${s.color}"></div>${s.nome}: ${p}%</div>`;
-            });
+            const data = { labels: stats.map(s => s.nome), datasets: [{ data: stats.map(s => s.qtd), backgroundColor: stats.map(s => s.color), borderWidth: 0 }] };
+            if (chartInstance) { chartInstance.data = data; chartInstance.update(); }
+            else { chartInstance = new Chart(ctx, { type: 'doughnut', data, options: { cutout: '80%', plugins: { legend: false, datalabels: { color: '#fff', font: { weight: 'bold', size: 10 }, formatter: v => total > 0 ? Math.round((v/total)*100)+'%' : '' } } } }); }
+            document.getElementById('chart-legend').innerHTML = stats.slice(0, 5).map(s => `<div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full" style="background:${s.color}"></div>${s.nome}: ${total > 0 ? ((s.qtd/total)*100).toFixed(1) : 0}%</div>`).join('');
         }
 
-        // --- LÓGICA REPOSIÇÃO (ER) ---
-        async function fetchReposicao() {
-            try {
-                const url = `https://opensheet.elk.sh/${CONFIG.REPO_ID}/${encodeURIComponent(CONFIG.REPO_ABA)}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                filteredRepoData = data.filter(item => {
-                    const keys = Object.keys(item);
-                    const status = String(item[keys.find(k => /situa|separa|status|ok/i.test(k))] || '').trim();
-                    const cod = String(item[keys.find(k => /cód|cod|part/i.test(k))] || '').trim();
-                    return cod !== "" && status === "";
-                });
-                renderReposicao();
-            } catch (e) { console.error(e); }
-        }
-
-        function renderReposicao() {
+        function renderReposicao(data) {
             const tbody = document.getElementById('er-body');
-            const summary = document.getElementById('er-status-summary');
-            if (filteredRepoData.length === 0) {
-                summary.innerText = "BANCO ATUALIZADO ✅";
-                document.getElementById('er-empty').classList.remove('hidden');
-                tbody.innerHTML = '';
-                return;
-            }
-            summary.innerText = `${filteredRepoData.length} ITENS PENDENTES - CLIQUE PARA VER`;
+            animateCounter('er-count-num', 0, data.length, 1500);
+            if (data.length === 0) { document.getElementById('er-empty').classList.remove('hidden'); tbody.innerHTML = ''; return; }
             document.getElementById('er-empty').classList.add('hidden');
-            tbody.innerHTML = filteredRepoData.map(row => {
-                const keys = Object.keys(row);
-                const values = Object.values(row);
+            tbody.innerHTML = data.map(i => {
+                const keys = Object.keys(i);
                 return `<tr>
-                    <td style="color:#2563eb; font-weight:700;">${String(values[0]).substring(0,5)}</td>
-                    <td style="color:#64748b; font-weight:500; font-size: 0.8rem;">${row[keys[5]] || '---'}</td>
-                    <td style="color:#2563eb; font-weight:800;">${row[keys.find(k => /cód|cod/i.test(k))] || '-'}</td>
-                    <td style="font-size: 0.85rem;">${row[keys.find(k => /desc/i.test(k))] || '-'}</td>
-                    <td style="text-align:center; font-weight:900; color:#ef4444; font-size: 1.1rem;">${row[keys.find(k => /qtd|quant/i.test(k))] || '0'}</td>
-                    <td><span class="badge-open"><span class="dot"></span>ABERTO</span></td>
+                    <td style="color:#2563eb; font-weight:700;">${String(Object.values(i)[0]).substring(0,5)}</td>
+                    <td style="color:#64748b; font-weight:500;">${i[keys[5]] || '---'}</td>
+                    <td style="color:#2563eb; font-weight:800;">${i[keys.find(k => /cód|cod|part/i.test(k))] || '-'}</td>
+                    <td class="font-medium">${i[keys.find(k => /desc/i.test(k))] || '-'}</td>
+                    <td style="text-align:center; font-weight:900; color:#ef4444; font-size: 1.2rem;">${i[keys.find(k => /qtd|quant/i.test(k))] || '0'}</td>
+                    <td style="text-align:right;"><span class="badge-open"><span class="dot"></span>ABERTO</span></td>
                 </tr>`;
             }).join('');
         }
 
         function changeFilter(f) { 
             currentFilter = f; 
-            document.querySelectorAll('#btn-hoje, #btn-semana, #btn-mes').forEach(b => b.classList.remove('active-filter'));
-            document.getElementById(`btn-${f}`).classList.add('active-filter');
-            renderSeparacao(); 
+            document.querySelectorAll('button[id^="btn-"]').forEach(b => b.className = "px-8 py-3 rounded-xl text-xs font-black transition-all text-slate-500");
+            document.getElementById(`btn-${f}`).className = "px-8 py-3 rounded-xl text-xs font-black transition-all bg-blue-600 text-white shadow-xl scale-105 ring-2 ring-blue-500/20";
+            updateDashboard(); 
         }
 
-        document.getElementById('er-copy-btn').addEventListener('click', function() {
-            const text = filteredRepoData.map(item => {
-                const keys = Object.keys(item);
-                const cod = String(item[keys.find(k => /cód|cod/i.test(k))] || '').trim();
-                const qtd = String(item[keys.find(k => /qtd|quant/i.test(k))] || '0').trim();
-                return `${cod} | ${qtd}`;
-            }).join('\n');
-            navigator.clipboard.writeText(text).then(() => {
-                const original = this.innerText;
-                this.innerText = "✅ COPIADO!";
-                setTimeout(() => this.innerText = original, 2000);
-            });
-        });
-
-        // Loop de Atualização
         setInterval(() => {
-            timer += 0.2;
+            timer += 1.666; 
             document.getElementById('timer-bar').style.width = timer + '%';
-            if (timer >= 100) { timer = 0; fetchSeparacao(); fetchReposicao(); }
+            if (timer >= 100) {
+                timer = 0;
+                changeFilter(['hoje', 'semana', 'mes'][(['hoje', 'semana', 'mes'].indexOf(currentFilter) + 1) % 3]);
+            }
         }, 100);
 
-        fetchSeparacao(); fetchReposicao();
-        changeFilter('hoje');
+        document.getElementById('er-copy-btn').onclick = (e) => {
+            e.stopPropagation();
+            const text = filteredRepoData.map(i => `${i[Object.keys(i).find(k => /cód|cod|part/i.test(k))]} | ${i[Object.keys(i).find(k => /qtd|quant/i.test(k))]}`).join('\n');
+            navigator.clipboard.writeText(text).then(() => { 
+                const btn = document.getElementById('er-copy-btn');
+                const orig = btn.innerText; btn.innerText = "✅ LISTA COPIADA!";
+                setTimeout(() => btn.innerText = orig, 2000);
+            });
+        };
+
+        updateDashboard(); changeFilter('hoje');
     </script>
 </body>
 </html>
