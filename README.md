@@ -1,21 +1,20 @@
-# Opera X - Smart Logistics
+# Opera X - Sistema Logístico
 
-Sistema de gestão logística com:
-- 🔍 Localização de produtos
-- 🏷️ Impressão de etiquetas ZPL
-- 📦 Reposição de estoque
-- 📊 Dashboard de performance (em arquivo separado)
-
-## Como usar
-1. Acesse: [https://seu-usuario.github.io/opera-x-logistics/](https://seu-usuario.github.io/opera-x-logistics/)
-2. O arquivo principal é o `index.html`
-3. O dashboard abre em nova aba ao clicar em "Status"
+Sistema completo para gestão de estoque e logística.
 
 ## Funcionalidades
-- Integração com Firebase
-- Upload de planilhas Excel
-- Impressão de listas
-- Sistema de notificações
-- Modais de confirmação
+- 🔍 Localização de produtos por código
+- 🏷️ Geração de etiquetas ZPL
+- 📦 Lista de reposição com impressão
+- 📊 Dashboard de performance separado
+
+## Acesse
+👉 [https://danamorim1347-max.github.io/zpl/](https://danamorim1347-max.github.io/zpl/)
+
+## Tecnologias
+- HTML5 / CSS3 / Tailwind CSS
+- Firebase Realtime Database
+- Chart.js para gráficos
+- Google Sheets API
 
 Desenvolvido por: **Benilson Amorim**
