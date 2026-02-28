@@ -36,177 +36,75 @@
         .key { background: #000; border: 1px solid #1e293b; border-radius: 0.75rem; height: 60px; font-weight: 800; font-size: 1.5rem; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .key:active { background: var(--brand); }
 
-        .item-card { background: var(--surface); border-radius: 1rem; padding: 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 1rem; border: 1px solid rgba(255,255,255,0.03); }
-        .item-card .info-sku { background: rgba(59, 130, 246, 0.15); padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; color: #60a5fa; border-left: 3px solid #3b82f6; }
-        .addr-compact { font-family: 'JetBrains Mono', monospace; font-weight: 900; color: var(--brand); font-size: 16px; }
-        
-        .btn-clean { background: #10b981; color: white; transition: all 0.2s; }
-        .btn-clean:hover { background: #059669; }
-        .btn-delete { background: #ef4444; color: white; transition: all 0.2s; }
-        .btn-delete:hover { background: #dc2626; }
-        .btn-edit { background: #f59e0b; color: white; transition: all 0.2s; }
-        .btn-edit:hover { background: #d97706; }
-        
-        .sku-highlight { font-size: 1.1rem; font-weight: 900; color: #fbbf24; background: rgba(251, 191, 36, 0.1); padding: 2px 8px; border-radius: 20px; display: inline-block; }
+        .simple-list-item { background: var(--surface); border-radius: 0.75rem; padding: 12px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--brand); }
+        .simple-list-code { font-family: 'JetBrains Mono', monospace; font-weight: 800; color: var(--brand); font-size: 1.1rem; }
+        .simple-list-name { font-size: 0.9rem; color: #94a3b8; }
+        .simple-list-qty { background: #1e293b; padding: 4px 10px; border-radius: 20px; font-weight: 800; color: #fbbf24; }
 
-        .item-actions { display: flex; gap: 4px; margin-left: auto; }
-        .item-actions button { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: all 0.2s; }
-
-        .qty-edit { width: 60px; background: #1e293b; border: 2px solid #3b82f6; color: white; border-radius: 8px; padding: 4px; text-align: center; font-weight: 800; font-size: 1.1rem; }
-
-        /* Estilos de impressão */
-        @media print {
-            body * { visibility: hidden; }
-            #print-area, #print-area * { visibility: visible; }
-            #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 10px; background: white; color: black; font-family: 'Courier New', monospace; font-size: 10pt; }
-            .no-print { display: none !important; }
-            .print-header { text-align: center; font-weight: bold; font-size: 14pt; margin-bottom: 10px; border-bottom: 1px solid #000; padding-bottom: 5px; }
-            .print-item { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dotted #ccc; }
-        }
-
-        /* Sistema de Notificações */
-        .notification-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-width: 350px;
-            width: calc(100% - 40px);
-            pointer-events: none;
-        }
-
-        .notification {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            transform: translateX(400px);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            pointer-events: auto;
-            border-left: 4px solid transparent;
-        }
-
+        .notification-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; max-width: 350px; width: calc(100% - 40px); pointer-events: none; }
+        .notification { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); display: flex; align-items: flex-start; gap: 12px; transform: translateX(400px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: auto; border-left: 4px solid transparent; }
         .notification.show { transform: translateX(0); opacity: 1; }
         .notification.success { border-left-color: #10b981; }
         .notification.error { border-left-color: #ef4444; }
-        .notification.warning { border-left-color: #f59e0b; }
-        .notification.info { border-left-color: #3b82f6; }
+        .notification-content { flex: 1; color: #1e293b; font-size: 0.9rem; font-weight: 600; }
 
-        .notification-icon { font-size: 1.25rem; flex-shrink: 0; }
-        .notification-content { flex: 1; color: #1e293b; font-size: 0.9rem; font-weight: 500; }
-        .notification-close { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1rem; padding: 4px; transition: color 0.2s; }
-        .notification-close:hover { color: #64748b; }
-
-        /* Modal de Confirmação */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
-        }
-
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); z-index: 10000; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
         .modal-overlay.show { opacity: 1; pointer-events: auto; }
-
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 24px;
-            max-width: 400px;
-            width: 90%;
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
+        .modal-content { background: white; border-radius: 20px; padding: 24px; max-width: 400px; width: 90%; transform: scale(0.9); transition: transform 0.3s ease; }
+        
+        @media print { 
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .print-only { display: block !important; }
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            .print-table th, .print-table td { border: 1px solid black; padding: 8px; text-align: left; color: black !important; }
         }
-
-        .modal-overlay.show .modal-content { transform: scale(1); }
-
-        .modal-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-        .modal-header i { font-size: 1.8rem; color: #f59e0b; }
-        .modal-header h3 { color: #1e293b; font-size: 1.2rem; font-weight: 800; }
-        .modal-body { color: #475569; font-size: 0.95rem; line-height: 1.5; margin-bottom: 24px; }
-        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
-        .modal-btn { padding: 10px 20px; border-radius: 10px; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; border: none; }
-        .modal-btn.confirm { background: #3b82f6; color: white; }
-        .modal-btn.cancel { background: #f1f5f9; color: #475569; }
-
-        /* Lista simplificada */
-        .simple-list-item {
-            background: var(--surface);
-            border-radius: 0.75rem;
-            padding: 12px;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-left: 4px solid var(--brand);
-        }
-        .simple-list-code {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 800;
-            color: var(--brand);
-            font-size: 1.1rem;
-        }
-        .simple-list-name {
-            font-size: 0.9rem;
-            color: #94a3b8;
-        }
-        .simple-list-qty {
-            background: #1e293b;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-weight: 800;
-            color: #fbbf24;
-        }
+        .print-only { display: none; }
     </style>
 </head>
 <body class="p-4 lg:p-8">
 
-    <!-- Container de Notificações -->
     <div id="notification-container" class="notification-container"></div>
 
-    <!-- Modal de Confirmação -->
+    <!-- Área de Impressão -->
+    <div id="print-area" class="print-only">
+        <h1 style="text-align:center; font-size: 24px; font-weight: 800; border-bottom: 2px solid black; padding-bottom: 10px;">LISTA DE REPOSIÇÃO - OPERA X</h1>
+        <p id="print-date" style="text-align:right; font-weight: bold; margin-top: 5px;"></p>
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th>Localização</th>
+                    <th>Código</th>
+                    <th>Descrição</th>
+                    <th>Qtd</th>
+                </tr>
+            </thead>
+            <tbody id="print-table-body"></tbody>
+        </table>
+    </div>
+
     <div id="confirm-modal" class="modal-overlay">
         <div class="modal-content">
-            <div class="modal-header">
-                <i class="fa-solid fa-circle-question"></i>
-                <h3 id="modal-title">Confirmar ação</h3>
-            </div>
-            <div id="modal-message" class="modal-body">Tem certeza que deseja continuar?</div>
-            <div class="modal-actions">
-                <button id="modal-cancel" class="modal-btn cancel">Cancelar</button>
-                <button id="modal-confirm" class="modal-btn confirm">Confirmar</button>
+            <h3 id="modal-title" class="text-xl font-bold text-slate-900 mb-2">Confirmar</h3>
+            <p id="modal-message" class="text-slate-600 mb-6">Deseja prosseguir?</p>
+            <div class="flex gap-3 justify-end">
+                <button id="modal-cancel" class="px-6 py-2 bg-slate-100 text-slate-600 rounded-xl font-bold">Cancelar</button>
+                <button id="modal-confirm" class="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold">Confirmar</button>
             </div>
         </div>
     </div>
 
     <div id="loader" class="fixed inset-0 z-[100] bg-slate-950/90 flex items-center justify-center hidden">
-        <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <div class="flex flex-col items-center">
+            <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p class="text-blue-500 font-bold text-xs uppercase tracking-widest">Sincronizando...</p>
+        </div>
     </div>
 
-    <!-- Área de impressão oculta -->
-    <div id="print-area" style="display: none;"></div>
-
-    <div class="max-w-[1100px] mx-auto space-y-6">
-        <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-center bg-slate-900/40 p-5 rounded-2xl border border-white/5 no-print gap-6 shadow-xl">
+    <div class="max-w-[1100px] mx-auto space-y-6 no-print">
+        <header class="flex flex-col md:flex-row justify-between items-center bg-slate-900/40 p-5 rounded-2xl border border-white/5 gap-6 shadow-xl">
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg"><i class="fa-solid fa-layer-group text-white text-2xl"></i></div>
+                <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg"><i class="fa-solid fa-bolt text-white text-2xl"></i></div>
                 <div>
                     <h1 class="text-2xl font-black uppercase tracking-tighter">OPERA <span class="text-blue-500">X</span></h1>
                     <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Dev: Benilson Amorim</p>
@@ -217,13 +115,12 @@
                 <div onclick="App.ui.setMode('locate')" id="btn-locate" class="nav-item active"><i class="fa-solid fa-magnifying-glass"></i><span>Localizar</span></div>
                 <div onclick="App.ui.setMode('labels')" id="btn-labels" class="nav-item"><i class="fa-solid fa-barcode"></i><span>Etiquetas</span></div>
                 <div onclick="App.ui.setMode('picking')" id="btn-picking" class="nav-item"><i class="fa-solid fa-truck-ramp-box"></i><span>Reposição</span></div>
-                <!-- Ao clicar em Status, abre o dashbort.html em uma nova aba -->
                 <div onclick="window.open('dashbort.html', '_blank')" id="btn-dash" class="nav-item"><i class="fa-solid fa-chart-pie"></i><span>Status</span></div>
             </nav>
 
             <label class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 rounded-xl text-[10px] font-black uppercase cursor-pointer border border-slate-800 transition-all">
-                <i class="fa-solid fa-sync text-blue-500"></i> Atualizar Excel
-                <input type="file" class="hidden" accept=".xlsx,.xls" onchange="App.fileHandler.handleUpload(this)">
+                <i class="fa-solid fa-file-excel text-emerald-500"></i> Atualizar Base
+                <input type="file" class="hidden" accept=".xlsx,.xls" onchange="App.logic.fileHandler.handleUpload(this)">
             </label>
         </header>
 
@@ -244,85 +141,38 @@
         const fApp = initializeApp(firebaseConfig);
         const db = getDatabase(fApp);
 
-        const clean = (v) => String(v || "").replace(/^(rua|rack|rck|r|niv|col)\s*/gi, "").trim();
-
-        // Sistema de Notificações (idêntico ao original)
-        const Notifications = {
-            container: document.getElementById('notification-container'),
-            
-            show(message, type = 'info', duration = 3000) {
-                const notification = document.createElement('div');
-                notification.className = `notification ${type}`;
-                
-                const icon = {
-                    success: 'fa-circle-check',
-                    error: 'fa-circle-exclamation',
-                    warning: 'fa-triangle-exclamation',
-                    info: 'fa-circle-info'
-                }[type] || 'fa-circle-info';
-                
-                notification.innerHTML = `
-                    <i class="notification-icon fa-solid ${icon}"></i>
-                    <div class="notification-content">${message}</div>
-                    <button class="notification-close" onclick="this.closest('.notification').remove()">
-                        <i class="fa-solid fa-times"></i>
-                    </button>
-                `;
-                
-                this.container.appendChild(notification);
-                setTimeout(() => notification.classList.add('show'), 10);
-                
-                if (duration > 0) {
-                    setTimeout(() => {
-                        notification.classList.remove('show');
-                        setTimeout(() => notification.remove(), 300);
-                    }, duration);
-                }
+        const Utils = {
+            cleanId(code) {
+                if (!code) return '';
+                const str = String(code).replace(/\D/g, '');
+                return str.length === 13 ? str.substring(7, 12) : str;
             },
-            
-            success(message, duration = 3000) { this.show(message, 'success', duration); },
-            error(message, duration = 3000) { this.show(message, 'error', duration); },
-            warning(message, duration = 3000) { this.show(message, 'warning', duration); },
-            info(message, duration = 3000) { this.show(message, 'info', duration); },
-            
-            confirm(message, title = 'Confirmar ação') {
-                return new Promise((resolve) => {
-                    const modal = document.getElementById('confirm-modal');
-                    const modalTitle = document.getElementById('modal-title');
-                    const modalMessage = document.getElementById('modal-message');
-                    const confirmBtn = document.getElementById('modal-confirm');
-                    const cancelBtn = document.getElementById('modal-cancel');
-                    
-                    modalTitle.textContent = title;
-                    modalMessage.textContent = message;
-                    
-                    const handleConfirm = () => {
-                        modal.classList.remove('show');
-                        cleanup();
-                        resolve(true);
-                    };
-                    
-                    const handleCancel = () => {
-                        modal.classList.remove('show');
-                        cleanup();
-                        resolve(false);
-                    };
-                    
-                    const cleanup = () => {
-                        confirmBtn.removeEventListener('click', handleConfirm);
-                        cancelBtn.removeEventListener('click', handleCancel);
-                        modal.removeEventListener('click', (e) => {
-                            if (e.target === modal) handleCancel();
-                        });
-                    };
-                    
-                    confirmBtn.addEventListener('click', handleConfirm);
-                    cancelBtn.addEventListener('click', handleCancel);
-                    modal.addEventListener('click', (e) => {
-                        if (e.target === modal) handleCancel();
-                    });
-                    
-                    modal.classList.add('show');
+            formatCoord(val) {
+                return String(val || '').replace(/^(rua|rack|rck|r|niv|col)\s*/gi, '').trim();
+            },
+            sanitizeText(text) {
+                return String(text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+            }
+        };
+
+        const Notifications = {
+            show(msg, type = 'info') {
+                const container = document.getElementById('notification-container');
+                const n = document.createElement('div');
+                n.className = `notification ${type}`;
+                n.innerHTML = `<div class="notification-content">${msg}</div>`;
+                container.appendChild(n);
+                setTimeout(() => n.classList.add('show'), 10);
+                setTimeout(() => { n.classList.remove('show'); setTimeout(() => n.remove(), 300); }, 3000);
+            },
+            async confirm(msg) {
+                return new Promise(res => {
+                    const m = document.getElementById('confirm-modal');
+                    document.getElementById('modal-message').innerText = msg;
+                    m.classList.add('show');
+                    const cleanup = (v) => { m.classList.remove('show'); res(v); };
+                    document.getElementById('modal-confirm').onclick = () => cleanup(true);
+                    document.getElementById('modal-cancel').onclick = () => cleanup(false);
                 });
             }
         };
@@ -332,14 +182,11 @@
 
             ui: {
                 setMode(mode) {
-                    // Se o modo for 'dash', não faz nada (já tratado no onclick)
-                    if (mode === 'dash') return;
-                    
                     App.state.mode = mode;
                     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-                    const btn = document.getElementById(`btn-${mode}`); if(btn) btn.classList.add('active');
-                    const main = document.getElementById('main-view'); main.innerHTML = '';
-
+                    document.getElementById(`btn-${mode}`)?.classList.add('active');
+                    const main = document.getElementById('main-view');
+                    
                     if (mode === 'locate') this.renderLocate();
                     else if (mode === 'labels') this.renderLabels();
                     else if (mode === 'picking') this.renderPicking();
@@ -347,11 +194,10 @@
                     this.sync();
                 },
 
-                // ========== LOCALIZAR ==========
                 renderLocate() {
                     document.getElementById('main-view').innerHTML = `
                         <div class="max-w-2xl mx-auto glass p-8">
-                            <input type="text" id="main-in" inputmode="numeric" class="input-pro w-full py-5 text-4xl font-bold uppercase mb-8" placeholder="BIPE O CÓDIGO">
+                            <input type="text" id="main-in" inputmode="numeric" class="input-pro w-full py-5 text-4xl font-bold mb-8" placeholder="BIPAR CÓDIGO">
                             <div id="result-area" class="min-h-[260px] flex flex-col items-center justify-center text-center"></div>
                             <div id="keyboard" class="grid grid-cols-3 gap-3 mt-8 border-t border-white/10 pt-8"></div>
                         </div>`;
@@ -359,7 +205,7 @@
                 },
 
                 initKeyboard() {
-                    const kb = document.getElementById('keyboard'); if (!kb) return;
+                    const kb = document.getElementById('keyboard');
                     [1,2,3,4,5,6,7,8,9,'⌫',0,'CLR'].forEach(k => {
                         const b = document.createElement('div'); b.className = 'key'; b.textContent = k;
                         b.onclick = () => {
@@ -371,56 +217,58 @@
                     });
                 },
 
-                // ========== ETIQUETAS ==========
                 renderLabels() {
                     document.getElementById('main-view').innerHTML = `
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                             <div class="lg:col-span-4 glass p-8 space-y-4 h-fit">
-                                <h3 class="text-blue-500 font-black uppercase text-xs">Nova Etiqueta</h3>
-                                <div class="space-y-2">
-                                    <input type="text" id="main-input" inputmode="numeric" class="input-pro w-full py-4 font-bold" placeholder="Digite o Código" oninput="App.logic.lookupProduct(this.value)">
-                                    <div id="label-prod-name" class="text-center font-bold text-blue-400 text-sm h-5 uppercase tracking-tight"></div>
+                                <h3 class="text-blue-500 font-black uppercase text-xs">Fila de Etiquetas</h3>
+                                <input type="text" id="etq-in" class="input-pro w-full py-4 font-bold" placeholder="Código" oninput="App.logic.lookupProduct(this.value)">
+                                <div id="etq-name" class="text-center font-bold text-blue-400 text-sm h-10 uppercase"></div>
+                                
+                                <div class="grid grid-cols-1 gap-3">
+                                    <span class="text-[10px] text-slate-500 font-bold uppercase">Validade</span>
+                                    <input type="text" id="etq-val" class="input-pro p-3 text-xs font-bold" placeholder="MM/AAAA" maxlength="7" oninput="App.logic.handleDateInput(this)">
                                 </div>
+
                                 <div class="grid grid-cols-2 gap-3">
-                                    <input type="text" id="etq-val" inputmode="numeric" class="input-pro p-4 text-xs font-bold" placeholder="Validade" maxlength="7" oninput="App.ui.maskVal(this)">
-                                    <input type="text" id="etq-qty" inputmode="numeric" class="input-pro p-4 text-xs font-bold" value="1">
+                                    <div>
+                                        <span class="text-[10px] text-slate-500 font-bold uppercase">Imprimir (Cópias)</span>
+                                        <input type="number" id="etq-print-qty" class="input-pro w-full p-3 text-xs font-bold" value="1">
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] text-slate-500 font-bold uppercase">Qtd Itens (Q:)</span>
+                                        <input type="text" id="etq-items-qty" class="input-pro w-full p-3 text-xs font-bold" placeholder="Ex: 1">
+                                    </div>
                                 </div>
-                                <button onclick="App.logic.addLabel()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black uppercase shadow-lg active:scale-95 transition-all">Adicionar à Fila</button>
-                                <button onclick="App.logic.cleanQueue('print_queue')" class="w-full btn-clean py-5 rounded-2xl font-black uppercase shadow-lg flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-broom"></i> Limpar Fila
-                                </button>
+                                
+                                <button onclick="App.logic.addLabel()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black uppercase shadow-lg">Adicionar à Fila</button>
+                                <button onclick="App.logic.cleanQueue('print_queue')" class="w-full bg-rose-600/20 text-rose-500 py-3 rounded-xl font-bold uppercase text-[10px]">Limpar Fila</button>
                             </div>
                             <div class="lg:col-span-8 glass p-8"><div id="queue-box"></div><div id="queue-foot" class="mt-6"></div></div>
                         </div>`;
                 },
 
-                // ========== REPOSIÇÃO ==========
                 renderPicking() {
                     document.getElementById('main-view').innerHTML = `
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                             <div class="lg:col-span-5 glass p-8 space-y-4 h-fit">
-                                <h3 class="text-emerald-500 font-black uppercase text-xs">Reposição Local</h3>
-                                <textarea id="pick-text" class="input-pro w-full h-64 p-4 text-left text-sm outline-none resize-none" placeholder="Digite os códigos e quantidades (ex: 87064 10)&#10;Um por linha"></textarea>
-                                <div class="flex gap-3">
-                                    <button onclick="App.logic.addPicking()" class="flex-1 bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase shadow-xl hover:bg-emerald-700 transition-all">Processar Lista</button>
-                                </div>
-                                <button onclick="App.logic.cleanQueue('active_separation')" class="w-full btn-clean py-5 rounded-2xl font-black uppercase shadow-lg flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-broom"></i> Limpar Fila
-                                </button>
-                                <button onclick="App.logic.printList()" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 rounded-2xl font-black uppercase shadow-lg flex items-center justify-center gap-2 transition-all">
-                                    <i class="fa-solid fa-print"></i> Imprimir Lista (Simplificado)
-                                </button>
+                                <h3 class="text-emerald-500 font-black uppercase text-xs">Nova Reposição</h3>
+                                <textarea id="pick-text" class="input-pro w-full h-64 p-4 text-left text-sm" placeholder="Código Qtd (Ex: 87064 10)"></textarea>
+                                <button onclick="App.logic.addPicking()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase shadow-xl">Processar Lista</button>
+                                <button onclick="App.logic.cleanQueue('active_separation')" class="w-full bg-rose-600/20 text-rose-500 py-3 rounded-xl font-bold uppercase text-[10px]">Limpar Fila</button>
                             </div>
-                            <div class="lg:col-span-7 glass p-8"><div id="queue-box"></div><div id="queue-foot" class="mt-6"></div></div>
+                            <div class="lg:col-span-7 glass p-8">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-xs font-black uppercase text-slate-400">Itens Informados</h3>
+                                    <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase"><i class="fa-solid fa-print mr-2"></i>Imprimir Lista</button>
+                                </div>
+                                <div id="queue-box"></div>
+                            </div>
                         </div>`;
                 },
 
-                maskVal(i) { let v = i.value.replace(/\D/g, ""); if (v.length > 2) v = v.substring(0, 2) + "/" + v.substring(2, 6); i.value = v; },
-
-                // ========== SINCRONIZAÇÃO COM FIREBASE ==========
                 sync() {
                     if (App.state.activeListener) App.state.activeListener();
-                    
                     if (App.state.mode !== 'locate') {
                         const path = App.state.mode === 'labels' ? 'print_queue' : 'active_separation';
                         App.state.activeListener = onValue(ref(db, path), (s) => this.renderQueue(s.val()));
@@ -428,281 +276,198 @@
                 },
 
                 renderQueue(data) {
-                    const box = document.getElementById('queue-box'); 
+                    const box = document.getElementById('queue-box');
                     const foot = document.getElementById('queue-foot');
                     if (!box) return;
+                    if (!data) { box.innerHTML = '<p class="text-center text-slate-500 py-20 font-bold uppercase text-xs">Fila Vazia</p>'; if(foot) foot.innerHTML=''; return; }
                     
-                    if (!data) { 
-                        box.innerHTML = '<div class="py-20 text-center text-slate-500 font-bold uppercase text-xs">Nenhum item na fila</div>'; 
-                        if (foot) foot.innerHTML = ''; 
-                        return; 
-                    }
-                    
-                    let items = Object.entries(data).map(([id, val]) => ({ id, ...val }));
-                    items.sort((a, b) => String(a.rua + a.rck).localeCompare(String(b.rua + b.rck)));
+                    const items = Object.entries(data).map(([id, val]) => ({ id, ...val }));
+                    items.sort((a,b) => String(a.rua + a.rck).localeCompare(String(b.rua + b.rck)));
 
                     box.innerHTML = items.map(i => `
-                        <div class="simple-list-item" data-id="${i.id}">
+                        <div class="simple-list-item">
                             <div>
                                 <div class="simple-list-code">${i.codigo}</div>
-                                <div class="simple-list-name">${i.nome.substring(0, 40)}${i.nome.length > 40 ? '...' : ''}</div>
-                                <div class="text-xs text-slate-500 mt-1">${clean(i.rua)}.${clean(i.rck)}.${clean(i.lin)}/${clean(i.col)}</div>
+                                <div class="simple-list-name truncate w-48">${i.nome}</div>
+                                <div class="text-[9px] text-slate-400 font-bold uppercase">${Utils.formatCoord(i.rua)}.${Utils.formatCoord(i.rck)}.${i.lin}/${i.col}</div>
                             </div>
                             <div class="flex items-center gap-3">
-                                <div class="simple-list-qty">${i.qty}x</div>
-                                <button onclick="App.logic.deleteItem('${i.id}')" class="btn-delete w-8 h-8 rounded-lg">
-                                    <i class="fa-solid fa-trash text-sm"></i>
-                                </button>
-                                <button onclick="App.logic.toggleItem('${i.id}', '${i.status}')" class="w-8 h-8 rounded-lg flex items-center justify-center ${i.status === 'done' ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-400'}">
-                                    <i class="fa-solid fa-check"></i>
-                                </button>
+                                <div class="simple-list-qty">${i.qtyItems ? 'Q:'+i.qtyItems : i.qty+'x'}</div>
+                                <button onclick="App.logic.deleteItem('${i.id}')" class="text-rose-500 p-2"><i class="fa-solid fa-trash"></i></button>
                             </div>
                         </div>`).join('');
-                    
+
                     if (foot && App.state.mode === 'labels') {
-                        foot.innerHTML = `<button onclick="App.logic.copyLabelsZPL()" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase shadow-xl">Copiar ZPL</button>`;
+                        foot.innerHTML = `<button onclick="App.logic.copyLabelsZPL()" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase shadow-xl">Copiar ZPL Zebra (2 por Etiqueta)</button>`;
+                    }
+
+                    const printBody = document.getElementById('print-table-body');
+                    if(printBody) {
+                        document.getElementById('print-date').innerText = new Date().toLocaleString('pt-BR');
+                        printBody.innerHTML = items.map(i => `
+                            <tr>
+                                <td>${Utils.formatCoord(i.rua)}.${Utils.formatCoord(i.rck)}.${i.lin}/${i.col}</td>
+                                <td>${i.codigo}</td>
+                                <td>${i.nome}</td>
+                                <td><b>${i.qtyItems || i.qty}</b></td>
+                            </tr>
+                        `).join('');
                     }
                 }
             },
 
             logic: {
-                // ========== LOCALIZAR ==========
+                handleDateInput(el) {
+                    let v = el.value.replace(/\D/g, '');
+                    if (v.length > 2) v = v.substring(0, 2) + '/' + v.substring(2, 6);
+                    el.value = v;
+                },
+
                 processLocate(code) {
-                    const cleanCode = (c) => String(c).replace(/\D/g, '').slice(-5);
-                    const p = App.state.inventory.find(i => String(i.COD) === code || cleanCode(i.COD) === cleanCode(code));
+                    const search = Utils.cleanId(code);
+                    const p = App.state.inventory.find(i => Utils.cleanId(i.COD) === search);
                     const res = document.getElementById('result-area');
                     if (p && code.length >= 3) {
                         res.innerHTML = `
-                            <div class="w-full space-y-6 animate-in zoom-in duration-300 text-center">
-                                <div><h2 class="text-2xl font-black text-white uppercase px-2">${p.NOM}</h2></div>
+                            <div class="w-full space-y-6 animate-in zoom-in duration-300">
+                                <h2 class="text-2xl font-black text-white uppercase">${p.NOM}</h2>
                                 <div class="loc-grid">
-                                    <div class="loc-card"><span class="loc-label">Rua</span><div class="loc-value">${clean(p.RUA)}</div></div>
-                                    <div class="loc-card"><span class="loc-label">Rack</span><div class="loc-value">${clean(p.RCK)}</div></div>
-                                    <div class="loc-card"><span class="loc-label">Nív</span><div class="loc-value">${clean(p.LIN)}</div></div>
-                                    <div class="loc-card"><span class="loc-label">Col</span><div class="loc-value">${clean(p.COL)}</div></div>
+                                    <div class="loc-card"><span class="loc-label">Rua</span><div class="loc-value">${Utils.formatCoord(p.RUA)}</div></div>
+                                    <div class="loc-card"><span class="loc-label">Rack</span><div class="loc-value">${Utils.formatCoord(p.RCK)}</div></div>
+                                    <div class="loc-card"><span class="loc-label">Nív</span><div class="loc-value">${p.LIN}</div></div>
+                                    <div class="loc-card"><span class="loc-label">Col</span><div class="loc-value">${p.COL}</div></div>
                                 </div>
-                                <div class="text-blue-500 font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-box"></i> K: ${p.EST} EM ESTOQUE
-                                </div>
+                                <div class="text-blue-500 font-black text-sm uppercase">Estoque: ${p.EST} UN</div>
                             </div>`;
-                    } else if (code.length >= 3) { 
-                        res.innerHTML = `<div class="text-rose-500 font-black text-xl uppercase">Não Localizado</div>`; 
+                    } else if (code.length >= 3) {
+                        res.innerHTML = `<p class="text-rose-500 font-black text-xl">NÃO LOCALIZADO</p>`;
                     }
                 },
 
-                // ========== ETIQUETAS ==========
                 lookupProduct(code) {
-                    const display = document.getElementById('label-prod-name');
-                    if(code.length < 3) { display.innerText = ''; return; }
-                    const cleanCode = (c) => String(c).replace(/\D/g, '').slice(-5);
-                    const p = App.state.inventory.find(i => String(i.COD) === code || cleanCode(i.COD) === cleanCode(code));
-                    display.innerText = p ? p.NOM : 'Não Cadastrado';
+                    const display = document.getElementById('etq-name');
+                    const search = Utils.cleanId(code);
+                    const p = App.state.inventory.find(i => Utils.cleanId(i.COD) === search);
+                    display.innerText = p ? p.NOM : (code.length > 5 ? 'AVULSO' : '');
                 },
 
                 async addLabel() {
-                    const code = document.getElementById('main-input').value;
-                    if (!code) {
-                        Notifications.warning('Digite um código');
-                        return;
+                    const code = document.getElementById('etq-in').value;
+                    const search = Utils.cleanId(code);
+                    const p = App.state.inventory.find(i => Utils.cleanId(i.COD) === search) || { NOM: 'AVULSO' };
+                    
+                    const printQty = parseInt(document.getElementById('etq-print-qty').value) || 1;
+                    const itemsQty = document.getElementById('etq-items-qty').value;
+                    const validade = document.getElementById('etq-val').value;
+                    
+                    for(let i=0; i < printQty; i++) {
+                        await push(ref(db, 'print_queue'), {
+                            codigo: code,
+                            nome: p.NOM,
+                            val: validade,
+                            qty: 1,
+                            qtyItems: itemsQty,
+                            rua: Utils.formatCoord(p.RUA || '-'),
+                            rck: Utils.formatCoord(p.RCK || '-'),
+                            lin: p.LIN || '-',
+                            col: p.COL || '-'
+                        });
                     }
-                    
-                    const p = App.state.inventory.find(i => String(i.COD) === code) || { NOM: 'AVULSO' };
-                    const qty = parseInt(document.getElementById('etq-qty').value) || 1;
-                    
-                    document.getElementById('loader').classList.remove('hidden');
-                    try {
-                        for(let i=0; i<qty; i++) {
-                            await push(ref(db, 'print_queue'), { 
-                                codigo: code, 
-                                nome: p.NOM, 
-                                val: document.getElementById('etq-val').value, 
-                                qty: 1, 
-                                rua: p.RUA||'', 
-                                rck: p.RCK||'', 
-                                lin: p.LIN||'', 
-                                col: p.COL||'', 
-                                est: p.EST||0 
-                            });
-                        }
-                        Notifications.success(`${qty} etiqueta(s) adicionada(s) à fila!`);
-                    } catch (error) {
-                        Notifications.error('Erro ao adicionar etiqueta');
-                    }
-                    
-                    document.getElementById('main-input').value = '';
-                    document.getElementById('label-prod-name').innerText = '';
-                    document.getElementById('loader').classList.add('hidden');
+                    Notifications.show(`${printQty} etiquetas adicionadas!`, 'success');
+                    document.getElementById('etq-in').value = '';
+                    document.getElementById('etq-name').innerText = '';
                 },
 
                 async copyLabelsZPL() {
                     const snap = await get(ref(db, 'print_queue'));
-                    if (!snap.exists()) {
-                        Notifications.warning('Nenhum item na fila de etiquetas');
-                        return;
-                    }
-                    
+                    if (!snap.exists()) return;
                     const items = Object.values(snap.val());
                     let zpl = "";
-                    const cz = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
                     
+                    // Loop de 2 em 2 para manter o padrão 2 por etiqueta (Y=0 e Y=600)
                     for (let i = 0; i < items.length; i += 2) {
                         zpl += "^XA^CI28^PW812^LL1218\n";
-                        [0, 600].forEach((y, idx) => {
-                            const it = items[i + idx]; if (!it) return;
-                            const addr = `RUA: ${cz(it.rua)} RCK: ${cz(it.rck)}  ${it.lin}/${it.col}`;
-                            zpl += `^FO20,${y+20}^A0N,110,100^FD${String(it.codigo).slice(-5)}^FS\n`;
-                            if (it.val) zpl += `^FO235,${y+10}^GB550,70,80^FS^FO250,${y+20}^A0N,105,100^FR^FDVAL: ${it.val}^FS\n`;
-                            zpl += `^FO20,${y+150}^A0N,60,60^FB770,2,0,L,0^FD${cz(it.nome)}^FS\n`;
-                            zpl += `^FO20,${y+320}^A0N,45,45^FD${addr}^FS\n`;
-                            if (it.qty) zpl += `^FO580,${y+320}^A0N,80,80^FDQ:1^FS\n`;
-                            zpl += `^BY3,3,180^FO60,${y+380}^BCN,180,Y,N,N^FD${it.codigo}^FS\n`;
+                        
+                        [0, 600].forEach((yOffset, idx) => {
+                            const it = items[i + idx];
+                            if (!it) return;
+
+                            const addr = `RUA: ${Utils.sanitizeText(it.rua)} RCK: ${Utils.sanitizeText(it.rck)}   ${it.lin}/ ${it.col}`;
+                            
+                            zpl += `^FO20,${yOffset + 20}^A0N,110,100^FD${Utils.cleanId(it.codigo)}^FS\n`;
+                            
+                            if (it.val) {
+                                zpl += `^FO275,${yOffset + 10}^GB550,70,100^FS^FO295,${yOffset + 18}^A0N,100,95^FR^FDVAL: ${it.val}^FS\n`;
+                            }
+                            
+                            zpl += `^FO20,${yOffset + 150}^A0N,60,60^FB770,2,0,L,0^FD${Utils.sanitizeText(it.nome)}^FS\n`;
+                            zpl += `^FO20,${yOffset + 320}^A0N,45,45^FD${addr}^FS\n`;
+                            
+                            // Quantidade só aparece se solicitada (preenchida)
+                            if (it.qtyItems && it.qtyItems.trim() !== "") {
+                                zpl += `^FO580,${yOffset + 320}^A0N,80,80^FDQ:${it.qtyItems}^FS\n`;
+                            }
+                            
+                            zpl += `^BY3,3,180^FO60,${yOffset + 380}^BCN,180,Y,N,N^FD${it.codigo}^FS\n`;
                         });
+                        
                         zpl += "^XZ\n";
                     }
                     
-                    navigator.clipboard.writeText(zpl).then(() => {
-                        Notifications.success(`${items.length} etiqueta(s) copiadas!`);
-                    });
+                    navigator.clipboard.writeText(zpl).then(() => Notifications.show('ZPL 2-por-Etiqueta Copiado!', 'success'));
                 },
 
-                // ========== REPOSIÇÃO ==========
                 async addPicking() {
-                    const txt = document.getElementById('pick-text').value;
-                    const lines = txt.split('\n').filter(l => l.trim());
-                    
-                    if (lines.length === 0) {
-                        Notifications.warning('Digite pelo menos um item');
-                        return;
-                    }
-                    
-                    document.getElementById('loader').classList.remove('hidden');
-                    let count = 0;
-                    
-                    try {
-                        for (let line of lines) {
-                            const [code, qty] = line.trim().split(/[\s|;,]+/);
-                            if (!code) continue;
-                            
-                            const p = App.state.inventory.find(i => String(i.COD) === code) || { NOM: 'NÃO ENCONTRADO' };
-                            await push(ref(db, 'active_separation'), { 
-                                codigo: code, 
-                                nome: p.NOM, 
-                                qty: parseInt(qty) || 1, 
-                                status: 'pending', 
-                                rua: p.RUA || '?', 
-                                rck: p.RCK || '?', 
-                                lin: p.LIN || '?', 
-                                col: p.COL || '?', 
-                                est: p.EST || 0 
-                            });
-                            count++;
-                        }
+                    const lines = document.getElementById('pick-text').value.split('\n').filter(l => l.trim());
+                    for (let line of lines) {
+                        const parts = line.trim().split(/\s+/);
+                        const code = parts[0];
+                        const qty = parts[1] || 1;
+                        const search = Utils.cleanId(code);
+                        const p = App.state.inventory.find(i => Utils.cleanId(i.COD) === search) || { NOM: 'N/E' };
                         
-                        Notifications.success(`${count} itens adicionados à separação!`);
-                    } catch (error) {
-                        Notifications.error('Erro ao processar lista');
+                        await push(ref(db, 'active_separation'), { 
+                            codigo: code, nome: p.NOM, qty: qty, status: 'pending',
+                            rua: p.RUA || '-', rck: p.RCK || '-', lin: p.LIN || '-', col: p.COL || '-'
+                        });
                     }
-                    
-                    document.getElementById('pick-text').value = ''; 
-                    document.getElementById('loader').classList.add('hidden');
-                },
-
-                async printList() {
-                    const snap = await get(ref(db, 'active_separation'));
-                    if (!snap.exists()) {
-                        Notifications.warning('Nenhum item para imprimir');
-                        return;
-                    }
-                    
-                    const items = Object.values(snap.val());
-                    const printArea = document.getElementById('print-area');
-                    
-                    let printHtml = '<div class="print-header">LISTA DE REPOSIÇÃO</div>';
-                    printHtml += `<div>Data: ${new Date().toLocaleDateString()}</div>`;
-                    printHtml += '<hr/>';
-                    
-                    items.forEach(item => {
-                        printHtml += `<div class="print-item">`;
-                        printHtml += `<span>${item.codigo}</span>`;
-                        printHtml += `<span style="font-weight: bold;">${item.qty}</span>`;
-                        printHtml += `</div>`;
-                    });
-                    
-                    printArea.innerHTML = printHtml;
-                    printArea.style.display = 'block';
-                    
-                    window.print();
-                    
-                    printArea.style.display = 'none';
-                    Notifications.info('Lista enviada para impressão');
-                },
-
-                // ========== AÇÕES COMUNS ==========
-                async cleanQueue(path) {
-                    const confirmed = await Notifications.confirm('Tem certeza que deseja limpar toda a fila?');
-                    if (!confirmed) return;
-                    
-                    document.getElementById('loader').classList.remove('hidden');
-                    try {
-                        const snap = await get(ref(db, path));
-                        if (snap.exists()) {
-                            const updates = {};
-                            Object.keys(snap.val()).forEach(key => {
-                                updates[`${path}/${key}`] = null;
-                            });
-                            await update(ref(db), updates);
-                        }
-                        Notifications.success('Fila limpa com sucesso!');
-                    } catch (error) {
-                        Notifications.error('Erro ao limpar fila');
-                    }
-                    document.getElementById('loader').classList.add('hidden');
+                    document.getElementById('pick-text').value = '';
+                    Notifications.show('Lista gerada!', 'success');
                 },
 
                 async deleteItem(id) {
-                    const confirmed = await Notifications.confirm('Remover este item da lista?');
-                    if (!confirmed) return;
-                    
                     const path = App.state.mode === 'labels' ? 'print_queue' : 'active_separation';
-                    document.getElementById('loader').classList.remove('hidden');
-                    try {
-                        await remove(ref(db, `${path}/${id}`));
-                        Notifications.success('Item removido!');
-                    } catch (error) {
-                        Notifications.error('Erro ao remover item');
-                    }
-                    document.getElementById('loader').classList.add('hidden');
+                    await remove(ref(db, `${path}/${id}`));
                 },
 
-                async toggleItem(id, cur) {
-                    const path = App.state.mode === 'labels' ? 'print_queue' : 'active_separation';
-                    await update(ref(db, `${path}/${id}`), { status: cur === 'done' ? 'pending' : 'done' });
+                async cleanQueue(path) {
+                    if (await Notifications.confirm('Limpar lista inteira?')) await remove(ref(db, path));
                 },
 
                 fileHandler: {
                     handleUpload(input) {
-                        const file = input.files[0]; 
+                        const file = input.files[0]; if (!file) return;
                         const reader = new FileReader();
                         document.getElementById('loader').classList.remove('hidden');
-                        
                         reader.onload = async (e) => {
-                            try {
-                                const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-                                const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
-                                const data = {};
-                                for (let i = 1; i < rows.length; i++) {
-                                    const r = rows[i]; 
-                                    if (r[0]) data[r[0]] = { COD: r[0], NOM: r[1], RUA: r[4], RCK: r[5], LIN: r[6], COL: r[7], EST: r[10] };
+                            const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+                            const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+                            const data = {};
+                            for (let i = 1; i < rows.length; i++) {
+                                const r = rows[i];
+                                if (r[0]) {
+                                    data[r[0]] = { 
+                                        COD: r[0], NOM: r[1], 
+                                        RUA: Utils.formatCoord(r[4]), 
+                                        RCK: Utils.formatCoord(r[5]), 
+                                        LIN: r[6], COL: r[7], EST: r[10] 
+                                    };
                                 }
-                                await set(ref(db, 'master_products'), data);
-                                Notifications.success('Planilha atualizada com sucesso!');
-                                location.reload();
-                            } catch (error) {
-                                Notifications.error('Erro ao processar planilha');
-                                document.getElementById('loader').classList.add('hidden');
                             }
+                            await set(ref(db, 'master_products'), data);
+                            Notifications.show('Base Atualizada!', 'success');
+                            location.reload();
                         };
-                        
                         reader.readAsArrayBuffer(file);
                     }
                 }
