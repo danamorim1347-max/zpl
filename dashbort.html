@@ -19,7 +19,6 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
         
-        /* TELA ÚNICA: Sem rolagem global */
         html, body { 
             height: 100vh; 
             overflow: hidden; 
@@ -31,12 +30,10 @@
         .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
         #timer-bar { height: 3px; background: #3b82f6; width: 0%; transition: width 0.1s linear; position: fixed; top: 0; left: 0; z-index: 9999; }
         
-        /* Molduras Ranking */
         .gold-border { border: 3px solid #FFD700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
         .silver-border { border: 2px solid #C0C0C0; }
         .bronze-border { border: 2px solid #CD7F32; }
 
-        /* Animação Ranking */
         #ranking-compact-list { position: relative; width: 100%; height: 100%; }
         .ranking-item-compact { 
             position: absolute; width: 100%; transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
@@ -44,7 +41,6 @@
         }
         .ranking-item-compact.active { opacity: 1; pointer-events: auto; }
 
-        /* Estilo da Tabela ER (Informação Completa) */
         .er-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 10px; }
         .er-table th { 
             position: sticky; top: 0; background: #1e293b; z-index: 10;
@@ -54,7 +50,6 @@
         .er-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.03); white-space: nowrap; }
         .er-table tr:hover { background: rgba(59, 130, 246, 0.05); }
 
-        /* Scrollbars */
         .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.4); border-radius: 10px; }
 
@@ -66,12 +61,12 @@
 
 <div id="timer-bar"></div>
 
-<!-- HEADER (10%) -->
+<!-- HEADER -->
 <header class="h-[10%] flex justify-between items-center glass px-6 rounded-2xl">
     <div class="flex items-center gap-4">
         <h1 class="text-xl font-black italic uppercase tracking-tighter">HUB <span class="text-blue-500">VD PINHEIRO</span></h1>
         <div class="h-4 w-[1px] bg-white/10"></div>
-        <p id="sync-status" class="text-[9px] text-slate-400 font-bold uppercase tracking-widest italic animate-pulse">Sincronizando...</p>
+        <p id="sync-status" class="text-[9px] text-slate-400 font-bold uppercase tracking-widest italic animate-pulse">Iniciando...</p>
     </div>
     <div class="flex gap-2 bg-black/30 p-1 rounded-xl">
         <button onclick="changeFilter('hoje')" id="btn-hoje" class="px-4 py-1.5 rounded-lg text-[10px] font-black transition-all">HOJE</button>
@@ -80,13 +75,10 @@
     </div>
 </header>
 
-<!-- DASHBOARD SUPERIOR (50%) -->
+<!-- DASHBOARD SUPERIOR -->
 <div class="h-[50%] grid grid-cols-12 gap-4">
-    <!-- Gráfico -->
     <div class="col-span-3 glass p-5 rounded-3xl flex flex-col justify-between overflow-hidden">
-        <div class="flex-1 flex items-center justify-center min-h-0">
-            <canvas id="teamChart"></canvas>
-        </div>
+        <div class="flex-1 flex items-center justify-center min-h-0"><canvas id="teamChart"></canvas></div>
         <div class="grid grid-cols-2 gap-2 mt-4">
             <div class="bg-blue-600/10 p-2 rounded-xl border border-blue-500/20 text-center">
                 <small class="text-[7px] text-slate-500 uppercase font-black block">Pedidos</small>
@@ -98,26 +90,21 @@
             </div>
         </div>
     </div>
-
-    <!-- Pódio -->
     <div id="podium-area" class="col-span-6 glass rounded-3xl flex justify-center items-end p-6 gap-8"></div>
-
-    <!-- Ranking (Scroll Interno) -->
     <div class="col-span-3 glass p-5 rounded-3xl flex flex-col overflow-hidden">
         <h3 class="text-[9px] font-black uppercase text-slate-500 mb-4 tracking-widest text-center italic">Performance</h3>
         <div id="ranking-compact-list" class="flex-1 overflow-y-auto custom-scroll"></div>
     </div>
 </div>
 
-<!-- OPERACIONAL (35%) -->
+<!-- OPERACIONAL -->
 <div class="h-[35%] grid grid-cols-12 gap-4">
-    <!-- Lista ER Completa -->
     <div class="col-span-9 glass rounded-3xl flex flex-col overflow-hidden">
         <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
-            <h3 class="text-[10px] font-black uppercase text-blue-500 italic">Lista de Reposição Operacional</h3>
+            <h3 class="text-[10px] font-black uppercase text-blue-500 italic">Reposição ER (Coluna F)</h3>
             <div class="flex gap-2">
-                <button onclick="copyAllRep()" class="text-[8px] font-black bg-blue-600 px-3 py-1 rounded shadow-lg">COPIAR LISTA</button>
-                <div class="text-[9px] font-bold text-slate-400">Total: <span id="statSkus" class="text-white">0</span> SKUs | <span id="statPecas" class="text-white">0</span> Peças</div>
+                <button onclick="copyAllRep()" class="text-[8px] font-black bg-blue-600 px-3 py-1 rounded">COPIAR LISTA</button>
+                <div class="text-[9px] font-bold text-slate-400">Total: <span id="statSkus" class="text-white">0</span> SKUs</div>
             </div>
         </div>
         <div class="flex-1 overflow-auto custom-scroll">
@@ -125,25 +112,23 @@
                 <thead>
                     <tr>
                         <th>Data</th>
-                        <th>Solicitante</th>
+                        <th>Solicitante (F)</th>
                         <th>Código</th>
                         <th>Descrição do Produto</th>
                         <th>Qtd</th>
-                        <th>Estoque</th>
+                        <th>Estoque Atual</th>
                     </tr>
                 </thead>
-                <tbody id="er-table-body">
-                    <!-- Conteúdo via JS -->
-                </tbody>
+                <tbody id="er-table-body"></tbody>
             </table>
         </div>
     </div>
 
-    <!-- Endereçamento -->
+    <!-- Endereçamento (Firebase Sync) -->
     <div class="col-span-3 glass p-5 rounded-3xl flex flex-col justify-between">
         <div class="flex justify-between items-center mb-2">
-            <h3 class="text-[10px] font-black uppercase text-emerald-500 italic">Endereçamento</h3>
-            <label for="fileInput" class="text-[8px] font-black bg-emerald-600 px-2 py-1 rounded cursor-pointer">XLSX</label>
+            <h3 class="text-[10px] font-black uppercase text-emerald-500 italic">Endereçamento (Cloud)</h3>
+            <label for="fileInput" class="text-[8px] font-black bg-emerald-600 px-2 py-1 rounded cursor-pointer">UPLOAD XLSX</label>
             <input type="file" id="fileInput" accept=".xlsx,.xls" class="hidden">
         </div>
         <div class="space-y-4">
@@ -152,7 +137,10 @@
                 <div><small class="text-[8px] text-slate-500 block mb-1">SEM RUA</small><strong id="statExcelSem" class="text-rose-500 text-lg">0</strong></div>
             </div>
             <div class="pt-2 border-t border-white/5">
-                <div class="flex justify-between mb-1"><small class="text-[8px] font-black">TAXA DE OCUPAÇÃO</small><strong id="statExcelPerc" class="text-[10px]">0%</strong></div>
+                <div class="flex justify-between mb-1">
+                    <small class="text-[8px] font-black uppercase">Taxa de Ocupação Global</small>
+                    <strong id="statExcelPerc" class="text-[10px]">0%</strong>
+                </div>
                 <div class="progress-bg"><div id="progress-fill"></div></div>
             </div>
         </div>
@@ -161,14 +149,14 @@
 
 <!-- RODAPÉ -->
 <footer class="h-[5%] flex justify-between items-center px-6 glass rounded-xl text-[8px] font-bold text-slate-500 uppercase tracking-widest">
-    <div>&copy; 2026 VD PINHEIRO - OPERAÇÕES LOGÍSTICAS</div>
+    <div>&copy; 2026 VD PINHEIRO - SISTEMA LOGÍSTICO V3.0</div>
     <div>DEVELOPED BY <span class="text-blue-500">BENILSON AMORIM</span></div>
 </footer>
 
 <input type="file" id="uploadInput" class="hidden" accept="image/*">
 
 <script>
-    // FIREBASE
+    // 1. INICIALIZAÇÃO FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyDlp5p7c3xpc42cRa1un_-zd3HNwqnGuQU",
         authDomain: "petisco-a5880.firebaseapp.com",
@@ -193,7 +181,17 @@
 
     Chart.register(ChartDataLabels);
 
-    // 1. REPOSIÇÃO (COLUNA F PARA SOLICITANTE)
+    // 2. SINCRONIZAÇÃO EM TEMPO REAL DO ESTOQUE (FIREBASE)
+    db.ref('estoque_base').on('value', snap => {
+        const data = snap.val();
+        if (data) {
+            estoqueExcelData = data;
+            console.log("Estoque sincronizado via Firebase");
+            renderReposicao(); // Re-renderiza a tabela ER com os novos dados de estoque
+        }
+    });
+
+    // 3. REPOSIÇÃO ONLINE (GOOGLE SHEETS)
     async function fetchRepoOnline() {
         try {
             const res = await fetch(`https://opensheet.elk.sh/${SHEET_CONFIG.REPO_ID}/${encodeURIComponent(SHEET_CONFIG.REPO_ABA)}`);
@@ -209,8 +207,7 @@
                 const k = Object.keys(row);
                 return {
                     data: String(Object.values(row)[0] || "").substring(0, 5),
-                    // AJUSTE: Solicitante agora vem obrigatoriamente da Coluna F (índice 5)
-                    solicitante: String(Object.values(row)[5] || "---").trim(),
+                    solicitante: String(Object.values(row)[5] || "---").trim(), // Coluna F fixa
                     codigo: String(row[k.find(x => /cód|cod|part|item|sku/i.test(x))] || "").trim().toUpperCase(),
                     descricao: String(row[k.find(x => /desc/i.test(x))] || "N/A").trim(),
                     quantidade: parseFloat(String(row[k.find(x => /qtd|quant|peça|unid/i.test(x))] || "0").replace(/[^\d.,]/g, '').replace(',', '.')) || 0
@@ -223,7 +220,7 @@
     function renderReposicao() {
         const tableBody = document.getElementById('er-table-body');
         const totalExcel = estoqueExcelData.length;
-        const comEnd = estoqueExcelData.filter(i => i.endereco.includes("rua")).length;
+        const comEnd = estoqueExcelData.filter(i => i.endereco && i.endereco.includes("rua")).length;
         const perc = totalExcel > 0 ? Math.round((comEnd / totalExcel) * 100) : 0;
         
         document.getElementById('statExcelCom').innerText = comEnd;
@@ -248,10 +245,9 @@
         }).join('') || `<tr><td colspan="6" class="text-center p-10 text-slate-600 font-bold uppercase">Lista vazia</td></tr>`;
 
         document.getElementById('statSkus').innerText = pedidosRepoData.length;
-        document.getElementById('statPecas').innerText = totalPecas;
     }
 
-    // 2. SEPARAÇÃO (GOOGLE SHEETS)
+    // 4. RANKING SEPARAÇÃO
     function updateSeparacao() {
         const url = `https://docs.google.com/spreadsheets/d/${SHEET_CONFIG.SEP_ID}/gviz/tq?tqx=responseHandler:processSep&sheet=${encodeURIComponent(SHEET_CONFIG.SEP_ABA)}`;
         const script = document.createElement('script'); script.src = url; document.body.appendChild(script);
@@ -263,7 +259,7 @@
             nome: r.c[2] ? String(r.c[2].v).trim().toUpperCase() : "",
             qtd: r.c[3] ? Number(r.c[3].v) : 0
         })).filter(r => r.nome && r.nome !== "ESTOQUISTA");
-        document.getElementById('sync-status').innerText = "SINCRONIZADO: " + new Date().toLocaleTimeString();
+        document.getElementById('sync-status').innerText = "SINC: " + new Date().toLocaleTimeString();
         renderSeparacao();
     };
 
@@ -291,7 +287,31 @@
         renderChart(stats, total);
     }
 
-    // 3. UI RENDERING
+    // 5. IMPORTAÇÃO E UPLOAD PARA O FIREBASE
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+            
+            // Processa o arquivo
+            const processedStock = rows.slice(1).map(row => ({
+                codigo: String(row[0] || "").trim().toUpperCase(),
+                endereco: String(row[4] || "").trim().toLowerCase(),
+                disponivel: parseFloat(row[10]) || 0
+            })).filter(x => x.codigo !== "");
+
+            // ENVIA PARA O FIREBASE (Sincroniza todos os usuários)
+            db.ref('estoque_base').set(processedStock)
+                .then(() => alert("Estoque Sincronizado para TODAS as telas!"))
+                .catch(err => alert("Erro ao sincronizar com a nuvem."));
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    // 6. UI AUXILIARES
     function renderRankingList(stats, total) {
         const container = document.getElementById('ranking-compact-list');
         const rowH = 46; 
@@ -355,13 +375,13 @@
         else { chartInstance = new Chart(ctx, { type: 'doughnut', data, options: { cutout: '85%', plugins: { legend: false, datalabels: { display: false } } } }); }
     }
 
-    // 4. AÇÕES NATIVAS
+    // AÇÕES NATIVAS
     function copySingleRep(c, q) {
         navigator.clipboard.writeText(`${c} | ${q}`).then(() => alert(`Copiado: ${c} | ${q}`));
     }
     function copyAllRep() {
         const text = pedidosRepoData.map(i => `${i.codigo} | ${i.quantidade}`).join('\n');
-        if (text) navigator.clipboard.writeText(text).then(() => alert("Lista Completa Copiada!"));
+        if (text) navigator.clipboard.writeText(text).then(() => alert("Lista Copiada!"));
     }
     function triggerUpload(nome) {
         const input = document.getElementById('uploadInput');
@@ -379,23 +399,6 @@
         };
         input.click();
     }
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        const file = e.target.files[0]; if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const data = new Uint8Array(event.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
-            estoqueExcelData = rows.slice(1).map(row => ({
-                codigo: String(row[0] || "").trim().toUpperCase(),
-                endereco: String(row[4] || "").trim().toLowerCase(),
-                disponivel: parseFloat(row[10]) || 0
-            })).filter(x => x.codigo !== "");
-            alert("Estoque Sincronizado!");
-            renderReposicao();
-        };
-        reader.readAsArrayBuffer(file);
-    });
 
     function changeFilter(f) {
         currentFilter = f;
@@ -404,6 +407,7 @@
         updateSeparacao();
     }
 
+    // SYNC & LOOPS
     db.ref('fotos_separadores').on('value', snap => { fotoCache = snap.val() || {}; renderSeparacao(); });
     setInterval(() => {
         timer += 0.5;
