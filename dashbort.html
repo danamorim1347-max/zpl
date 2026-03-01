@@ -3,382 +3,419 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HUB Operacional - Pinheiro (Premium Dashboard)</title>
+    <title>HUB Operacional - VD Pinheiro</title>
     
-    <!-- Scripts Firebase (Compat Mode) -->
+    <!-- Scripts Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
+    <!-- Bibliotecas -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <style>
-        /* CONFIGURAÇÃO GERAL */
-        html, body { min-height: 100vh; overflow-y: auto; overflow-x: hidden; background: #020617; font-family: 'Plus Jakarta Sans', sans-serif; color: #f1f5f9; scroll-behavior: smooth; }
-        .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        #timer-bar { height: 4px; background: #3b82f6; width: 0%; transition: width 0.1s linear; position: fixed; top: 0; left: 0; z-index: 9999; border-radius: 0 4px 4px 0; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
         
-        /* Molduras Pódio */
-        .gold-border { border: 4px solid #FFD700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
-        .silver-border { border: 3px solid #C0C0C0; box-shadow: 0 0 15px rgba(192, 192, 192, 0.3); }
-        .bronze-border { border: 2px solid #CD7F32; box-shadow: 0 0 10px rgba(205, 127, 50, 0.3); }
-
-        /* EFEITO DE ULTRAPASSAGEM (RANKING) */
-        #ranking-compact-list { position: relative; width: 100%; }
-        .ranking-item-compact { 
-            position: absolute; width: 100%;
-            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        /* TELA ÚNICA: Sem rolagem global */
+        html, body { 
+            height: 100vh; 
+            overflow: hidden; 
+            background: #020617; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            color: #f1f5f9; 
         }
 
-        /* ESTILO REPOSIÇÃO ER ORIGINAL */
-        .er-section { margin-top: 2rem; margin-bottom: 5rem; }
-        .er-header { cursor: pointer; transition: transform 0.3s; }
-        .er-header:hover { transform: scale(1.005); }
-        .er-style { font-family: 'Inter', sans-serif; background: #f8fafc; color: #1e293b; border-radius: 24px; overflow: hidden; }
-        .er-content { display: none; background: #ffffff; }
-        .er-content.open { display: block; animation: slideDown 0.4s forwards; }
+        .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        #timer-bar { height: 3px; background: #3b82f6; width: 0%; transition: width 0.1s linear; position: fixed; top: 0; left: 0; z-index: 9999; }
         
-        .er-table { width: 100%; border-collapse: collapse; }
-        .er-table th { background: #fdfdfd; padding: 18px; text-align: left; font-size: 0.8rem; text-transform: uppercase; color: #64748b; border-bottom: 2px solid #e2e8f0; }
-        .er-table td { padding: 18px; font-size: 0.95rem; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
-        .er-table tr:nth-child(even) { background-color: #f1f5f9; }
-        
-        .badge-open { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 800; background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; }
-        .dot { height: 8px; width: 8px; background: #2563eb; border-radius: 50%; margin-right: 8px; position: relative; }
-        .dot::after { content: ''; position: absolute; inset: 0; background: #2563eb; border-radius: 50%; animation: pulse 2s infinite; }
-        
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(4); opacity: 0; } }
-        
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+        /* Molduras Ranking */
+        .gold-border { border: 3px solid #FFD700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+        .silver-border { border: 2px solid #C0C0C0; }
+        .bronze-border { border: 2px solid #CD7F32; }
+
+        /* Animação Ranking */
+        #ranking-compact-list { position: relative; width: 100%; height: 100%; }
+        .ranking-item-compact { 
+            position: absolute; width: 100%; transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+            opacity: 0; pointer-events: none;
+        }
+        .ranking-item-compact.active { opacity: 1; pointer-events: auto; }
+
+        /* Estilo da Tabela ER (Informação Completa) */
+        .er-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 10px; }
+        .er-table th { 
+            position: sticky; top: 0; background: #1e293b; z-index: 10;
+            padding: 10px; text-align: left; font-weight: 800; text-transform: uppercase;
+            border-bottom: 2px solid rgba(255,255,255,0.1); color: #94a3b8;
+        }
+        .er-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.03); white-space: nowrap; }
+        .er-table tr:hover { background: rgba(59, 130, 246, 0.05); }
+
+        /* Scrollbars */
+        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.4); border-radius: 10px; }
+
+        .progress-bg { background: rgba(255,255,255,0.05); height: 6px; border-radius: 10px; overflow: hidden; }
+        #progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981); width: 0%; transition: 1s ease-out; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 flex flex-col gap-4">
 
-    <div id="timer-bar"></div>
+<div id="timer-bar"></div>
 
-    <div class="max-w-[1750px] mx-auto space-y-8">
-        
-        <!-- HEADER -->
-        <header class="flex flex-col md:flex-row justify-between items-center gap-6 glass p-6 rounded-[2rem]">
-            <div>
-                <h1 class="text-3xl font-black italic uppercase tracking-tighter">HUB <span class="text-blue-500">OPERACIONAL</span></h1>
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest italic">Sincronizado via Firebase</p>
-                </div>
-            </div>
-            <div class="flex gap-2 bg-black/30 p-1.5 rounded-2xl border border-white/5">
-                <button id="btn-hoje" class="px-8 py-3 rounded-xl text-xs font-black transition-all">HOJE</button>
-                <button id="btn-semana" class="px-8 py-3 rounded-xl text-xs font-black transition-all">SEMANA</button>
-                <button id="btn-mes" class="px-8 py-3 rounded-xl text-xs font-black transition-all">MÊS</button>
-            </div>
-        </header>
+<!-- HEADER (10%) -->
+<header class="h-[10%] flex justify-between items-center glass px-6 rounded-2xl">
+    <div class="flex items-center gap-4">
+        <h1 class="text-xl font-black italic uppercase tracking-tighter">HUB <span class="text-blue-500">VD PINHEIRO</span></h1>
+        <div class="h-4 w-[1px] bg-white/10"></div>
+        <p id="sync-status" class="text-[9px] text-slate-400 font-bold uppercase tracking-widest italic animate-pulse">Sincronizando...</p>
+    </div>
+    <div class="flex gap-2 bg-black/30 p-1 rounded-xl">
+        <button onclick="changeFilter('hoje')" id="btn-hoje" class="px-4 py-1.5 rounded-lg text-[10px] font-black transition-all">HOJE</button>
+        <button onclick="changeFilter('semana')" id="btn-semana" class="px-4 py-1.5 rounded-lg text-[10px] font-black transition-all">SEMANA</button>
+        <button onclick="changeFilter('mes')" id="btn-mes" class="px-4 py-1.5 rounded-lg text-[10px] font-black transition-all">MÊS</button>
+    </div>
+</header>
 
-        <!-- DASHBOARD SUPERIOR -->
-        <div class="flex flex-col gap-8">
-            <!-- Linha 1: Gráfico e Totais -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="md:col-span-2 glass p-8 rounded-[2.5rem] flex items-center justify-around h-64">
-                    <div style="height: 200px; width: 200px;"><canvas id="teamChart"></canvas></div>
-                    <div id="chart-legend" class="text-xs font-bold uppercase space-y-2 text-slate-400"></div>
-                </div>
-                <div class="flex flex-col gap-4">
-                    <div class="glass p-6 rounded-[2.5rem] border-l-4 border-blue-500 flex-1 flex flex-col justify-center text-center">
-                        <p class="text-[10px] text-slate-500 uppercase font-black mb-1">Total de Pedidos</p>
-                        <h2 id="global-total" class="text-5xl font-black text-white">0</h2>
-                    </div>
-                    <div class="glass p-6 rounded-[2.5rem] border-l-4 border-emerald-500 flex-1 flex flex-col justify-center text-center">
-                        <p class="text-[10px] text-slate-500 uppercase font-black mb-1">Média da Equipe</p>
-                        <h2 id="global-avg" class="text-5xl font-black text-white">0</h2>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Linha 2: Pódio e Ranking (ALINHADOS) -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Pódio (Esquerda) -->
-                <div id="podium-area" class="glass p-8 rounded-[2.5rem] flex justify-center items-end gap-10 h-[480px]"></div>
-                
-                <!-- Ranking Performance (Direita) -->
-                <div class="glass rounded-[2.5rem] p-8 flex flex-col h-[480px]">
-                    <h3 class="text-center text-slate-500 font-black uppercase text-xs mb-8 tracking-widest italic">Performance da Equipe</h3>
-                    <div class="flex-1 overflow-y-auto custom-scroll pr-2">
-                        <div id="ranking-compact-list"></div>
-                    </div>
-                </div>
-            </div>
+<!-- DASHBOARD SUPERIOR (50%) -->
+<div class="h-[50%] grid grid-cols-12 gap-4">
+    <!-- Gráfico -->
+    <div class="col-span-3 glass p-5 rounded-3xl flex flex-col justify-between overflow-hidden">
+        <div class="flex-1 flex items-center justify-center min-h-0">
+            <canvas id="teamChart"></canvas>
         </div>
-
-        <!-- SEÇÃO INFERIOR: REPOSIÇÃO ER -->
-        <div class="er-section">
-            <div class="er-style shadow-2xl">
-                <div class="bg-[#0f172a] p-10 text-center er-header" onclick="toggleER()">
-                    <h2 class="text-4xl font-black text-white tracking-[0.2em] uppercase">Reposição ER</h2>
-                    <div id="er-count-container" class="mt-4 flex flex-col items-center">
-                        <span id="er-count-num" class="text-6xl font-black text-blue-500">0</span>
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Itens Pendentes</span>
-                    </div>
-                    <p class="text-slate-500 text-[9px] mt-6 uppercase font-bold tracking-widest italic animate-pulse">Clique para abrir/fechar visualização</p>
-                </div>
-                
-                <div id="er-toggle-content" class="er-content">
-                    <div class="p-6 bg-white border-b flex justify-center">
-                        <button id="er-copy-btn" class="max-w-md w-full bg-[#2563eb] text-white py-5 rounded-2xl font-black text-sm uppercase hover:bg-blue-700 transition-all shadow-xl">COPIAR LISTA (CÓDIGO | QUANTIDADE)</button>
-                    </div>
-                    <div class="bg-white overflow-x-auto">
-                        <table class="er-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 100px;">Data</th>
-                                    <th style="width: 220px;">Solicitante</th>
-                                    <th style="width: 150px;">Código</th>
-                                    <th>Descrição Completa</th>
-                                    <th style="width: 100px; text-align: center;">Qtd</th>
-                                    <th style="width: 150px; text-align: right;">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="er-body"></tbody>
-                        </table>
-                        <div id="er-empty" class="hidden p-20 text-center text-slate-300 font-bold uppercase text-lg italic">✅ TUDO PRONTO - NENHUM ITEM PENDENTE</div>
-                    </div>
-                </div>
+        <div class="grid grid-cols-2 gap-2 mt-4">
+            <div class="bg-blue-600/10 p-2 rounded-xl border border-blue-500/20 text-center">
+                <small class="text-[7px] text-slate-500 uppercase font-black block">Pedidos</small>
+                <strong id="global-total" class="text-xl font-black">0</strong>
+            </div>
+            <div class="bg-emerald-600/10 p-2 rounded-xl border border-emerald-500/20 text-center">
+                <small class="text-[7px] text-slate-500 uppercase font-black block">Média</small>
+                <strong id="global-avg" class="text-xl font-black">0</strong>
             </div>
         </div>
     </div>
 
-    <!-- Upload Input -->
-    <input type="file" id="uploadInput" class="hidden" accept="image/*">
+    <!-- Pódio -->
+    <div id="podium-area" class="col-span-6 glass rounded-3xl flex justify-center items-end p-6 gap-8"></div>
 
-    <script>
-        // CONFIGURAÇÕES FIREBASE
-        const firebaseConfig = {
-            apiKey: "AIzaSyDlp5p7c3xpc42cRa1un_-zd3HNwqnGuQU",
-            authDomain: "petisco-a5880.firebaseapp.com",
-            databaseURL: "https://petisco-a5880-default-rtdb.firebaseio.com",
-            projectId: "petisco-a5880",
-            storageBucket: "petisco-a5880.firebasestorage.app",
-            messagingSenderId: "211799950005",
-            appId: "1:211799950005:web:836bb02c084bc906bdf4fc"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    <!-- Ranking (Scroll Interno) -->
+    <div class="col-span-3 glass p-5 rounded-3xl flex flex-col overflow-hidden">
+        <h3 class="text-[9px] font-black uppercase text-slate-500 mb-4 tracking-widest text-center italic">Performance</h3>
+        <div id="ranking-compact-list" class="flex-1 overflow-y-auto custom-scroll"></div>
+    </div>
+</div>
 
-        const API_KEY_IMGBB = "6161a9db426f51baa788f0823269c981";
-        const CONFIG = {
-            SEP_ID: '1CInfRwxUS7nMFWqzYaQIoQyUGq76RULk-XMp6cASVRg',
-            SEP_ABA: 'Separação - FEV/26',
-            REPO_ID: '1pQD4qViThkVjxsbFj8yrG7p2wdW0vuo_197hKVtvTRY',
-            REPO_ABA: 'REPOSIÇÃO DEZ/25'
-        };
+<!-- OPERACIONAL (35%) -->
+<div class="h-[35%] grid grid-cols-12 gap-4">
+    <!-- Lista ER Completa -->
+    <div class="col-span-9 glass rounded-3xl flex flex-col overflow-hidden">
+        <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
+            <h3 class="text-[10px] font-black uppercase text-blue-500 italic">Lista de Reposição Operacional</h3>
+            <div class="flex gap-2">
+                <button onclick="copyAllRep()" class="text-[8px] font-black bg-blue-600 px-3 py-1 rounded shadow-lg">COPIAR LISTA</button>
+                <div class="text-[9px] font-bold text-slate-400">Total: <span id="statSkus" class="text-white">0</span> SKUs | <span id="statPecas" class="text-white">0</span> Peças</div>
+            </div>
+        </div>
+        <div class="flex-1 overflow-auto custom-scroll">
+            <table class="er-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Solicitante</th>
+                        <th>Código</th>
+                        <th>Descrição do Produto</th>
+                        <th>Qtd</th>
+                        <th>Estoque</th>
+                    </tr>
+                </thead>
+                <tbody id="er-table-body">
+                    <!-- Conteúdo via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-        let allSepData = [], fotoCache = {}, currentFilter = 'hoje', chartInstance = null, timer = 0;
-        const colorPalette = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e', '#fb923c'];
+    <!-- Endereçamento -->
+    <div class="col-span-3 glass p-5 rounded-3xl flex flex-col justify-between">
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="text-[10px] font-black uppercase text-emerald-500 italic">Endereçamento</h3>
+            <label for="fileInput" class="text-[8px] font-black bg-emerald-600 px-2 py-1 rounded cursor-pointer">XLSX</label>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" class="hidden">
+        </div>
+        <div class="space-y-4">
+            <div class="flex justify-around text-center">
+                <div><small class="text-[8px] text-slate-500 block mb-1">COM RUA</small><strong id="statExcelCom" class="text-emerald-500 text-lg">0</strong></div>
+                <div><small class="text-[8px] text-slate-500 block mb-1">SEM RUA</small><strong id="statExcelSem" class="text-rose-500 text-lg">0</strong></div>
+            </div>
+            <div class="pt-2 border-t border-white/5">
+                <div class="flex justify-between mb-1"><small class="text-[8px] font-black">TAXA DE OCUPAÇÃO</small><strong id="statExcelPerc" class="text-[10px]">0%</strong></div>
+                <div class="progress-bg"><div id="progress-fill"></div></div>
+            </div>
+        </div>
+    </div>
+</div>
 
-        Chart.register(ChartDataLabels);
+<!-- RODAPÉ -->
+<footer class="h-[5%] flex justify-between items-center px-6 glass rounded-xl text-[8px] font-bold text-slate-500 uppercase tracking-widest">
+    <div>&copy; 2026 VD PINHEIRO - OPERAÇÕES LOGÍSTICAS</div>
+    <div>DEVELOPED BY <span class="text-blue-500">BENILSON AMORIM</span></div>
+</footer>
 
-        // Escutar fotos do Firebase
-        db.ref('fotos_separadores').on('value', snap => {
-            fotoCache = snap.val() || {};
-            renderSeparacao();
-        });
+<input type="file" id="uploadInput" class="hidden" accept="image/*">
 
-        // Função de Upload (ImgBB -> Firebase)
-        function triggerUpload(nome) {
-            const input = document.getElementById('uploadInput');
-            input.onchange = async e => {
-                const file = e.target.files[0];
-                if (!file) return;
-                const formData = new FormData();
-                formData.append('image', file);
-                try {
-                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY_IMGBB}`, { method: 'POST', body: formData });
-                    const result = await res.json();
-                    if (result.success) {
-                        db.ref('fotos_separadores/' + nome.replace(/\s/g, '_').replace(/\./g, '_')).set(result.data.url);
-                        alert(`Foto de ${nome} salva no sistema!`);
-                    }
-                } catch (err) { alert("Erro no upload."); }
-            };
-            input.click();
-        }
+<script>
+    // FIREBASE
+    const firebaseConfig = {
+        apiKey: "AIzaSyDlp5p7c3xpc42cRa1un_-zd3HNwqnGuQU",
+        authDomain: "petisco-a5880.firebaseapp.com",
+        databaseURL: "https://petisco-a5880-default-rtdb.firebaseio.com",
+        projectId: "petisco-a5880",
+        storageBucket: "petisco-a5880.firebasestorage.app",
+        messagingSenderId: "211799950005",
+        appId: "1:211799950005:web:836bb02c084bc906bdf4fc"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        function animateCounter(id, start, end, duration) {
-            const obj = document.getElementById(id);
-            if (!obj) return;
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString();
-                if (progress < 1) window.requestAnimationFrame(step);
-            };
-            window.requestAnimationFrame(step);
-        }
+    const SHEET_CONFIG = {
+        SEP_ID: '1CInfRwxUS7nMFWqzYaQIoQyUGq76RULk-XMp6cASVRg',
+        SEP_ABA: 'Separação - FEV/26',
+        REPO_ID: '1pQD4qViThkVjxsbFj8yrG7p2wdW0vuo_197hKVtvTRY',
+        REPO_ABA: 'REPOSIÇÃO DEZ/25'
+    };
 
-        function toggleER() {
-            document.getElementById('er-toggle-content').classList.toggle('open');
-        }
+    let allSepData = [], pedidosRepoData = [], estoqueExcelData = [], fotoCache = {}, currentFilter = 'hoje', chartInstance = null, timer = 0;
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#f43f5e', '#fb923c'];
 
-        async function updateDashboard() {
-            try {
-                const resRepo = await fetch(`https://opensheet.elk.sh/${CONFIG.REPO_ID}/${encodeURIComponent(CONFIG.REPO_ABA)}`);
-                const dataRepo = await resRepo.json();
-                const filtered = dataRepo.filter(i => {
-                    const keys = Object.keys(i);
-                    const status = String(i[keys.find(k => /situa|separa|status|ok/i.test(k))] || '').trim();
-                    const codCol = keys.find(k => /cód|cod|part/i.test(k));
-                    return String(i[codCol] || '').trim() !== "" && status === "";
-                });
-                renderReposicao(filtered);
-            } catch (e) {}
+    Chart.register(ChartDataLabels);
 
-            const urlSep = `https://docs.google.com/spreadsheets/d/${CONFIG.SEP_ID}/gviz/tq?tqx=responseHandler:processSep&sheet=${encodeURIComponent(CONFIG.SEP_ABA)}`;
-            const script = document.createElement('script'); script.src = urlSep; document.body.appendChild(script);
-        }
+    // 1. REPOSIÇÃO (COLUNA F PARA SOLICITANTE)
+    async function fetchRepoOnline() {
+        try {
+            const res = await fetch(`https://opensheet.elk.sh/${SHEET_CONFIG.REPO_ID}/${encodeURIComponent(SHEET_CONFIG.REPO_ABA)}`);
+            const data = await res.json();
+            if (!Array.isArray(data)) return;
 
-        window.processSep = function(response) {
-            allSepData = response.table.rows.map(r => ({
-                dataStr: r.c[0] ? (r.c[0].f || r.c[0].v.toString()) : "",
-                nome: r.c[2] ? String(r.c[2].v).trim().toUpperCase() : "",
-                qtd: r.c[3] ? Number(r.c[3].v) : 0
-            })).filter(r => r.nome && r.nome !== "ESTOQUISTA");
-            renderSeparacao();
-        };
-
-        function renderSeparacao() {
-            const now = new Date(); now.setHours(0,0,0,0);
-            const summary = {};
-            allSepData.forEach(item => {
-                const p = item.dataStr.split('/');
-                const d = new Date(p[2] || now.getFullYear(), p[1]-1, p[0]);
-                let inc = false;
-                if (currentFilter === 'hoje' && d.getTime() === now.getTime()) inc = true;
-                else if (currentFilter === 'semana' && (now - d) / 86400000 <= 7) inc = true;
-                else if (currentFilter === 'mes' && d.getMonth() === now.getMonth()) inc = true;
-                if (inc) {
-                    if (!summary[item.nome]) summary[item.nome] = { qtd: 0 };
-                    summary[item.nome].qtd += item.qtd;
-                }
+            pedidosRepoData = data.filter(row => {
+                const k = Object.keys(row);
+                const colCod = k.find(x => /cód|cod|part|item|sku/i.test(x));
+                const colSit = k.find(x => /situa|status|ok|separa|baixa/i.test(x));
+                return String(row[colCod] || "").trim() !== "" && String(row[colSit] || "").trim() === "";
+            }).map(row => {
+                const k = Object.keys(row);
+                return {
+                    data: String(Object.values(row)[0] || "").substring(0, 5),
+                    // AJUSTE: Solicitante agora vem obrigatoriamente da Coluna F (índice 5)
+                    solicitante: String(Object.values(row)[5] || "---").trim(),
+                    codigo: String(row[k.find(x => /cód|cod|part|item|sku/i.test(x))] || "").trim().toUpperCase(),
+                    descricao: String(row[k.find(x => /desc/i.test(x))] || "N/A").trim(),
+                    quantidade: parseFloat(String(row[k.find(x => /qtd|quant|peça|unid/i.test(x))] || "0").replace(/[^\d.,]/g, '').replace(',', '.')) || 0
+                };
             });
+            renderReposicao();
+        } catch (e) { console.error(e); }
+    }
 
-            const stats = Object.entries(summary).map(([nome, d], i) => ({
-                nome, qtd: d.qtd, color: colorPalette[i % colorPalette.length],
-                foto: fotoCache[nome.replace(/\s/g, '_').replace(/\./g, '_')] || `https://ui-avatars.com/api/?name=${nome}&background=334155&color=fff`
-            })).sort((a,b) => b.qtd - a.qtd);
+    function renderReposicao() {
+        const tableBody = document.getElementById('er-table-body');
+        const totalExcel = estoqueExcelData.length;
+        const comEnd = estoqueExcelData.filter(i => i.endereco.includes("rua")).length;
+        const perc = totalExcel > 0 ? Math.round((comEnd / totalExcel) * 100) : 0;
+        
+        document.getElementById('statExcelCom').innerText = comEnd;
+        document.getElementById('statExcelSem').innerText = totalExcel > 0 ? (totalExcel - comEnd) : 0;
+        document.getElementById('statExcelPerc').innerText = perc + "%";
+        document.getElementById('progress-fill').style.width = perc + "%";
 
-            animateCounter('global-total', 0, stats.reduce((a, b) => a + b.qtd, 0), 1000);
-            animateCounter('global-avg', 0, stats.length ? Math.round(stats.reduce((a,b)=>a+b.qtd,0)/stats.length) : 0, 1000);
-
-            renderPodium(stats);
-            renderRanking(stats, stats.reduce((a,b)=>a+b.qtd,0));
-            updateChart(stats, stats.reduce((a,b)=>a+b.qtd,0));
-        }
-
-        function renderPodium(stats) {
-            const [p1, p2, p3] = stats;
-            const area = document.getElementById('podium-area');
-            area.innerHTML = `
-                <div class="flex flex-col items-center">
-                    <div class="w-20 h-20 silver-border rounded-full overflow-hidden bg-slate-800"><img src="${p2?.foto || ''}" class="w-full h-full object-cover"></div>
-                    <p class="text-[10px] font-black mt-2 text-slate-400">2º ${p2?.nome || ''}</p>
-                    <p class="text-3xl font-black">${p2?.qtd || 0}</p>
-                </div>
-                <div class="flex flex-col items-center pb-8">
-                    <i class="fas fa-crown text-yellow-400 text-3xl mb-1 animate-bounce"></i>
-                    <div class="w-36 h-36 gold-border rounded-full overflow-hidden bg-slate-800"><img src="${p1?.foto || ''}" class="w-full h-full object-cover"></div>
-                    <p class="text-xs font-black mt-3 text-yellow-500 uppercase tracking-widest text-center">${p1?.nome || ''}</p>
-                    <p class="text-5xl font-black">${p1?.qtd || 0}</p>
-                </div>
-                <div class="flex flex-col items-center">
-                    <div class="w-16 h-16 bronze-border rounded-full overflow-hidden bg-slate-800"><img src="${p3?.foto || ''}" class="w-full h-full object-cover"></div>
-                    <p class="text-[10px] font-black mt-2 text-slate-400">3º ${p3?.nome || ''}</p>
-                    <p class="text-3xl font-black">${p3?.qtd || 0}</p>
-                </div>`;
-        }
-
-        function renderRanking(stats, total) {
-            const container = document.getElementById('ranking-compact-list');
-            const rowH = 68;
-            container.style.height = `${stats.length * rowH}px`;
-            stats.forEach((s, idx) => {
-                let el = document.getElementById(`rank-${s.nome.replace(/\s/g, '_')}`);
-                if (!el) {
-                    el = document.createElement('div');
-                    el.id = `rank-${s.nome.replace(/\s/g, '_')}`;
-                    el.className = 'ranking-item-compact flex items-center gap-3 p-3 glass rounded-2xl cursor-pointer hover:bg-white/5 transition-all';
-                    el.onclick = () => triggerUpload(s.nome);
-                    container.appendChild(el);
-                }
-                const perc = total > 0 ? ((s.qtd/total)*100).toFixed(1) : 0;
-                el.style.top = `${idx * rowH}px`;
-                el.innerHTML = `
-                    <span class="text-sm font-black text-slate-600 w-6">#${idx+1}</span>
-                    <div class="w-10 h-10 rounded-full overflow-hidden border border-white/20 bg-slate-800"><img src="${s.foto}" class="w-full h-full object-cover"></div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex justify-between items-center"><span class="text-xs font-black uppercase text-slate-200 truncate pr-2">${s.nome}</span><span class="text-lg font-black text-blue-400">${s.qtd}</span></div>
-                        <div class="w-full h-1 bg-white/5 mt-1 rounded-full overflow-hidden"><div class="h-full" style="width: ${perc}%; background:${s.color}; shadow: 0 0 10px ${s.color};"></div></div>
-                    </div><span class="text-[9px] font-bold text-slate-500 w-10 text-right">${perc}%</span>`;
-            });
-        }
-
-        function updateChart(stats, total) {
-            const ctx = document.getElementById('teamChart').getContext('2d');
-            const data = { labels: stats.map(s => s.nome), datasets: [{ data: stats.map(s => s.qtd), backgroundColor: stats.map(s => s.color), borderWidth: 0 }] };
-            if (chartInstance) { chartInstance.data = data; chartInstance.update(); }
-            else { chartInstance = new Chart(ctx, { type: 'doughnut', data, options: { cutout: '80%', plugins: { legend: false, datalabels: { color: '#fff', font: { weight: 'bold', size: 10 }, formatter: v => total > 0 ? Math.round((v/total)*100)+'%' : '' } } } }); }
-            document.getElementById('chart-legend').innerHTML = stats.slice(0, 5).map(s => `<div class="flex items-center gap-2"><div class="w-2.5 h-2.5 rounded-full" style="background:${s.color}"></div>${s.nome}: ${total > 0 ? ((s.qtd/total)*100).toFixed(1) : 0}%</div>`).join('');
-        }
-
-        function renderReposicao(data) {
-            const tbody = document.getElementById('er-body');
-            animateCounter('er-count-num', 0, data.length, 1500);
-            if (data.length === 0) { document.getElementById('er-empty').classList.remove('hidden'); tbody.innerHTML = ''; return; }
-            document.getElementById('er-empty').classList.add('hidden');
-            tbody.innerHTML = data.map(i => {
-                const keys = Object.keys(i);
-                return `<tr>
-                    <td style="color:#2563eb; font-weight:700;">${String(Object.values(i)[0]).substring(0,5)}</td>
-                    <td style="color:#64748b; font-weight:500;">${i[keys[5]] || '---'}</td>
-                    <td style="color:#2563eb; font-weight:800;">${i[keys.find(k => /cód|cod|part/i.test(k))] || '-'}</td>
-                    <td class="font-medium">${i[keys.find(k => /desc/i.test(k))] || '-'}</td>
-                    <td style="text-align:center; font-weight:900; color:#ef4444; font-size: 1.2rem;">${i[keys.find(k => /qtd|quant/i.test(k))] || '0'}</td>
-                    <td style="text-align:right;"><span class="badge-open"><span class="dot"></span>ABERTO</span></td>
+        let totalPecas = 0;
+        tableBody.innerHTML = pedidosRepoData.map(item => {
+            totalPecas += item.quantidade;
+            const estoque = estoqueExcelData.find(e => e.codigo === item.codigo);
+            const qtdEstoque = estoque ? estoque.disponivel : 0;
+            return `
+                <tr onclick="copySingleRep('${item.codigo}', '${item.quantidade}')" class="cursor-pointer">
+                    <td>${item.data}</td>
+                    <td class="font-bold text-slate-400">${item.solicitante}</td>
+                    <td class="text-blue-400 font-black">${item.codigo}</td>
+                    <td class="truncate max-w-[200px]">${item.descricao}</td>
+                    <td class="font-black text-rose-500">${item.quantidade}</td>
+                    <td class="${qtdEstoque > 0 ? 'text-emerald-500' : 'text-slate-600'} font-bold">${qtdEstoque}</td>
                 </tr>`;
-            }).join('');
-        }
+        }).join('') || `<tr><td colspan="6" class="text-center p-10 text-slate-600 font-bold uppercase">Lista vazia</td></tr>`;
 
-        function changeFilter(f) { 
-            currentFilter = f; 
-            document.querySelectorAll('button[id^="btn-"]').forEach(b => b.className = "px-8 py-3 rounded-xl text-xs font-black transition-all text-slate-500");
-            document.getElementById(`btn-${f}`).className = "px-8 py-3 rounded-xl text-xs font-black transition-all bg-blue-600 text-white shadow-xl scale-105 ring-2 ring-blue-500/20";
-            updateDashboard(); 
-        }
+        document.getElementById('statSkus').innerText = pedidosRepoData.length;
+        document.getElementById('statPecas').innerText = totalPecas;
+    }
 
-        setInterval(() => {
-            timer += 1.666; 
-            document.getElementById('timer-bar').style.width = timer + '%';
-            if (timer >= 100) {
-                timer = 0;
-                changeFilter(['hoje', 'semana', 'mes'][(['hoje', 'semana', 'mes'].indexOf(currentFilter) + 1) % 3]);
+    // 2. SEPARAÇÃO (GOOGLE SHEETS)
+    function updateSeparacao() {
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_CONFIG.SEP_ID}/gviz/tq?tqx=responseHandler:processSep&sheet=${encodeURIComponent(SHEET_CONFIG.SEP_ABA)}`;
+        const script = document.createElement('script'); script.src = url; document.body.appendChild(script);
+    }
+
+    window.processSep = function(response) {
+        allSepData = response.table.rows.map(r => ({
+            dataStr: r.c[0] ? (r.c[0].f || r.c[0].v.toString()) : "",
+            nome: r.c[2] ? String(r.c[2].v).trim().toUpperCase() : "",
+            qtd: r.c[3] ? Number(r.c[3].v) : 0
+        })).filter(r => r.nome && r.nome !== "ESTOQUISTA");
+        document.getElementById('sync-status').innerText = "SINCRONIZADO: " + new Date().toLocaleTimeString();
+        renderSeparacao();
+    };
+
+    function renderSeparacao() {
+        const now = new Date(); now.setHours(0,0,0,0);
+        const summary = {};
+        allSepData.forEach(item => {
+            const p = item.dataStr.split('/');
+            const d = new Date(p[2] || now.getFullYear(), p[1]-1, p[0]);
+            let inc = false;
+            if (currentFilter === 'hoje' && d.getTime() === now.getTime()) inc = true;
+            else if (currentFilter === 'semana' && (now - d) / 86400000 <= 7) inc = true;
+            else if (currentFilter === 'mes' && d.getMonth() === now.getMonth()) inc = true;
+            if (inc) summary[item.nome] = (summary[item.nome] || 0) + item.qtd;
+        });
+        const stats = Object.entries(summary).map(([nome, qtd], i) => ({
+            nome, qtd, color: colors[i % colors.length],
+            foto: fotoCache[nome.replace(/\s/g, '_').replace(/\./g, '_')] || `https://ui-avatars.com/api/?name=${nome}&background=334155&color=fff`
+        })).filter(s => s.qtd > 0).sort((a,b) => b.qtd - a.qtd);
+        const total = stats.reduce((a,b) => a + b.qtd, 0);
+        document.getElementById('global-total').innerText = total;
+        document.getElementById('global-avg').innerText = stats.length ? Math.round(total/stats.length) : 0;
+        renderPodium(stats);
+        renderRankingList(stats, total);
+        renderChart(stats, total);
+    }
+
+    // 3. UI RENDERING
+    function renderRankingList(stats, total) {
+        const container = document.getElementById('ranking-compact-list');
+        const rowH = 46; 
+        const activeNames = stats.map(s => `rank-${s.nome.replace(/\s/g, '_')}`);
+        container.querySelectorAll('.ranking-item-compact').forEach(item => {
+            if (!activeNames.includes(item.id)) {
+                item.classList.remove('active');
+                item.style.transform = `translateY(400px)`;
             }
-        }, 100);
+        });
+        stats.forEach((s, idx) => {
+            const safeId = `rank-${s.nome.replace(/\s/g, '_')}`;
+            let el = document.getElementById(safeId);
+            if (!el) {
+                el = document.createElement('div');
+                el.id = safeId;
+                el.className = 'ranking-item-compact flex items-center gap-2 p-1 glass rounded-xl cursor-pointer';
+                el.onclick = () => triggerUpload(s.nome);
+                container.appendChild(el);
+            }
+            const perc = total > 0 ? ((s.qtd/total)*100).toFixed(0) : 0;
+            el.classList.add('active');
+            el.style.transform = `translateY(${idx * rowH}px)`;
+            el.innerHTML = `
+                <span class="text-[7px] font-black text-slate-600 w-3 text-center">#${idx+1}</span>
+                <div class="w-7 h-7 rounded-full overflow-hidden bg-slate-800"><img src="${s.foto}" class="w-full h-full object-cover"></div>
+                <div class="flex-1 min-w-0 pr-2">
+                    <div class="flex justify-between items-center"><span class="text-[8px] font-black uppercase text-slate-200 truncate">${s.nome}</span><span class="text-[9px] font-black text-blue-400">${s.qtd}</span></div>
+                    <div class="w-full h-[2px] bg-white/5 rounded-full mt-0.5"><div class="h-full" style="width: ${perc}%; background:${s.color}"></div></div>
+                </div>`;
+        });
+    }
 
-        document.getElementById('er-copy-btn').onclick = (e) => {
-            e.stopPropagation();
-            const text = filteredRepoData.map(i => `${i[Object.keys(i).find(k => /cód|cod|part/i.test(k))]} | ${i[Object.keys(i).find(k => /qtd|quant/i.test(k))]}`).join('\n');
-            navigator.clipboard.writeText(text).then(() => { 
-                const btn = document.getElementById('er-copy-btn');
-                const orig = btn.innerText; btn.innerText = "✅ LISTA COPIADA!";
-                setTimeout(() => btn.innerText = orig, 2000);
-            });
+    function renderPodium(stats) {
+        const area = document.getElementById('podium-area');
+        if (stats.length === 0) { area.innerHTML = "---"; return; }
+        const [p1, p2, p3] = stats;
+        area.innerHTML = `
+            <div class="flex flex-col items-center">
+                <div class="w-16 h-16 silver-border rounded-full overflow-hidden bg-slate-800"><img src="${p2?.foto || ''}" class="w-full h-full object-cover"></div>
+                <p class="text-[8px] font-black mt-1 text-slate-400 uppercase">2º ${p2?.nome || ''}</p>
+                <p class="text-xl font-black">${p2?.qtd || 0}</p>
+            </div>
+            <div class="flex flex-col items-center pb-6 scale-125">
+                <i class="fas fa-crown text-yellow-400 text-sm mb-1 animate-bounce"></i>
+                <div class="w-28 h-28 gold-border rounded-full overflow-hidden bg-slate-800"><img src="${p1?.foto || ''}" class="w-full h-full object-cover"></div>
+                <p class="text-[10px] font-black mt-2 text-yellow-500 uppercase">${p1?.nome || ''}</p>
+                <p class="text-4xl font-black">${p1?.qtd || 0}</p>
+            </div>
+            <div class="flex flex-col items-center">
+                <div class="w-14 h-14 bronze-border rounded-full overflow-hidden bg-slate-800"><img src="${p3?.foto || ''}" class="w-full h-full object-cover"></div>
+                <p class="text-[8px] font-black mt-1 text-slate-400 uppercase">3º ${p3?.nome || ''}</p>
+                <p class="text-xl font-black">${p3?.qtd || 0}</p>
+            </div>`;
+    }
+
+    function renderChart(stats, total) {
+        const ctx = document.getElementById('teamChart').getContext('2d');
+        const data = { labels: stats.map(s => s.nome), datasets: [{ data: stats.map(s => s.qtd), backgroundColor: stats.map(s => s.color), borderWidth: 0 }] };
+        if (chartInstance) { chartInstance.data = data; chartInstance.update(); }
+        else { chartInstance = new Chart(ctx, { type: 'doughnut', data, options: { cutout: '85%', plugins: { legend: false, datalabels: { display: false } } } }); }
+    }
+
+    // 4. AÇÕES NATIVAS
+    function copySingleRep(c, q) {
+        navigator.clipboard.writeText(`${c} | ${q}`).then(() => alert(`Copiado: ${c} | ${q}`));
+    }
+    function copyAllRep() {
+        const text = pedidosRepoData.map(i => `${i.codigo} | ${i.quantidade}`).join('\n');
+        if (text) navigator.clipboard.writeText(text).then(() => alert("Lista Completa Copiada!"));
+    }
+    function triggerUpload(nome) {
+        const input = document.getElementById('uploadInput');
+        input.onchange = async e => {
+            const file = e.target.files[0]; if (!file) return;
+            const fd = new FormData(); fd.append('image', file);
+            try {
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=6161a9db426f51baa788f0823269c981`, { method: 'POST', body: fd });
+                const r = await res.json();
+                if (r.success) {
+                    db.ref('fotos_separadores/' + nome.replace(/\s/g, '_').replace(/\./g, '_')).set(r.data.url);
+                    alert("Foto atualizada!");
+                }
+            } catch (err) { alert("Erro ao subir imagem."); }
         };
+        input.click();
+    }
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+            estoqueExcelData = rows.slice(1).map(row => ({
+                codigo: String(row[0] || "").trim().toUpperCase(),
+                endereco: String(row[4] || "").trim().toLowerCase(),
+                disponivel: parseFloat(row[10]) || 0
+            })).filter(x => x.codigo !== "");
+            alert("Estoque Sincronizado!");
+            renderReposicao();
+        };
+        reader.readAsArrayBuffer(file);
+    });
 
-        updateDashboard(); changeFilter('hoje');
-    </script>
+    function changeFilter(f) {
+        currentFilter = f;
+        document.querySelectorAll('button[id^="btn-"]').forEach(b => b.className = "px-4 py-1.5 rounded-lg text-[10px] font-black transition-all text-slate-500");
+        document.getElementById(`btn-${f}`).className = "px-4 py-1.5 rounded-lg text-[10px] font-black transition-all bg-blue-600 text-white shadow-lg";
+        updateSeparacao();
+    }
+
+    db.ref('fotos_separadores').on('value', snap => { fotoCache = snap.val() || {}; renderSeparacao(); });
+    setInterval(() => {
+        timer += 0.5;
+        document.getElementById('timer-bar').style.width = timer + '%';
+        if (timer >= 100) {
+            timer = 0;
+            const f = ['hoje', 'semana', 'mes'];
+            changeFilter(f[(f.indexOf(currentFilter) + 1) % 3]);
+        }
+    }, 100);
+    setInterval(() => { updateSeparacao(); fetchRepoOnline(); }, 60000);
+    updateSeparacao(); fetchRepoOnline();
+</script>
 </body>
 </html>
