@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>OPERA X LOGÍSTICA-PHO - v13.47</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -15,117 +15,606 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        * { font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background: #030712; color: #f1f5f9; padding: 20px; overflow-x: hidden; }
-        .glass { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; }
-        .timeline-bar { position: fixed; top: 0; left: 0; height: 4px; background: #3b82f6; width: 0%; transition: width 0.1s linear; z-index: 9999; }
-        .gold-border { border: 4px solid #FFD700; box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); }
-        .silver-border { border: 3px solid #C0C0C0; }
-        .bronze-border { border: 3px solid #CD7F32; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #1e293b; border: 2px solid rgba(255,255,255,0.1); cursor: pointer; }
-        .avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .avatar-large { width: 100px; height: 100px; border-radius: 50%; overflow: hidden; }
-        .avatar-xl { width: 130px; height: 130px; border-radius: 50%; overflow: hidden; }
-        .er-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 11px; }
-        .er-table th { position: sticky; top: 0; background: #1e293b; padding: 12px; text-align: left; font-weight: 800; text-transform: uppercase; color: #94a3b8; border-bottom: 2px solid rgba(255,255,255,0.1); z-index: 20; }
-        .er-table td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .custom-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.4); border-radius: 10px; }
-        .filter-btn { padding: 6px 20px; border-radius: 10px; font-weight: bold; font-size: 11px; transition: 0.3s; background: rgba(255, 255, 255, 0.05); color: #94a3b8; }
-        .filter-btn.active { background: #3b82f6; color: white; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes slideOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(100%); } }
-        .animate-fade-in { animation: slideIn 0.3s ease-out forwards; }
-        .animate-fade-out { animation: slideOut 0.3s ease-in forwards; }
+        
+        * { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100vh;
+            background: #030712;
+            color: #f1f5f9;
+            overflow-x: hidden;
+            -webkit-text-size-adjust: 100%;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            padding: clamp(8px, 2vw, 20px);
+        }
+        
+        .glass { 
+            background: rgba(17, 24, 39, 0.8); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: clamp(16px, 2vw, 24px); 
+        }
+        
+        .timeline-bar { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            height: 4px; 
+            background: #3b82f6; 
+            width: 0%; 
+            transition: width 0.1s linear; 
+            z-index: 9999; 
+        }
+        
+        .gold-border { 
+            border: 4px solid #FFD700; 
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); 
+        }
+        
+        .silver-border { 
+            border: 3px solid #C0C0C0; 
+        }
+        
+        .bronze-border { 
+            border: 3px solid #CD7F32; 
+        }
+        
+        .avatar { 
+            width: clamp(32px, 5vw, 40px); 
+            height: clamp(32px, 5vw, 40px); 
+            border-radius: 50%; 
+            overflow: hidden; 
+            background: #1e293b; 
+            border: 2px solid rgba(255,255,255,0.1); 
+            cursor: pointer; 
+        }
+        
+        .avatar img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
+        
+        .avatar-large { 
+            width: clamp(70px, 12vw, 100px); 
+            height: clamp(70px, 12vw, 100px); 
+            border-radius: 50%; 
+            overflow: hidden; 
+        }
+        
+        .avatar-xl { 
+            width: clamp(90px, 15vw, 130px); 
+            height: clamp(90px, 15vw, 130px); 
+            border-radius: 50%; 
+            overflow: hidden; 
+        }
+        
+        .er-table { 
+            width: 100%; 
+            border-collapse: separate; 
+            border-spacing: 0; 
+            font-size: clamp(10px, 2vw, 11px); 
+        }
+        
+        .er-table th { 
+            position: sticky; 
+            top: 0; 
+            background: #1e293b; 
+            padding: clamp(8px, 1.5vw, 12px); 
+            text-align: left; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            color: #94a3b8; 
+            border-bottom: 2px solid rgba(255,255,255,0.1); 
+            z-index: 20; 
+            white-space: nowrap;
+        }
+        
+        .er-table td { 
+            padding: clamp(6px, 1vw, 8px) clamp(8px, 1.5vw, 12px); 
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            white-space: nowrap;
+        }
+        
+        /* Scroll customizado para todas as telas */
+        .custom-scroll::-webkit-scrollbar { 
+            width: 4px; 
+            height: 4px; 
+        }
+        
+        .custom-scroll::-webkit-scrollbar-thumb { 
+            background: rgba(59, 130, 246, 0.4); 
+            border-radius: 10px; 
+        }
+        
+        /* Filtros adaptáveis */
+        .filter-btn { 
+            padding: clamp(4px, 1vw, 6px) clamp(12px, 3vw, 20px); 
+            border-radius: clamp(8px, 1.5vw, 10px); 
+            font-weight: bold; 
+            font-size: clamp(9px, 2vw, 11px); 
+            transition: 0.3s; 
+            background: rgba(255, 255, 255, 0.05); 
+            color: #94a3b8; 
+            white-space: nowrap;
+        }
+        
+        .filter-btn.active { 
+            background: #3b82f6; 
+            color: white; 
+        }
+        
+        /* Grid responsivo para métricas */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+            gap: clamp(8px, 2vw, 16px);
+        }
+        
+        /* Container principal responsivo */
+        .main-container {
+            width: 100%;
+            max-width: 1920px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(12px, 3vw, 24px);
+        }
+        
+        /* Header adaptável */
+        .responsive-header {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: clamp(10px, 2vw, 16px);
+            padding: clamp(12px, 3vw, 24px);
+        }
+        
+        .header-left {
+            flex: 1 1 auto;
+            min-width: 200px;
+        }
+        
+        .header-right {
+            display: flex;
+            flex: 2 1 auto;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            align-items: center;
+            gap: clamp(8px, 1.5vw, 16px);
+            min-width: 280px;
+        }
+        
+        /* Inputs de data responsivos */
+        .date-input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: clamp(4px, 1vw, 6px);
+            font-size: clamp(9px, 2vw, 10px);
+            color: white;
+            outline: none;
+            width: auto;
+            min-width: 110px;
+        }
+        
+        /* Cards de métricas */
+        .metric-card {
+            padding: clamp(12px, 2vw, 16px);
+            border-left-width: 4px;
+            border-left-style: solid;
+        }
+        
+        /* Grid para gráficos */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: clamp(12px, 2vw, 24px);
+            height: auto;
+            min-height: 260px;
+        }
+        
+        /* Podium responsivo */
+        .podium-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: clamp(8px, 3vw, 32px);
+            height: 100%;
+            min-height: 200px;
+            padding-bottom: clamp(8px, 2vw, 16px);
+            flex-wrap: wrap;
+        }
+        
+        /* Performance grid */
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: clamp(12px, 2vw, 24px);
+        }
+        
+        /* Tabela com overflow horizontal em telas pequenas */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Animações */
+        @keyframes slideIn { 
+            from { opacity: 0; transform: translateX(100%); } 
+            to { opacity: 1; transform: translateX(0); } 
+        }
+        
+        @keyframes slideOut { 
+            from { opacity: 1; transform: translateX(0); } 
+            to { opacity: 0; transform: translateX(100%); } 
+        }
+        
+        .animate-fade-in { 
+            animation: slideIn 0.3s ease-out forwards; 
+        }
+        
+        .animate-fade-out { 
+            animation: slideOut 0.3s ease-in forwards; 
+        }
+        
+        /* Modal responsivo */
+        .responsive-modal {
+            width: min(95%, 1200px);
+            max-height: min(90vh, 800px);
+            margin: auto;
+        }
+        
+        /* Ajustes para telas muito pequenas */
+        @media (max-width: 640px) {
+            .header-right {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .date-range {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .filter-group {
+                justify-content: center;
+            }
+            
+            .metric-card h2 {
+                font-size: clamp(16px, 5vw, 20px);
+            }
+            
+            .er-table {
+                font-size: 9px;
+            }
+            
+            .er-table th,
+            .er-table td {
+                padding: 6px 4px;
+            }
+        }
+        
+        /* Ajustes para tablets */
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+            
+            .charts-grid > :nth-child(1),
+            .charts-grid > :nth-child(3) {
+                grid-column: span 3;
+            }
+            
+            .charts-grid > :nth-child(2) {
+                grid-column: span 6;
+            }
+            
+            .performance-grid > :first-child {
+                grid-column: span 8;
+            }
+            
+            .performance-grid > :last-child {
+                grid-column: span 4;
+            }
+        }
+        
+        /* Ajustes para TVs e telas grandes */
+        @media (min-width: 1921px) {
+            body {
+                font-size: 16px;
+            }
+            
+            .main-container {
+                max-width: 2400px;
+            }
+            
+            .er-table {
+                font-size: 14px;
+            }
+        }
+        
+        /* Landscape em mobile */
+        @media (max-height: 480px) and (orientation: landscape) {
+            .charts-grid {
+                height: 200px;
+            }
+            
+            .podium-container {
+                min-height: 150px;
+            }
+        }
+        
+        /* Touch-friendly */
+        button, 
+        .filter-btn,
+        .avatar,
+        [onclick] {
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        button:active,
+        .filter-btn:active,
+        .avatar:active {
+            opacity: 0.7;
+            transform: scale(0.98);
+        }
+        
+        /* Toast responsivo */
+        #toast {
+            max-width: min(90%, 400px);
+            bottom: clamp(10px, 3vh, 20px);
+            right: clamp(10px, 3vw, 20px);
+        }
+        
+        #toast > div {
+            padding: clamp(12px, 2vh, 16px) clamp(16px, 3vw, 24px);
+        }
+        
+        /* Ajuste para o timeline bar */
+        .timeline-bar {
+            height: clamp(2px, 0.5vh, 4px);
+        }
     </style>
 </head>
-<body class="p-4">
+<body>
 
 <div class="timeline-bar" id="timelineBar"></div>
 
 <!-- ELEMENTO TOAST -->
-<div id="toast" class="fixed bottom-6 right-6 z-[10000] hidden">
-    <div class="glass px-6 py-4 border border-blue-500/50 shadow-2xl flex items-center gap-4 min-w-[280px]">
+<div id="toast" class="fixed z-[10000] hidden">
+    <div class="glass border border-blue-500/50 shadow-2xl flex items-center gap-4">
         <div class="bg-blue-500/20 p-2 rounded-lg"><i class="fas fa-rocket text-blue-500"></i></div>
         <span id="toast-msg" class="text-xs font-black uppercase tracking-widest text-white"></span>
     </div>
 </div>
 
-<div class="max-w-[1800px] mx-auto flex flex-col gap-6">
+<div class="main-container">
     <!-- HEADER -->
-    <header class="flex justify-between items-center glass p-6 shadow-2xl">
-        <div class="flex items-center gap-4">
-            <div class="bg-blue-600/20 p-3 rounded-2xl border border-blue-500/30"><i class="fas fa-rocket text-blue-500 text-2xl"></i></div>
+    <header class="glass responsive-header shadow-2xl">
+        <div class="header-left flex items-center gap-2 sm:gap-4">
+            <div class="bg-blue-600/20 p-2 sm:p-3 rounded-2xl border border-blue-500/30">
+                <i class="fas fa-rocket text-blue-500 text-xl sm:text-2xl"></i>
+            </div>
             <div>
-                <h1 class="text-3xl font-black uppercase tracking-tighter italic leading-none"><span class="text-blue-500">OPERA X</span><br><span class="text-white text-xl tracking-normal">LOGÍSTICA-PHO</span></h1>
-                <p id="statusText" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 animate-pulse italic">Iniciando...</p>
+                <h1 class="text-2xl sm:text-3xl font-black uppercase tracking-tighter italic leading-none">
+                    <span class="text-blue-500">OPERA X</span><br>
+                    <span class="text-white text-base sm:text-xl tracking-normal">LOGÍSTICA-PHO</span>
+                </h1>
+                <p id="statusText" class="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 animate-pulse italic">Iniciando...</p>
             </div>
         </div>
-        <div class="flex gap-4 items-center">
-            <div class="flex gap-2 bg-black/40 p-1.5 rounded-xl border border-white/5">
+        
+        <div class="header-right">
+            <div class="flex gap-1 sm:gap-2 bg-black/40 p-1 sm:p-1.5 rounded-xl border border-white/5 filter-group">
                 <button onclick="aplicarFiltroTempo('hoje')" id="btnHoje" class="filter-btn">HOJE</button>
                 <button onclick="aplicarFiltroTempo('semana')" id="btnSemana" class="filter-btn">SEMANA</button>
                 <button onclick="aplicarFiltroTempo('mes')" id="btnMes" class="filter-btn active">MÊS</button>
             </div>
-            <div class="h-8 w-[1px] bg-white/10"></div>
-            <div class="flex gap-2 items-center bg-black/20 p-1.5 rounded-xl">
-                <input type="date" id="dataInicio" class="bg-white/5 border border-white/10 rounded-lg p-1 text-[10px] text-white outline-none">
-                <span class="text-slate-500 text-[10px] font-bold uppercase italic">Até</span>
-                <input type="date" id="dataFim" class="bg-white/5 border border-white/10 rounded-lg p-1 text-[10px] text-white outline-none">
-                <button onclick="aplicarPeriodoPersonalizado()" class="bg-blue-600 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase hover:bg-blue-500 transition-all shadow-lg italic">Filtrar</button>
+            
+            <div class="h-6 sm:h-8 w-[1px] bg-white/10 hidden sm:block"></div>
+            
+            <div class="flex flex-col sm:flex-row gap-2 items-center bg-black/20 p-1.5 rounded-xl w-full sm:w-auto date-range">
+                <input type="date" id="dataInicio" class="date-input w-full sm:w-auto">
+                <span class="text-slate-500 text-[8px] sm:text-[10px] font-bold uppercase italic">Até</span>
+                <input type="date" id="dataFim" class="date-input w-full sm:w-auto">
+                <button onclick="aplicarPeriodoPersonalizado()" class="bg-blue-600 px-3 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-bold uppercase hover:bg-blue-500 transition-all shadow-lg italic whitespace-nowrap w-full sm:w-auto">Filtrar</button>
             </div>
         </div>
     </header>
 
     <!-- METRICAS -->
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div class="glass p-4 border-l-4 border-blue-500 shadow-xl"><p class="text-slate-400 text-[9px] uppercase font-black">Total Pedidos</p><h2 id="totalPedidos" class="text-2xl font-black text-white">0</h2></div>
-        <div class="glass p-4 border-l-4 border-orange-500 shadow-xl"><p class="text-slate-400 text-[9px] uppercase font-black">Total Itens</p><h2 id="totalItens" class="text-2xl font-black text-white">0</h2></div>
-        <div class="glass p-4 border-l-4 border-emerald-500 shadow-xl"><p class="text-slate-400 text-[9px] uppercase font-black">Média Equipe</p><h2 id="mediaEquipe" class="text-2xl font-black text-white">0</h2></div>
-        <div class="glass p-4 border-l-4 border-purple-500 shadow-xl"><p class="text-slate-400 text-[9px] uppercase font-black">Min/Pedido</p><h2 id="tempoMedioGeral" class="text-2xl font-black text-white">0m</h2></div>
-        <div class="glass p-4 border-l-4 border-yellow-500 shadow-xl"><p class="text-slate-400 text-[9px] uppercase font-black text-yellow-500 italic">Melhor Atual</p><h2 id="melhorColaborador" class="text-sm font-black truncate text-white">-</h2></div>
-        <div class="glass p-4 border-l-4 border-rose-500 shadow-xl"><p class="text-slate-400 text-[9px] uppercase font-black text-rose-500 italic">Pior Atual</p><h2 id="piorColaborador" class="text-sm font-black truncate text-white">-</h2></div>
+    <div class="metrics-grid">
+        <div class="glass metric-card border-l-4 border-blue-500 shadow-xl">
+            <p class="text-slate-400 text-[8px] sm:text-[9px] uppercase font-black">Total Pedidos</p>
+            <h2 id="totalPedidos" class="text-xl sm:text-2xl font-black text-white">0</h2>
+        </div>
+        <div class="glass metric-card border-l-4 border-orange-500 shadow-xl">
+            <p class="text-slate-400 text-[8px] sm:text-[9px] uppercase font-black">Total Itens</p>
+            <h2 id="totalItens" class="text-xl sm:text-2xl font-black text-white">0</h2>
+        </div>
+        <div class="glass metric-card border-l-4 border-emerald-500 shadow-xl">
+            <p class="text-slate-400 text-[8px] sm:text-[9px] uppercase font-black">Média Equipe</p>
+            <h2 id="mediaEquipe" class="text-xl sm:text-2xl font-black text-white">0</h2>
+        </div>
+        <div class="glass metric-card border-l-4 border-purple-500 shadow-xl">
+            <p class="text-slate-400 text-[8px] sm:text-[9px] uppercase font-black">Min/Pedido</p>
+            <h2 id="tempoMedioGeral" class="text-xl sm:text-2xl font-black text-white">0m</h2>
+        </div>
+        <div class="glass metric-card border-l-4 border-yellow-500 shadow-xl">
+            <p class="text-slate-400 text-[8px] sm:text-[9px] uppercase font-black text-yellow-500 italic">Melhor Atual</p>
+            <h2 id="melhorColaborador" class="text-xs sm:text-sm font-black truncate text-white">-</h2>
+        </div>
+        <div class="glass metric-card border-l-4 border-rose-500 shadow-xl">
+            <p class="text-slate-400 text-[8px] sm:text-[9px] uppercase font-black text-rose-500 italic">Pior Atual</p>
+            <h2 id="piorColaborador" class="text-xs sm:text-sm font-black truncate text-white">-</h2>
+        </div>
     </div>
 
     <!-- GRAFICOS -->
-    <div class="grid grid-cols-12 gap-6 h-[320px]">
-        <div class="col-span-3 glass p-5 flex flex-col justify-between overflow-hidden shadow-2xl"><h3 class="text-[10px] font-black uppercase text-slate-500 mb-2 tracking-widest text-center italic">Participação (%)</h3><div class="flex-1"><canvas id="graficoPizza"></canvas></div></div>
-        <div class="col-span-6 glass p-2 shadow-2xl"><div id="podiumContainer" class="flex justify-center items-end gap-8 h-full pb-4"></div></div>
-        <div class="col-span-3 glass p-5 flex flex-col overflow-hidden shadow-2xl"><h3 class="text-[10px] font-black uppercase text-slate-500 mb-2 tracking-widest text-center italic">Eficiência (Tempo)</h3><div class="flex-1"><canvas id="graficoTempo"></canvas></div></div>
+    <div class="charts-grid">
+        <div class="col-span-12 sm:col-span-12 md:col-span-3 glass p-3 sm:p-5 flex flex-col justify-between overflow-hidden shadow-2xl">
+            <h3 class="text-[9px] sm:text-[10px] font-black uppercase text-slate-500 mb-2 tracking-widest text-center italic">Participação (%)</h3>
+            <div class="flex-1 min-h-[200px]"><canvas id="graficoPizza"></canvas></div>
+        </div>
+        
+        <div class="col-span-12 sm:col-span-12 md:col-span-6 glass p-2 shadow-2xl">
+            <div id="podiumContainer" class="podium-container"></div>
+        </div>
+        
+        <div class="col-span-12 sm:col-span-12 md:col-span-3 glass p-3 sm:p-5 flex flex-col overflow-hidden shadow-2xl">
+            <h3 class="text-[9px] sm:text-[10px] font-black uppercase text-slate-500 mb-2 tracking-widest text-center italic">Eficiência (Tempo)</h3>
+            <div class="flex-1 min-h-[200px]"><canvas id="graficoTempo"></canvas></div>
+        </div>
     </div>
 
     <!-- PERFORMANCE -->
-    <div class="grid grid-cols-12 gap-6">
-        <div class="col-span-9 glass flex flex-col overflow-hidden max-h-[450px]">
-            <div class="p-4 bg-white/5 border-b border-white/5 text-[11px] font-black uppercase tracking-widest flex justify-between items-center italic"><span><i class="fas fa-medal text-blue-500 mr-2"></i>Performance Individual Detalhada</span></div>
-            <div class="flex-1 overflow-auto custom-scroll"><table class="w-full er-table"><thead><tr><th>Pos</th><th>Colaborador</th><th class="text-center">Pedidos</th><th class="text-center">Itens</th><th class="text-center">Min/Ped</th><th class="text-center">Tempo Total</th><th class="text-center">Status</th></tr></thead><tbody id="rankingBody"></tbody></table></div>
+    <div class="performance-grid">
+        <div class="col-span-12 lg:col-span-9 glass flex flex-col overflow-hidden max-h-[450px]">
+            <div class="p-3 sm:p-4 bg-white/5 border-b border-white/5 text-[10px] sm:text-[11px] font-black uppercase tracking-widest flex justify-between items-center italic">
+                <span><i class="fas fa-medal text-blue-500 mr-2"></i>Performance Individual Detalhada</span>
+            </div>
+            <div class="flex-1 overflow-auto custom-scroll table-wrapper">
+                <table class="w-full er-table">
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th>Colaborador</th>
+                            <th class="text-center">Pedidos</th>
+                            <th class="text-center">Itens</th>
+                            <th class="text-center">Min/Ped</th>
+                            <th class="text-center">Tempo Total</th>
+                            <th class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rankingBody"></tbody>
+                </table>
+            </div>
         </div>
-        <div class="col-span-3 glass p-6 flex flex-col justify-between shadow-2xl">
+        
+        <div class="col-span-12 lg:col-span-3 glass p-4 sm:p-6 flex flex-col justify-between shadow-2xl">
             <div>
-                <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-2"><h3 class="text-xs font-black uppercase text-emerald-500 italic">Cloud Stock</h3><label for="fileInput" class="text-[8px] font-black bg-emerald-600 px-2 py-1 rounded cursor-pointer uppercase hover:bg-emerald-500 transition-all">Upload</label><input type="file" id="fileInput" accept=".xlsx,.xls" class="hidden"></div>
-                <div class="space-y-6">
-                    <div class="grid grid-cols-3 gap-2 text-center">
-                        <div class="bg-black/20 p-2 rounded-xl border border-white/5 shadow-inner"><small class="text-[7px] text-slate-500 block mb-1 font-black uppercase tracking-tighter">Total</small><strong id="statExcelTotal" class="text-blue-400 text-xl font-black">0</strong></div>
-                        <div class="bg-black/20 p-2 rounded-xl border border-white/5 shadow-inner"><small class="text-[7px] text-slate-500 block mb-1 font-black uppercase tracking-tighter italic">Endereç.</small><strong id="statExcelCom" class="text-emerald-500 text-xl font-black">0</strong></div>
-                        <button onclick="showSemEnderecamento()" class="bg-black/20 p-2 rounded-xl border border-rose-500/30 hover:bg-rose-500/10 transition-all group shadow-lg"><small class="text-[7px] text-slate-500 block mb-1 font-black uppercase leading-tight tracking-tighter">S/ Endereço</small><strong id="statExcelSem" class="text-rose-500 text-xl font-black">0</strong></button>
+                <div class="flex justify-between items-center mb-4 sm:mb-6 border-b border-white/5 pb-2">
+                    <h3 class="text-xs sm:text-sm font-black uppercase text-emerald-500 italic">Cloud Stock</h3>
+                    <label for="fileInput" class="text-[7px] sm:text-[8px] font-black bg-emerald-600 px-2 py-1 rounded cursor-pointer uppercase hover:bg-emerald-500 transition-all whitespace-nowrap">Upload</label>
+                    <input type="file" id="fileInput" accept=".xlsx,.xls" class="hidden">
+                </div>
+                
+                <div class="space-y-4 sm:space-y-6">
+                    <div class="grid grid-cols-3 gap-1 sm:gap-2 text-center">
+                        <div class="bg-black/20 p-1 sm:p-2 rounded-xl border border-white/5 shadow-inner">
+                            <small class="text-[6px] sm:text-[7px] text-slate-500 block mb-1 font-black uppercase tracking-tighter">Total</small>
+                            <strong id="statExcelTotal" class="text-blue-400 text-lg sm:text-xl font-black">0</strong>
+                        </div>
+                        <div class="bg-black/20 p-1 sm:p-2 rounded-xl border border-white/5 shadow-inner">
+                            <small class="text-[6px] sm:text-[7px] text-slate-500 block mb-1 font-black uppercase tracking-tighter italic">Endereç.</small>
+                            <strong id="statExcelCom" class="text-emerald-500 text-lg sm:text-xl font-black">0</strong>
+                        </div>
+                        <button onclick="showSemEnderecamento()" class="bg-black/20 p-1 sm:p-2 rounded-xl border border-rose-500/30 hover:bg-rose-500/10 transition-all group shadow-lg">
+                            <small class="text-[6px] sm:text-[7px] text-slate-500 block mb-1 font-black uppercase leading-tight tracking-tighter">S/ Endereço</small>
+                            <strong id="statExcelSem" class="text-rose-500 text-lg sm:text-xl font-black">0</strong>
+                        </button>
                     </div>
-                    <div class="pt-4 border-t border-white/5"><div class="flex justify-between items-center mb-2 px-1"><span class="text-[10px] font-black uppercase text-slate-400 italic tracking-widest">Ocupação</span><span id="statExcelPerc2" class="text-[10px] font-black text-emerald-500">0%</span></div><div class="w-full bg-white/5 h-2 rounded-full overflow-hidden shadow-inner"><div id="progress-fill" class="h-full bg-gradient-to-r from-blue-600 to-emerald-500 transition-all duration-1000" style="width: 0%"></div></div></div>
+                    
+                    <div class="pt-3 sm:pt-4 border-t border-white/5">
+                        <div class="flex justify-between items-center mb-2 px-1">
+                            <span class="text-[8px] sm:text-[10px] font-black uppercase text-slate-400 italic tracking-widest">Ocupação</span>
+                            <span id="statExcelPerc2" class="text-[8px] sm:text-[10px] font-black text-emerald-500">0%</span>
+                        </div>
+                        <div class="w-full bg-white/5 h-1.5 sm:h-2 rounded-full overflow-hidden shadow-inner">
+                            <div id="progress-fill" class="h-full bg-gradient-to-r from-blue-600 to-emerald-500 transition-all duration-1000" style="width: 0%"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="text-[9px] font-bold text-slate-600 text-center uppercase tracking-widest mt-4">Cloud Sync: <span id="db-status" class="text-emerald-500 animate-pulse italic">Ativo</span></div>
+            
+            <div class="text-[7px] sm:text-[9px] font-bold text-slate-600 text-center uppercase tracking-widest mt-3 sm:mt-4">
+                Cloud Sync: <span id="db-status" class="text-emerald-500 animate-pulse italic">Ativo</span>
+            </div>
         </div>
     </div>
 
     <!-- REPOSIÇÃO -->
-    <div class="glass flex flex-col overflow-hidden h-[400px] shadow-2xl">
-        <div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5"><div class="flex items-center gap-3 italic"><i class="fas fa-boxes text-blue-500"></i><h3 class="text-xs font-black uppercase text-white italic tracking-widest">Pendências de Reposição ER</h3></div><div class="flex gap-4 items-center"><div class="text-[10px] font-bold text-slate-400 uppercase italic">Pendências: <span id="statSkus" class="text-white bg-blue-600 px-2 py-0.5 rounded ml-1 shadow-lg">0</span></div><button onclick="copyAllRep()" class="text-[10px] font-black bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded uppercase transition-all shadow-lg italic tracking-widest">Copiar Tudo</button></div></div>
-        <div class="flex-1 overflow-auto custom-scroll"><table class="er-table"><thead><tr><th>Data</th><th>Solicitante (F)</th><th>Código SKU</th><th>Descrição</th><th class="text-center">Qtd</th><th class="text-center">Estoque Atual</th></tr></thead><tbody id="er-table-body"></tbody></table></div>
+    <div class="glass flex flex-col overflow-hidden h-[350px] sm:h-[400px] shadow-2xl">
+        <div class="p-3 sm:p-4 border-b border-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white/5">
+            <div class="flex items-center gap-2 sm:gap-3 italic">
+                <i class="fas fa-boxes text-blue-500"></i>
+                <h3 class="text-xs sm:text-sm font-black uppercase text-white italic tracking-widest">Pendências de Reposição ER</h3>
+            </div>
+            <div class="flex gap-3 sm:gap-4 items-center w-full sm:w-auto justify-between sm:justify-end">
+                <div class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase italic whitespace-nowrap">
+                    Pendências: <span id="statSkus" class="text-white bg-blue-600 px-2 py-0.5 rounded ml-1 shadow-lg">0</span>
+                </div>
+                <button onclick="copyAllRep()" class="text-[9px] sm:text-[10px] font-black bg-blue-600 hover:bg-blue-500 px-3 sm:px-4 py-1.5 sm:py-2 rounded uppercase transition-all shadow-lg italic tracking-widest whitespace-nowrap">Copiar Tudo</button>
+            </div>
+        </div>
+        <div class="flex-1 overflow-auto custom-scroll table-wrapper">
+            <table class="er-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Solicitante (F)</th>
+                        <th>Código SKU</th>
+                        <th>Descrição</th>
+                        <th class="text-center">Qtd</th>
+                        <th class="text-center">Estoque Atual</th>
+                    </tr>
+                </thead>
+                <tbody id="er-table-body"></tbody>
+            </table>
+        </div>
     </div>
 
-    <footer class="flex justify-between items-center px-6 py-4 glass text-[10px] font-bold text-slate-500 uppercase tracking-[3px] mt-2 mb-6"><div>&copy; 2026 OperaX Lojistica - SISTEMA LOGÍSTICO</div><div>DEVELOPED BY <span class="text-blue-500">BENILSON AMORIM</span></div><div>VERSION <span class="text-emerald-500">V13.47</span></div></footer>
+    <footer class="flex flex-col sm:flex-row justify-between items-center px-4 sm:px-6 py-3 sm:py-4 glass text-[8px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-[2px] sm:tracking-[3px] mt-2 mb-4 sm:mb-6 gap-2">
+        <div>&copy; 2026 OperaX Lojistica - SISTEMA LOGÍSTICO</div>
+        <div>DEVELOPED BY <span class="text-blue-500">BENILSON AMORIM</span></div>
+        <div>VERSION <span class="text-emerald-500">V13.47</span></div>
+    </footer>
 </div>
 
-<div id="modal-sem-rua" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/90 backdrop-blur-sm p-4"><div class="glass p-6 rounded-3xl w-full max-w-4xl border border-white/10 flex flex-col max-h-[85vh] shadow-2xl"><div class="flex justify-between items-center mb-4"><div class="flex items-center gap-2 italic"><i class="fas fa-exclamation-triangle text-rose-500"></i><h2 class="text-xs font-black uppercase text-white tracking-widest">Produtos Sem Localização</h2></div><button onclick="closeSemEnd()" class="text-slate-400 hover:text-white text-xl"><i class="fas fa-times"></i></button></div><div class="flex-1 overflow-auto custom-scroll border border-white/5 rounded-xl bg-black/20"><table class="er-table"><thead><tr><th class="bg-slate-900/50">Código</th><th class="bg-slate-900/50">Descrição</th><th class="bg-slate-900/50 text-right">Qtd</th></tr></thead><tbody id="modal-table-body"></tbody></table></div><button onclick="closeSemEnd()" class="mt-5 w-full py-3 bg-slate-800 hover:bg-slate-700 text-[10px] font-black rounded-xl uppercase border border-white/5 transition-all tracking-widest">Sair</button></div></div>
+<!-- MODAL SEM ENDEREÇAMENTO -->
+<div id="modal-sem-rua" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/90 backdrop-blur-sm p-3 sm:p-4">
+    <div class="glass p-4 sm:p-6 rounded-3xl responsive-modal border border-white/10 flex flex-col max-h-[85vh] shadow-2xl">
+        <div class="flex justify-between items-center mb-3 sm:mb-4">
+            <div class="flex items-center gap-2 italic">
+                <i class="fas fa-exclamation-triangle text-rose-500"></i>
+                <h2 class="text-xs sm:text-sm font-black uppercase text-white tracking-widest">Produtos Sem Localização</h2>
+            </div>
+            <button onclick="closeSemEnd()" class="text-slate-400 hover:text-white text-xl sm:text-2xl">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="flex-1 overflow-auto custom-scroll border border-white/5 rounded-xl bg-black/20 table-wrapper">
+            <table class="er-table">
+                <thead>
+                    <tr>
+                        <th class="bg-slate-900/50">Código</th>
+                        <th class="bg-slate-900/50">Descrição</th>
+                        <th class="bg-slate-900/50 text-right">Qtd</th>
+                    </tr>
+                </thead>
+                <tbody id="modal-table-body"></tbody>
+            </table>
+        </div>
+        
+        <button onclick="closeSemEnd()" class="mt-4 sm:mt-5 w-full py-2 sm:py-3 bg-slate-800 hover:bg-slate-700 text-[9px] sm:text-[10px] font-black rounded-xl uppercase border border-white/5 transition-all tracking-widest">
+            Sair
+        </button>
+    </div>
+</div>
 
 <input type="file" id="uploadInput" class="hidden" accept="image/*">
 
@@ -144,7 +633,10 @@
         document.getElementById('toast-msg').innerText = msg;
         toast.classList.remove('hidden', 'animate-fade-out');
         toast.classList.add('animate-fade-in');
-        setTimeout(() => { toast.classList.replace('animate-fade-in', 'animate-fade-out'); setTimeout(() => toast.classList.add('hidden'), 300); }, 1800);
+        setTimeout(() => { 
+            toast.classList.replace('animate-fade-in', 'animate-fade-out'); 
+            setTimeout(() => toast.classList.add('hidden'), 300); 
+        }, 1800);
     }
 
     db.ref('estoque_base').on('value', snap => { estoqueExcelData = snap.val() || []; renderReposicao(); });
@@ -169,7 +661,7 @@
         document.getElementById('statExcelSem').innerText = totalExcel - comEnd;
         document.getElementById('statExcelPerc2').innerText = perc + "%";
         document.getElementById('progress-fill').style.width = perc + "%";
-        tableBody.innerHTML = pedidosRepoData.map(item => { const estoque = estoqueExcelData.find(e => e.codigo === item.codigo); const qtdEstoque = estoque ? estoque.disponivel : 0; const nomeExibicao = (item.descricao === "N/A" && estoque) ? estoque.descricao : item.descricao; return `<tr onclick="copySingleRep('${item.codigo}', '${item.quantidade}')" class="cursor-pointer hover:bg-white/5 transition-all"><td class="text-slate-500 italic">${item.data}</td><td class="font-bold text-slate-400 uppercase">${item.solicitante}</td><td class="text-blue-400 font-black">${item.codigo}</td><td class="truncate max-w-[300px] uppercase text-[9px] font-bold text-slate-200">${nomeExibicao}</td><td class="font-black text-rose-500 text-center">${item.quantidade}</td><td class="${qtdEstoque > 0 ? 'text-emerald-500' : 'text-slate-600'} font-black text-center">${qtdEstoque}</td></tr>`; }).join('') || `<tr><td colspan="6" class="text-center p-10 text-slate-600 font-bold uppercase italic">Sem pendências</td></tr>`;
+        tableBody.innerHTML = pedidosRepoData.map(item => { const estoque = estoqueExcelData.find(e => e.codigo === item.codigo); const qtdEstoque = estoque ? estoque.disponivel : 0; const nomeExibicao = (item.descricao === "N/A" && estoque) ? estoque.descricao : item.descricao; return `<tr onclick="copySingleRep('${item.codigo}', '${item.quantidade}')" class="cursor-pointer hover:bg-white/5 transition-all"><td class="text-slate-500 italic">${item.data}</td><td class="font-bold text-slate-400 uppercase">${item.solicitante}</td><td class="text-blue-400 font-black">${item.codigo}</td><td class="truncate max-w-[150px] sm:max-w-[300px] uppercase text-[8px] sm:text-[9px] font-bold text-slate-200">${nomeExibicao}</td><td class="font-black text-rose-500 text-center">${item.quantidade}</td><td class="${qtdEstoque > 0 ? 'text-emerald-500' : 'text-slate-600'} font-black text-center">${qtdEstoque}</td></tr>`; }).join('') || `<tr><td colspan="6" class="text-center p-6 sm:p-10 text-slate-600 font-bold uppercase italic">Sem pendências</td></tr>`;
         document.getElementById('statSkus').innerText = pedidosRepoData.length;
     }
 
@@ -181,7 +673,6 @@
         const anoCurto = agora.getFullYear().toString().slice(-2);
         const nomeAba = `SEPARAÇÃO ${meses[agora.getMonth()]}/${anoCurto}`;
         
-        // Limpa dados existentes antes de carregar
         dadosBrutosSep = [];
         
         buscarDadosSep(nomeAba);
@@ -223,7 +714,6 @@
         const meses = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
         const abasNecessarias = new Set();
         
-        // Identifica todas as abas necessárias no período
         let dataAtual = new Date(dataInicio);
         while (dataAtual <= dataFim) {
             const anoCurto = dataAtual.getFullYear().toString().slice(-2);
@@ -234,13 +724,11 @@
         
         document.getElementById('statusText').innerText = `Carregando ${abasNecessarias.size} aba(s)...`;
         
-        // Carrega cada aba necessária
         for (const aba of abasNecessarias) {
             await new Promise((resolve) => {
                 const handlerName = `processSep_${aba.replace(/[^a-zA-Z0-9]/g, '_')}`;
                 const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SEP_ID}/gviz/tq?tqx=responseHandler:${handlerName}&sheet=${encodeURIComponent(aba)}`;
                 
-                // Cria um handler único para cada aba
                 window[handlerName] = function(resposta) {
                     const rows = resposta.table.rows;
                     const novosDados = rows.map(r => {
@@ -271,10 +759,8 @@
                         };
                     }).filter(x => x !== null && x.data !== null);
                     
-                    // Adiciona os novos dados ao array global
                     dadosBrutosSep.push(...novosDados);
                     
-                    // Remove o handler temporário
                     delete window[handlerName];
                     resolve();
                 };
@@ -295,7 +781,6 @@
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(`btn${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).classList.add('active');
         
-        // Se for filtro predefinido, recarrega a aba do mês atual
         if (tipo !== 'personalizado') {
             const agora = new Date();
             const meses = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
@@ -321,13 +806,10 @@
         dataFimFiltro.setHours(23,59,59,999);
         currentFilter = 'personalizado';
         
-        // Desativa todos os botões de filtro
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
         
-        // Limpa os dados existentes
         dadosBrutosSep = [];
         
-        // Carrega dados do período selecionado
         carregarDadosPorPeriodo(dataInicioFiltro, dataFimFiltro);
         
         notify(`Carregando dados de ${iniStr} até ${fimStr}...`);
@@ -398,12 +880,12 @@
             if (!u) return ""; 
             const is1 = u.nome === top[0].nome; 
             const size = is1 ? 'avatar-xl gold-border shadow-yellow-500/20 shadow-lg' : (i === 0 ? 'avatar-large silver-border' : 'avatar-large bronze-border'); 
-            return `<div class="flex flex-col items-center ${is1 ? 'scale-110 mb-2' : ''}"><div class="${size}"><img src="${fotoCache[u.nome.replace(/\s/g, '_')] || `https://ui-avatars.com/api/?name=${u.nome}&background=1e293b&color=fff`}"></div><span class="mt-2 font-black text-[10px] uppercase text-slate-200">${u.nome.split(' ')[0]}</span><span class="text-2xl font-black text-blue-500">${u.qtd}</span></div>`; 
+            return `<div class="flex flex-col items-center ${is1 ? 'scale-105 sm:scale-110 mb-1 sm:mb-2' : ''}"><div class="${size}"><img src="${fotoCache[u.nome.replace(/\s/g, '_')] || `https://ui-avatars.com/api/?name=${u.nome}&background=1e293b&color=fff`}"></div><span class="mt-1 sm:mt-2 font-black text-[8px] sm:text-[10px] uppercase text-slate-200">${u.nome.split(' ')[0]}</span><span class="text-xl sm:text-2xl font-black text-blue-500">${u.qtd}</span></div>`; 
         }).join('');
     }
 
     function renderTabelaRanking(ranking, media) {
-        document.getElementById('rankingBody').innerHTML = ranking.map((r, i) => `<tr class="hover:bg-white/5 transition-all border-b border-white/5"><td class="px-6 py-4 font-bold text-slate-500 italic">#${i+1}</td><td class="px-6 py-4 flex items-center gap-3 cursor-pointer" onclick="triggerUpload('${r.nome}')"><div class="avatar shadow-lg shadow-black/40"><img src="${fotoCache[r.nome.replace(/\s/g, '_')] || `https://ui-avatars.com/api/?name=${r.nome}&background=1e293b&color=fff`}"></div><span class="font-bold text-[11px] uppercase text-slate-200 tracking-wider">${r.nome}</span></td><td class="px-6 py-4 text-center font-black text-blue-400">${r.qtd}</td><td class="px-6 py-4 text-center font-bold text-orange-400">${r.itens}</td><td class="px-6 py-4 text-center text-purple-400 font-bold italic">${r.tempoMedio > 0 ? r.tempoMedio + 'm' : '-'}</td><td class="px-6 py-4 text-center text-emerald-400 font-bold tracking-tighter">${Math.floor(r.tempoTotal/60)}h ${Math.round(r.tempoTotal%60)}m</td><td class="px-6 py-4 text-center"><span class="px-2 py-1 rounded text-[10px] font-bold ${r.qtd >= media ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'}">${r.qtd >= media ? 'TOP' : 'BAIXO'}</span></td></tr>`).join('');
+        document.getElementById('rankingBody').innerHTML = ranking.map((r, i) => `<tr class="hover:bg-white/5 transition-all border-b border-white/5"><td class="px-2 sm:px-4 py-2 sm:py-4 font-bold text-slate-500 italic text-[9px] sm:text-[11px]">#${i+1}</td><td class="px-2 sm:px-4 py-2 sm:py-4 flex items-center gap-2 sm:gap-3 cursor-pointer" onclick="triggerUpload('${r.nome}')"><div class="avatar shadow-lg shadow-black/40"><img src="${fotoCache[r.nome.replace(/\s/g, '_')] || `https://ui-avatars.com/api/?name=${r.nome}&background=1e293b&color=fff`}"></div><span class="font-bold text-[9px] sm:text-[11px] uppercase text-slate-200 tracking-wider truncate max-w-[60px] sm:max-w-none">${r.nome}</span></td><td class="px-2 sm:px-4 py-2 sm:py-4 text-center font-black text-blue-400 text-[9px] sm:text-[11px]">${r.qtd}</td><td class="px-2 sm:px-4 py-2 sm:py-4 text-center font-bold text-orange-400 text-[9px] sm:text-[11px]">${r.itens}</td><td class="px-2 sm:px-4 py-2 sm:py-4 text-center text-purple-400 font-bold italic text-[9px] sm:text-[11px]">${r.tempoMedio > 0 ? r.tempoMedio + 'm' : '-'}</td><td class="px-2 sm:px-4 py-2 sm:py-4 text-center text-emerald-400 font-bold tracking-tighter text-[9px] sm:text-[11px]">${Math.floor(r.tempoTotal/60)}h ${Math.round(r.tempoTotal%60)}m</td><td class="px-2 sm:px-4 py-2 sm:py-4 text-center"><span class="px-1 sm:px-2 py-0.5 sm:py-1 rounded text-[8px] sm:text-[10px] font-bold ${r.qtd >= media ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'}">${r.qtd >= media ? 'TOP' : 'BAIXO'}</span></td></tr>`).join('');
     }
 
     function renderCharts(ranking, total) {
@@ -421,7 +903,10 @@
             options: { 
                 responsive: true, 
                 maintainAspectRatio: false, 
-                plugins: { legend: false } 
+                plugins: { 
+                    legend: false,
+                    tooltip: { enabled: true }
+                } 
             } 
         });
         
@@ -442,13 +927,32 @@
                 maintainAspectRatio: false, 
                 plugins: { 
                     legend: false, 
+                    tooltip: { enabled: true },
                     datalabels: { 
                         color: '#fff', 
                         anchor: 'end', 
                         align: 'top', 
-                        font: { size: 9, weight: 'bold' } 
+                        font: { size: 8, weight: 'bold' },
+                        display: function(context) {
+                            return context.dataset.data[context.dataIndex] > 0;
+                        }
                     } 
-                } 
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        ticks: { color: '#94a3b8', font: { size: 8 } }
+                    },
+                    x: {
+                        ticks: { 
+                            color: '#94a3b8', 
+                            font: { size: 8 },
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
             } 
         });
     }
@@ -465,7 +969,7 @@
     function showSemEnderecamento() {
         const tbody = document.getElementById('modal-table-body');
         const semRua = estoqueExcelData.filter(i => ["", "null", "0"].includes(String(i.endereco).trim()));
-        tbody.innerHTML = semRua.map(i => `<tr><td class="text-blue-400 font-black">${i.codigo}</td><td class="text-slate-300 uppercase font-bold text-[10px]">${i.descricao}</td><td class="font-black text-right text-rose-500">${i.disponivel}</td></tr>`).join('') || `<tr><td colspan="3" class="text-center py-10 font-bold text-emerald-500 uppercase italic">Tudo endereçado!</td></tr>`;
+        tbody.innerHTML = semRua.map(i => `<tr><td class="text-blue-400 font-black text-[9px] sm:text-[11px]">${i.codigo}</td><td class="text-slate-300 uppercase font-bold text-[8px] sm:text-[10px]">${i.descricao}</td><td class="font-black text-right text-rose-500 text-[9px] sm:text-[11px]">${i.disponivel}</td></tr>`).join('') || `<tr><td colspan="3" class="text-center py-6 sm:py-10 font-bold text-emerald-500 uppercase italic text-[9px] sm:text-[11px]">Tudo endereçado!</td></tr>`;
         document.getElementById('modal-sem-rua').classList.remove('hidden');
     }
 
@@ -501,12 +1005,17 @@
     
     setInterval(() => { 
         if (currentFilter === 'personalizado') {
-            // Se for filtro personalizado, apenas atualiza a visualização com os dados já carregados
             renderizarSeparacao();
         } else {
             init(); 
         }
     }, 30000);
+    
+    // Ajuste para redimensionamento da tela
+    window.addEventListener('resize', () => {
+        if (chartPizza) chartPizza.resize();
+        if (chartTempo) chartTempo.resize();
+    });
     
     init();
 </script>
