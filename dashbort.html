@@ -97,16 +97,16 @@
         }
 
         .avatar-large { 
-            width: 80px; 
-            height: 80px; 
+            width: 70px; 
+            height: 70px; 
             border-radius: 50%; 
             overflow: hidden; 
             border: 2px solid rgba(255,255,255,0.2);
         }
 
         .avatar-xl { 
-            width: 100px; 
-            height: 100px; 
+            width: 90px; 
+            height: 90px; 
             border-radius: 50%; 
             overflow: hidden; 
             border: 3px solid #FFD700;
@@ -205,14 +205,52 @@
             transform: translateY(-2px);
         }
 
+        /* Pódio com altura reduzida */
         .podium-container {
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            gap: 20px;
+            gap: 25px;
             height: 100%;
-            min-height: 180px;
-            padding-bottom: 10px;
+            min-height: 160px;
+            padding: 15px 10px 5px 10px;
+        }
+
+        .podium-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .podium-item .avatar-container {
+            margin-bottom: 4px;
+        }
+
+        .podium-item .podium-name {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #e2e8f0;
+            margin: 2px 0 0px 0;
+            white-space: nowrap;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .podium-item .podium-value {
+            font-size: 18px;
+            font-weight: 900;
+            color: #3b82f6;
+            line-height: 1.1;
+        }
+
+        .podium-item .podium-label {
+            font-size: 8px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-weight: 600;
         }
 
         .expandable-section {
@@ -367,6 +405,36 @@
             font-weight: 800 !important;
         }
 
+        /* ANIMAÇÃO PARA TRANSIÇÃO DE DADOS */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-data {
+            animation: fadeInUp 0.4s ease-out forwards;
+        }
+
+        .ranking-body tr {
+            animation: fadeInUp 0.3s ease-out forwards;
+            opacity: 0;
+        }
+
+        .ranking-body tr:nth-child(1) { animation-delay: 0.05s; }
+        .ranking-body tr:nth-child(2) { animation-delay: 0.1s; }
+        .ranking-body tr:nth-child(3) { animation-delay: 0.15s; }
+        .ranking-body tr:nth-child(4) { animation-delay: 0.2s; }
+        .ranking-body tr:nth-child(5) { animation-delay: 0.25s; }
+        .ranking-body tr:nth-child(6) { animation-delay: 0.3s; }
+        .ranking-body tr:nth-child(7) { animation-delay: 0.35s; }
+        .ranking-body tr:nth-child(8) { animation-delay: 0.4s; }
+
         .pending-glow {
             position: relative;
         }
@@ -409,24 +477,24 @@
 
         .header-section { flex-shrink: 0; }
         .metrics-section { flex-shrink: 0; }
-        .charts-section { height: 160px; flex-shrink: 0; }
-        .performance-section { height: 220px; flex-shrink: 0; }
+        .charts-section { height: 150px; flex-shrink: 0; }
+        .performance-section { height: 200px; flex-shrink: 0; }
         .reposicao-section { flex-shrink: 0; margin-bottom: 4px; }
         .validade-section { flex-shrink: 0; }
         .footer-section { flex-shrink: 0; margin-top: auto; }
 
         .charts-section canvas {
-            max-height: 130px !important;
+            max-height: 120px !important;
         }
 
         .compact-table td, .compact-table th {
-            padding: 4px 8px !important;
+            padding: 3px 6px !important;
         }
 
         @media (min-width: 1921px) {
             body { font-size: 16px; }
-            .charts-section { height: 200px; }
-            .performance-section { height: 280px; }
+            .charts-section { height: 180px; }
+            .performance-section { height: 250px; }
         }
     </style>
 </head>
@@ -542,7 +610,7 @@
                             <th class="text-center">STATUS</th>
                         </tr>
                     </thead>
-                    <tbody id="rankingBody"></tbody>
+                    <tbody id="rankingBody" class="ranking-body"></tbody>
                 </table>
             </div>
         </div>
@@ -628,7 +696,7 @@
         </div>
     </div>
 
-    <!-- NOVO MONITOR DE VALIDADES - Substituído pelo layout do ai_studio_code (3).html -->
+    <!-- MONITOR DE VALIDADES -->
     <div class="validade-section glass p-3 shadow-2xl">
         <div class="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
             <div class="flex items-center gap-2">
@@ -759,6 +827,7 @@
 
     let dadosBrutosSep = [], estoqueExcelData = [], fotoCache = {}, currentFilter = 'mes', tempoProgresso = 0, dataInicioFiltro = null, dataFimFiltro = null;
     let chartPizza = null, chartTempo = null;
+    let isLoading = false; // Controle para evitar múltiplas cargas simultâneas
     
     // Dados do Monitor de Validades
     let produtosValidade = [];
@@ -790,7 +859,7 @@
         renderizarSeparacao(); 
     });
 
-    // Firebase do Monitor de Validades (segunda instância) - NOVO LAYOUT
+    // Firebase do Monitor de Validades (segunda instância)
     const firebaseConfig2 = {
         apiKey: "AIzaSyDr8Q2oJJ46ZANAjnV0_iSokdHnZ-YqGP4",
         authDomain: "controle-validade-de623.firebaseapp.com",
@@ -816,7 +885,7 @@
         document.getElementById('progress-fill').style.width = perc + "%";
     }
 
-    // NOVO: Monitor Validades com layout do ai_studio_code (3).html
+    // Monitor Validades
     db2.ref('estoque/').on('value', (snap) => {
         const dados = snap.val() || {};
         const map = new Map();
@@ -857,7 +926,6 @@
         renderValidadesNovo();
     });
 
-    // NOVA função de renderização para o layout do ai_studio_code (3).html
     function renderValidadesNovo() {
         const listCrit = document.getElementById('list-critico');
         const listAtn = document.getElementById('list-atencao');
@@ -868,7 +936,6 @@
         const saudaveis = produtosValidade.filter(p => p.status === 'ok').length;
         const total = produtosValidade.length;
 
-        // Update Stock Health Panel
         const healthPct = Math.round((saudaveis / total) * 100 || 0);
         document.getElementById('health-pct').innerText = healthPct + '%';
         document.getElementById('health-bar').style.width = healthPct + '%';
@@ -876,12 +943,11 @@
         document.getElementById('stat-vencidos').innerText = vencidos.length;
         document.getElementById('stat-alertas').innerText = criticos.length + atencao.length;
 
-        // Update Badges
         document.getElementById('count-critico').innerText = criticos.length;
         document.getElementById('count-atencao').innerText = atencao.length;
 
         const template = (p) => `
-            <div class="card bg-white/5 hover:bg-white/10 rounded-lg p-2 cursor-pointer transition-all" onclick="abrirModalValidade('${p.codigo}')">
+            <div class="card bg-white/5 hover:bg-white/10 rounded-lg p-2 cursor-pointer transition-all fade-in-data" onclick="abrirModalValidade('${p.codigo}')">
                 <div class="flex justify-between items-center">
                     <div class="card-content flex-1 min-w-0">
                         <h4 class="text-xs font-bold text-white truncate">${p.desc}</h4>
@@ -924,7 +990,6 @@
         document.getElementById('modal-validade').style.display = 'none';
     };
 
-    // Função para buscar dados da Reposição ER
     async function fetchReposicaoER() {
         const url = `https://opensheet.elk.sh/${CONFIG.REPO_ID}/${encodeURIComponent(CONFIG.REPO_ABA)}`;
         const loader = document.getElementById('reposicaoLoader');
@@ -1080,9 +1145,17 @@
     };
 
     function aplicarFiltroTempo(tipo) {
+        if (isLoading) return; // Evita múltiplos cliques durante carregamento
+        isLoading = true;
+        
         currentFilter = tipo;
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(`btn${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).classList.add('active');
+
+        // Animação de loading nos cards
+        document.querySelectorAll('.metric-card h2').forEach(el => {
+            el.style.opacity = '0.5';
+        });
 
         if (tipo !== 'personalizado') {
             const agora = new Date();
@@ -1094,11 +1167,23 @@
             buscarDadosSep(nomeAba);
         }
 
-        renderizarSeparacao();
-        tempoProgresso = 0;
+        // Simula um pequeno delay para a animação
+        setTimeout(() => {
+            renderizarSeparacao();
+            tempoProgresso = 0;
+            
+            // Restaura opacidade
+            document.querySelectorAll('.metric-card h2').forEach(el => {
+                el.style.opacity = '1';
+            });
+            
+            isLoading = false;
+        }, 300);
     }
 
     function aplicarPeriodoPersonalizado() {
+        if (isLoading) return;
+        
         const iniStr = document.getElementById('dataInicio').value;
         const fimStr = document.getElementById('dataFim').value;
         if(!iniStr || !fimStr) return notify("SELECIONE O INTERVALO!");
@@ -1143,9 +1228,10 @@
         const mediaEq = ranking.length ? Math.round(tQtd / ranking.length) : 0;
         const maiorQtd = ranking.length ? ranking[0].qtd : 0;
 
-        document.getElementById('totalPedidos').innerText = tQtd;
-        document.getElementById('totalItens').innerText = tItens;
-        document.getElementById('mediaEquipe').innerText = mediaEq;
+        // Animar os valores das métricas
+        animarValor('totalPedidos', tQtd);
+        animarValor('totalItens', tItens);
+        animarValor('mediaEquipe', mediaEq);
         document.getElementById('tempoMedioGeral').innerHTML = `${(tQtd > 0 ? tTempo/tQtd : 0).toFixed(1)}m`;
         document.getElementById('melhorColaborador').innerText = ranking[0]?.nome || '-';
         document.getElementById('piorColaborador').innerText = ranking[ranking.length - 1]?.nome || '-';
@@ -1155,20 +1241,54 @@
         renderTabelaRanking(ranking, mediaEq, maiorQtd);
     }
 
+    // Função para animar valores
+    function animarValor(elementId, novoValor) {
+        const el = document.getElementById(elementId);
+        const valorAtual = parseInt(el.innerText) || 0;
+        const incremento = Math.ceil((novoValor - valorAtual) / 10);
+        let count = valorAtual;
+        
+        const timer = setInterval(() => {
+            count += incremento;
+            if ((incremento > 0 && count >= novoValor) || (incremento < 0 && count <= novoValor)) {
+                el.innerText = novoValor;
+                clearInterval(timer);
+            } else {
+                el.innerText = count;
+            }
+        }, 30);
+    }
+
     function renderPodium(ranking) {
         const container = document.getElementById('podiumContainer'); 
         if (!ranking.length) return container.innerHTML = "";
+        
         const top = ranking.slice(0, 3); 
-        const order = [top[1], top[0], top[2]];
-        container.innerHTML = order.map((u, i) => { 
-            if (!u) return ""; 
-            const is1 = u.nome === top[0].nome; 
-            const size = is1 ? 'avatar-xl' : (i === 0 ? 'avatar-large silver-border' : 'avatar-large bronze-border'); 
-            return `<div class="flex flex-col items-center ${is1 ? 'scale-105' : ''}">
-                <div class="${size}"><img src="${fotoCache[u.nome.replace(/\s/g, '_')] || `https://ui-avatars.com/api/?name=${u.nome}&background=1e293b&color=fff&size=100`}"></div>
-                <span class="mt-1 font-black text-[10px] uppercase text-slate-200">${u.nome.split(' ')[0]}</span>
-                <span class="text-xl font-black text-blue-500">${u.qtd}</span>
-            </div>`; 
+        
+        const order = [
+            { pos: 1, data: top[1] }, // 2º lugar
+            { pos: 0, data: top[0] }, // 1º lugar
+            { pos: 2, data: top[2] }  // 3º lugar
+        ];
+        
+        container.innerHTML = order.map((item, index) => {
+            const u = item.data;
+            if (!u) return "";
+            
+            const isFirst = item.pos === 0;
+            const avatarClass = isFirst ? 'avatar-xl' : (index === 0 ? 'avatar-large silver-border' : 'avatar-large bronze-border');
+            const scale = isFirst ? 'scale-110' : '';
+            
+            return `
+                <div class="podium-item ${scale} fade-in-data" style="animation-delay: ${index * 0.1}s">
+                    <div class="avatar-container ${avatarClass}">
+                        <img src="${fotoCache[u.nome.replace(/\s/g, '_')] || `https://ui-avatars.com/api/?name=${u.nome}&background=1e293b&color=fff&size=100`}">
+                    </div>
+                    <div class="podium-name">${u.nome.split(' ')[0]}</div>
+                    <div class="podium-value">${u.qtd}</div>
+                    <div class="podium-label">pedidos</div>
+                </div>
+            `;
         }).join('');
     }
 
@@ -1176,7 +1296,7 @@
         document.getElementById('rankingBody').innerHTML = ranking.slice(0, 8).map((r, i) => {
             const rowClass = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : ''));
 
-            return `<tr class="hover:bg-white/5 transition-all border-b border-white/5 ${rowClass}">
+            return `<tr class="hover:bg-white/5 transition-all border-b border-white/5 ${rowClass}" style="animation-delay: ${i * 0.05}s">
                 <td class="px-2 py-1 font-black text-slate-500 italic text-xs">#${i+1}</td>
                 <td class="px-2 py-1 flex items-center gap-2 cursor-pointer" onclick="triggerUpload('${r.nome}')">
                     <div class="avatar shadow-lg shadow-black/40"><img src="${fotoCache[r.nome.replace(/\s/g, '_')] || `https://ui-avatars.com/api/?name=${r.nome}&background=1e293b&color=fff&size=36`}"></div>
@@ -1286,7 +1406,7 @@
     }
 
     setInterval(() => { 
-        if (currentFilter !== 'personalizado') { 
+        if (currentFilter !== 'personalizado' && !isLoading) { 
             tempoProgresso += 0.5; 
             document.getElementById('timelineBar').style.width = tempoProgresso + '%'; 
             if (tempoProgresso >= 100) { 
@@ -1297,7 +1417,7 @@
     }, 150);
 
     setInterval(() => { 
-        if (currentFilter === 'personalizado') {
+        if (currentFilter === 'personalizado' && !isLoading) {
             renderizarSeparacao();
         } else {
             init(); 
