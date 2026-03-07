@@ -28,24 +28,130 @@
             width: 100%;
             height: 100vh;
             overflow: hidden;
-            background: #030712;
-            color: #f1f5f9;
             font-size: 14px;
         }
 
-        body {
-            padding: 12px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
+        /* Temas */
+        body[data-theme="dark"] {
+            background: #030712;
+            color: #f1f5f9;
         }
 
-        .glass { 
+        body[data-theme="light"] {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        body[data-theme="light"] .glass { 
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(0, 0, 0, 0.1); 
+            border-radius: 20px; 
+            box-shadow: 0 20px 30px -10px rgba(0,0,0,0.1);
+        }
+
+        body[data-theme="dark"] .glass { 
             background: rgba(17, 24, 39, 0.9);
             backdrop-filter: blur(12px); 
             border: 1px solid rgba(255, 255, 255, 0.15); 
             border-radius: 20px; 
             box-shadow: 0 20px 30px -10px rgba(0,0,0,0.5);
+        }
+
+        body[data-theme="light"] .glass h1,
+        body[data-theme="light"] .glass h2,
+        body[data-theme="light"] .glass h3,
+        body[data-theme="light"] .glass p,
+        body[data-theme="light"] .glass span:not(.text-blue-500):not(.text-emerald-500):not(.text-rose-500):not(.text-yellow-500) {
+            color: #0f172a;
+        }
+
+        body[data-theme="light"] .filter-btn { 
+            background: rgba(0, 0, 0, 0.05); 
+            color: #475569; 
+        }
+
+        body[data-theme="light"] .filter-btn.active { 
+            background: #3b82f6; 
+            color: white; 
+        }
+
+        body[data-theme="light"] .er-table th { 
+            background: #e2e8f0; 
+            color: #334155; 
+            border-bottom: 2px solid rgba(0,0,0,0.1); 
+        }
+
+        body[data-theme="light"] .er-table td { 
+            color: #1e293b;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        body[data-theme="light"] .reposicao-er-card {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #0f172a !important;
+        }
+
+        body[data-theme="light"] .reposicao-er-card .er-table th {
+            background: #e2e8f0;
+            color: #334155;
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+        }
+
+        body[data-theme="light"] .reposicao-er-card .er-table td {
+            color: #1e293b;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        body[data-theme="light"] .reposicao-er-card .expandable-header {
+            background: rgba(0,0,0,0.05) !important;
+            border-bottom: 1px solid rgba(0,0,0,0.1) !important;
+        }
+
+        body[data-theme="light"] .reposicao-er-card .expandable-header:hover {
+            background: rgba(59, 130, 246, 0.1) !important;
+        }
+
+        body[data-theme="light"] .reposicao-er-card h3 {
+            color: #0f172a !important;
+        }
+
+        body[data-theme="light"] .reposicao-er-card #reposicaoSummary {
+            color: #475569 !important;
+        }
+
+        body[data-theme="light"] .badge-open-er {
+            background: rgba(59, 130, 246, 0.1); 
+            color: #2563eb; 
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        body[data-theme="light"] .btn-copy-er {
+            background: #2563eb;
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        body[data-theme="light"] .loader-er { 
+            color: #64748b; 
+        }
+
+        body[data-theme="light"] .pending-alert {
+            background: #ef4444 !important;
+            color: white !important;
+        }
+
+        body[data-theme="light"] .col-desc-er { 
+            color: #0f172a; 
+        }
+
+        body[data-theme="light"] .metric-card p.text-slate-400 {
+            color: #64748b !important;
+        }
+
+        body[data-theme="light"] #statusText {
+            color: #64748b !important;
         }
 
         .timeline-bar { 
@@ -97,16 +203,16 @@
         }
 
         .avatar-large { 
-            width: 70px; 
-            height: 70px; 
+            width: 80px; 
+            height: 80px; 
             border-radius: 50%; 
             overflow: hidden; 
             border: 2px solid rgba(255,255,255,0.2);
         }
 
         .avatar-xl { 
-            width: 90px; 
-            height: 90px; 
+            width: 100px; 
+            height: 100px; 
             border-radius: 50%; 
             overflow: hidden; 
             border: 3px solid #FFD700;
@@ -130,16 +236,20 @@
         .er-table th { 
             position: sticky; 
             top: 0; 
-            background: #1e293b; 
             padding: 8px 10px; 
             text-align: left; 
             font-weight: 800; 
             text-transform: uppercase; 
-            color: #94a3b8; 
             border-bottom: 2px solid rgba(255,255,255,0.15); 
             z-index: 20; 
             font-size: 11px;
             letter-spacing: 0.5px;
+        }
+
+        body[data-theme="dark"] .er-table th { 
+            background: #1e293b; 
+            color: #94a3b8; 
+            border-bottom: 2px solid rgba(255,255,255,0.15); 
         }
 
         .er-table td { 
@@ -177,16 +287,8 @@
             font-weight: 800; 
             font-size: 11px; 
             transition: all 0.3s; 
-            background: rgba(255, 255, 255, 0.05); 
-            color: #94a3b8; 
             text-transform: uppercase;
             letter-spacing: 0.5px;
-        }
-
-        .filter-btn.active { 
-            background: #3b82f6; 
-            color: white; 
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
         }
 
         .filter-btn:hover {
@@ -205,91 +307,14 @@
             transform: translateY(-2px);
         }
 
-        /* Pódio com altura reduzida */
         .podium-container {
             display: flex;
             justify-content: center;
             align-items: flex-end;
-            gap: 25px;
+            gap: 20px;
             height: 100%;
-            min-height: 160px;
-            padding: 15px 10px 5px 10px;
-        }
-
-        .podium-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        .podium-item .avatar-container {
-            margin-bottom: 4px;
-        }
-
-        .podium-item .podium-name {
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: #e2e8f0;
-            margin: 2px 0 0px 0;
-            white-space: nowrap;
-            max-width: 80px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .podium-item .podium-value {
-            font-size: 18px;
-            font-weight: 900;
-            color: #3b82f6;
-            line-height: 1.1;
-        }
-
-        .podium-item .podium-label {
-            font-size: 8px;
-            color: #94a3b8;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-
-        /* GAMIFICAÇÃO - Medalhas e indicadores */
-        .medal-gold { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
-        .medal-silver { color: #C0C0C0; text-shadow: 0 0 10px rgba(192, 192, 192, 0.5); }
-        .medal-bronze { color: #CD7F32; text-shadow: 0 0 10px rgba(205, 127, 50, 0.5); }
-        
-        .indicator-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 2px 8px;
-            border-radius: 999px;
-            font-size: 9px;
-            font-weight: 700;
-            background: rgba(255,255,255,0.1);
-            color: #94a3b8;
-        }
-        
-        .indicator-badge i {
-            font-size: 8px;
-        }
-        
-        .speed-indicator { color: #3b82f6; }
-        .accuracy-indicator { color: #10b981; }
-        .items-indicator { color: #f59e0b; }
-        
-        .top-performer {
-            position: relative;
-            overflow: hidden;
-        }
-        .top-performer::before {
-            content: '👑';
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            font-size: 16px;
-            transform: rotate(15deg);
-            opacity: 0.8;
+            min-height: 180px;
+            padding-bottom: 10px;
         }
 
         .expandable-section {
@@ -342,20 +367,6 @@
             text-transform: uppercase;
             font-weight: 600;
             letter-spacing: 0.5px;
-        }
-
-        /* Estilos da Reposição ER - Tema escuro */
-        .reposicao-er-card {
-            background: rgba(17, 24, 39, 0.9) !important;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #f1f5f9 !important;
-        }
-
-        .reposicao-er-card .er-table th {
-            background: #1e293b;
-            color: #94a3b8;
-            border-bottom: 2px solid rgba(255,255,255,0.15);
         }
 
         .reposicao-er-card .er-table td {
@@ -428,7 +439,6 @@
             font-size: 0.9rem; 
         }
 
-        /* ANIMAÇÃO PARA ITENS PENDENTES */
         @keyframes alert-pulse {
             0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
@@ -443,36 +453,6 @@
             border-radius: 999px !important;
             font-weight: 800 !important;
         }
-
-        /* ANIMAÇÃO PARA TRANSIÇÃO DE DADOS */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .fade-in-data {
-            animation: fadeInUp 0.4s ease-out forwards;
-        }
-
-        .ranking-body tr {
-            animation: fadeInUp 0.3s ease-out forwards;
-            opacity: 0;
-        }
-
-        .ranking-body tr:nth-child(1) { animation-delay: 0.05s; }
-        .ranking-body tr:nth-child(2) { animation-delay: 0.1s; }
-        .ranking-body tr:nth-child(3) { animation-delay: 0.15s; }
-        .ranking-body tr:nth-child(4) { animation-delay: 0.2s; }
-        .ranking-body tr:nth-child(5) { animation-delay: 0.25s; }
-        .ranking-body tr:nth-child(6) { animation-delay: 0.3s; }
-        .ranking-body tr:nth-child(7) { animation-delay: 0.35s; }
-        .ranking-body tr:nth-child(8) { animation-delay: 0.4s; }
 
         .pending-glow {
             position: relative;
@@ -489,7 +469,6 @@
             animation: pulse-er 1.5s infinite;
         }
 
-        /* Animação de entrada das linhas */
         @keyframes rowAppear {
             from {
                 opacity: 0;
@@ -506,7 +485,6 @@
             opacity: 0;
         }
 
-        /* Alturas fixas para cada seção */
         .main-container {
             height: calc(100vh - 24px);
             display: flex;
@@ -516,28 +494,47 @@
 
         .header-section { flex-shrink: 0; }
         .metrics-section { flex-shrink: 0; }
-        .charts-section { height: 150px; flex-shrink: 0; }
-        .performance-section { height: 200px; flex-shrink: 0; }
+        .charts-section { height: 160px; flex-shrink: 0; }
+        .performance-section { height: 220px; flex-shrink: 0; }
         .reposicao-section { flex-shrink: 0; margin-bottom: 4px; }
         .validade-section { flex-shrink: 0; }
         .footer-section { flex-shrink: 0; margin-top: auto; }
 
         .charts-section canvas {
-            max-height: 120px !important;
+            max-height: 130px !important;
         }
 
         .compact-table td, .compact-table th {
-            padding: 3px 6px !important;
+            padding: 4px 8px !important;
+        }
+
+        /* Theme toggle button */
+        .theme-toggle {
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        .theme-toggle:hover {
+            background: rgba(59, 130, 246, 0.3);
+            transform: scale(1.1);
+        }
+        body[data-theme="light"] .theme-toggle {
+            background: rgba(0,0,0,0.1);
+        }
+        body[data-theme="light"] .theme-toggle:hover {
+            background: rgba(59, 130, 246, 0.2);
         }
 
         @media (min-width: 1921px) {
             body { font-size: 16px; }
-            .charts-section { height: 180px; }
-            .performance-section { height: 250px; }
+            .charts-section { height: 200px; }
+            .performance-section { height: 280px; }
         }
     </style>
 </head>
-<body>
+<body data-theme="dark">
 
 <div class="timeline-bar" id="timelineBar"></div>
 
@@ -550,7 +547,7 @@
 </div>
 
 <div class="main-container max-w-[1920px] mx-auto w-full">
-    <!-- HEADER COM FILTROS -->
+    <!-- HEADER -->
     <header class="header-section flex justify-between items-center glass p-4 shadow-2xl">
         <div class="flex items-center gap-4">
             <div class="bg-blue-600/20 p-2 rounded-xl border border-blue-500/30">
@@ -566,6 +563,11 @@
         </div>
 
         <div class="flex gap-4 items-center">
+            <!-- Theme Toggle -->
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <i class="fas fa-moon text-blue-500" id="themeIcon"></i>
+            </div>
+
             <div class="flex gap-2 bg-black/40 p-1 rounded-lg border border-white/5">
                 <button onclick="aplicarFiltroTempo('hoje')" id="btnHoje" class="filter-btn">HOJE</button>
                 <button onclick="aplicarFiltroTempo('semana')" id="btnSemana" class="filter-btn">SEMANA</button>
@@ -574,9 +576,11 @@
 
             <div class="h-6 w-[1px] bg-white/10"></div>
 
-            <div class="live-badge flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full text-xs font-bold">
-                <div class="pulse w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div> 
-                <span class="text-slate-400">SINCRO EM TEMPO REAL</span>
+            <div class="flex gap-2 items-center bg-black/20 p-1 rounded-lg">
+                <input type="date" id="dataInicio" class="bg-white/5 border border-white/10 rounded-lg p-1 text-xs text-white outline-none w-28">
+                <span class="text-slate-500 text-xs font-bold uppercase italic">ATÉ</span>
+                <input type="date" id="dataFim" class="bg-white/5 border border-white/10 rounded-lg p-1 text-xs text-white outline-none w-28">
+                <button onclick="aplicarPeriodoPersonalizado()" class="bg-blue-600 px-3 py-1 rounded-lg text-xs font-bold uppercase hover:bg-blue-500 transition-all shadow-lg italic">FILTRAR</button>
             </div>
         </div>
     </header>
@@ -626,16 +630,11 @@
         </div>
     </div>
 
-    <!-- PERFORMANCE - COM GAMIFICAÇÃO -->
+    <!-- PERFORMANCE -->
     <div class="performance-section grid grid-cols-12 gap-2">
         <div class="col-span-9 glass flex flex-col overflow-hidden">
             <div class="p-2 bg-white/5 border-b border-white/5 text-[10px] font-black uppercase tracking-widest flex justify-between items-center italic">
-                <span><i class="fas fa-medal text-blue-500 mr-2"></i>RANKING DIÁRIO</span>
-                <div class="flex gap-2">
-                    <span class="indicator-badge"><i class="fas fa-tachometer-alt speed-indicator"></i> Velocidade</span>
-                    <span class="indicator-badge"><i class="fas fa-bullseye accuracy-indicator"></i> Precisão</span>
-                    <span class="indicator-badge"><i class="fas fa-boxes items-indicator"></i> Itens</span>
-                </div>
+                <span><i class="fas fa-medal text-blue-500 mr-2"></i>RANKING</span>
             </div>
             <div class="flex-1 overflow-auto custom-scroll">
                 <table class="w-full er-table compact-table">
@@ -647,12 +646,12 @@
                             <th class="text-center">ITENS</th>
                             <th class="text-center">MÉDIA</th>
                             <th class="text-center">MIN/PED</th>
-                            <th class="text-center">VELOCIDADE</th>
-                            <th class="text-center">PRECISÃO</th>
+                            <th class="text-center">TEMPO</th>
+                            <th class="text-center">PROD</th>
                             <th class="text-center">STATUS</th>
                         </tr>
                     </thead>
-                    <tbody id="rankingBody" class="ranking-body"></tbody>
+                    <tbody id="rankingBody"></tbody>
                 </table>
             </div>
         </div>
@@ -738,7 +737,7 @@
         </div>
     </div>
 
-    <!-- MONITOR DE VALIDADES -->
+    <!-- NOVO MONITOR DE VALIDADES - Substituído pelo layout do ai_studio_code (3).html -->
     <div class="validade-section glass p-3 shadow-2xl">
         <div class="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
             <div class="flex items-center gap-2">
@@ -847,6 +846,20 @@
 <input type="file" id="uploadInput" class="hidden" accept="image/*">
 
 <script>
+    // Theme Toggle Function
+    function toggleTheme() {
+        const body = document.body;
+        const themeIcon = document.getElementById('themeIcon');
+        
+        if (body.getAttribute('data-theme') === 'dark') {
+            body.setAttribute('data-theme', 'light');
+            themeIcon.className = 'fas fa-sun text-blue-500';
+        } else {
+            body.setAttribute('data-theme', 'dark');
+            themeIcon.className = 'fas fa-moon text-blue-500';
+        }
+    }
+
     // Firebase Config Principal
     const firebaseConfig = { 
         apiKey: "AIzaSyDlp5p7c3xpc42cRa1un_-zd3HNwqnGuQU", 
@@ -869,7 +882,6 @@
 
     let dadosBrutosSep = [], estoqueExcelData = [], fotoCache = {}, currentFilter = 'mes', tempoProgresso = 0, dataInicioFiltro = null, dataFimFiltro = null;
     let chartPizza = null, chartTempo = null;
-    let isLoading = false; // Controle para evitar múltiplas cargas simultâneas
     
     // Dados do Monitor de Validades
     let produtosValidade = [];
@@ -901,7 +913,7 @@
         renderizarSeparacao(); 
     });
 
-    // Firebase do Monitor de Validades (segunda instância)
+    // Firebase do Monitor de Validades (segunda instância) - NOVO LAYOUT
     const firebaseConfig2 = {
         apiKey: "AIzaSyDr8Q2oJJ46ZANAjnV0_iSokdHnZ-YqGP4",
         authDomain: "controle-validade-de623.firebaseapp.com",
@@ -927,7 +939,7 @@
         document.getElementById('progress-fill').style.width = perc + "%";
     }
 
-    // Monitor Validades
+    // NOVO: Monitor Validades com layout do ai_studio_code (3).html
     db2.ref('estoque/').on('value', (snap) => {
         const dados = snap.val() || {};
         const map = new Map();
@@ -968,6 +980,7 @@
         renderValidadesNovo();
     });
 
+    // NOVA função de renderização para o layout do ai_studio_code (3).html
     function renderValidadesNovo() {
         const listCrit = document.getElementById('list-critico');
         const listAtn = document.getElementById('list-atencao');
@@ -978,6 +991,7 @@
         const saudaveis = produtosValidade.filter(p => p.status === 'ok').length;
         const total = produtosValidade.length;
 
+        // Update Stock Health Panel
         const healthPct = Math.round((saudaveis / total) * 100 || 0);
         document.getElementById('health-pct').innerText = healthPct + '%';
         document.getElementById('health-bar').style.width = healthPct + '%';
@@ -985,11 +999,12 @@
         document.getElementById('stat-vencidos').innerText = vencidos.length;
         document.getElementById('stat-alertas').innerText = criticos.length + atencao.length;
 
+        // Update Badges
         document.getElementById('count-critico').innerText = criticos.length;
         document.getElementById('count-atencao').innerText = atencao.length;
 
         const template = (p) => `
-            <div class="card bg-white/5 hover:bg-white/10 rounded-lg p-2 cursor-pointer transition-all fade-in-data" onclick="abrirModalValidade('${p.codigo}')">
+            <div class="card bg-white/5 hover:bg-white/10 rounded-lg p-2 cursor-pointer transition-all" onclick="abrirModalValidade('${p.codigo}')">
                 <div class="flex justify-between items-center">
                     <div class="card-content flex-1 min-w-0">
                         <h4 class="text-xs font-bold text-white truncate">${p.desc}</h4>
@@ -1032,6 +1047,7 @@
         document.getElementById('modal-validade').style.display = 'none';
     };
 
+    // Função para buscar dados da Reposição ER
     async function fetchReposicaoER() {
         const url = `https://opensheet.elk.sh/${CONFIG.REPO_ID}/${encodeURIComponent(CONFIG.REPO_ABA)}`;
         const loader = document.getElementById('reposicaoLoader');
@@ -1166,34 +1182,19 @@
         const novosDados = rows.map(r => {
             const nome = r.c[2]?.v || '';
             const qtd = parseInt(r.c[3]?.v) || 0;
-            const itens = parseInt(r.c[4]?.v) || 0;
-            
             if (!nome || String(nome).toUpperCase().includes('TOTAL')) return null;
-            
             const ini = parseHora(r.c[5]?.v || r.c[5]?.f);
             const fim = parseHora(r.c[6]?.v || r.c[6]?.f);
             let tempo = (ini !== null && fim !== null) ? (fim - ini) : 0;
             if (tempo < 0) tempo += 1440;
-            
-            // CORREÇÃO: Tempo máximo de 480 minutos (8 horas)
-            if (tempo > 480) tempo = 0;
-            
             let dObj = null;
             if (r.c[0]?.v && r.c[0].v.toString().includes('Date')) {
                 const match = r.c[0].v.match(/Date\((\d+),(\d+),(\d+)\)/);
                 if (match) dObj = new Date(match[1], match[2], match[3]);
             } else if (r.c[0]?.f) {
-                const p = r.c[0].f.split('/'); 
-                dObj = new Date(p[2], p[1]-1, p[0]);
+                const p = r.c[0].f.split('/'); dObj = new Date(p[2], p[1]-1, p[0]);
             }
-            
-            return { 
-                data: dObj, 
-                nome: String(nome).trim().toUpperCase(), 
-                qtd: qtd, 
-                itens: itens, 
-                tempoTotal: tempo 
-            };
+            return { data: dObj, nome: String(nome).trim().toUpperCase(), qtd, itens: parseInt(r.c[4]?.v) || 0, tempoTotal: tempo > 480 ? 0 : tempo };
         }).filter(x => x !== null && x.data !== null);
 
         dadosBrutosSep.push(...novosDados);
@@ -1202,43 +1203,37 @@
     };
 
     function aplicarFiltroTempo(tipo) {
-        if (isLoading) return;
-        isLoading = true;
-        
         currentFilter = tipo;
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(`btn${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).classList.add('active');
 
-        // Animação de loading
-        document.querySelectorAll('.metric-card h2').forEach(el => {
-            el.style.opacity = '0.5';
-        });
+        if (tipo !== 'personalizado') {
+            const agora = new Date();
+            const meses = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+            const anoCurto = agora.getFullYear().toString().slice(-2);
+            const nomeAba = `SEPARAÇÃO ${meses[agora.getMonth()]}/${anoCurto}`;
 
-        setTimeout(() => {
-            renderizarSeparacao();
-            tempoProgresso = 0;
-            
-            document.querySelectorAll('.metric-card h2').forEach(el => {
-                el.style.opacity = '1';
-            });
-            
-            isLoading = false;
-        }, 300);
+            dadosBrutosSep = [];
+            buscarDadosSep(nomeAba);
+        }
+
+        renderizarSeparacao();
+        tempoProgresso = 0;
     }
 
     function aplicarPeriodoPersonalizado() {
-        notify("Função desativada");
+        const iniStr = document.getElementById('dataInicio').value;
+        const fimStr = document.getElementById('dataFim').value;
+        if(!iniStr || !fimStr) return notify("SELECIONE O INTERVALO!");
+        notify(`CARREGANDO DADOS...`);
     }
 
     function renderizarSeparacao() {
-        const hoje = new Date(); 
-        hoje.setHours(0, 0, 0, 0);
+        const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
 
-        // CORREÇÃO: Aplicar filtro baseado no período selecionado
         let filtrados = dadosBrutosSep.filter(item => {
             const d = item.data;
             const diffDias = (hoje - d) / 86400000;
-            
             if (currentFilter === "hoje" && d.toDateString() === hoje.toDateString()) return true;
             if (currentFilter === "semana" && diffDias >= 0 && diffDias <= 7) return true;
             if (currentFilter === "mes" && d.getMonth() === hoje.getMonth() && d.getFullYear() === hoje.getFullYear()) return true;
@@ -1265,24 +1260,16 @@
             tempoTotal: val.tempoTotal, 
             tempoMedio: (val.qtd > 0 && val.tempoTotal > 0) ? (val.tempoTotal / val.qtd).toFixed(1) : 0,
             mediaItens: val.qtd > 0 ? (val.itens / val.qtd).toFixed(1) : 0,
-            produtividade: (val.qtd > 0 && val.tempoTotal > 0) ? (val.itens / (val.tempoTotal / 60)).toFixed(1) : 0,
-            // GAMIFICAÇÃO - Indicadores corrigidos
-            velocidade: (val.qtd > 0 && val.tempoTotal > 0) ? Math.round((val.qtd * 60) / val.tempoTotal) : 0,
-            precisao: (val.itens > 0 && val.qtd > 0) ? Math.round((val.qtd / val.itens) * 100) : 0,
-            itensPorHora: (val.tempoTotal > 0) ? Math.round((val.itens * 60) / val.tempoTotal) : 0
+            produtividade: (val.qtd > 0 && val.tempoTotal > 0) ? (val.itens / (val.tempoTotal / 60)).toFixed(1) : 0
         })).sort((a, b) => b.qtd - a.qtd);
 
         const mediaEq = ranking.length ? Math.round(tQtd / ranking.length) : 0;
         const maiorQtd = ranking.length ? ranking[0].qtd : 0;
 
-        // Animar os valores das métricas
-        animarValor('totalPedidos', tQtd);
-        animarValor('totalItens', tItens);
-        animarValor('mediaEquipe', mediaEq);
-        
-        // CORREÇÃO: Cálculo correto do tempo médio
-        const tempoMedioCalc = tQtd > 0 ? (tTempo / tQtd).toFixed(1) : 0;
-        document.getElementById('tempoMedioGeral').innerHTML = `${tempoMedioCalc}m`;
+        document.getElementById('totalPedidos').innerText = tQtd;
+        document.getElementById('totalItens').innerText = tItens;
+        document.getElementById('mediaEquipe').innerText = mediaEq;
+        document.getElementById('tempoMedioGeral').innerHTML = `${(tQtd > 0 ? tTempo/tQtd : 0).toFixed(1)}m`;
         document.getElementById('melhorColaborador').innerText = ranking[0]?.nome || '-';
         document.getElementById('piorColaborador').innerText = ranking[ranking.length - 1]?.nome || '-';
 
@@ -1291,99 +1278,39 @@
         renderTabelaRanking(ranking, mediaEq, maiorQtd);
     }
 
-    // Função para animar valores
-    function animarValor(elementId, novoValor) {
-        const el = document.getElementById(elementId);
-        const valorAtual = parseInt(el.innerText) || 0;
-        
-        if (valorAtual === novoValor) return;
-        
-        const incremento = Math.ceil(Math.abs(novoValor - valorAtual) / 10);
-        let count = valorAtual;
-        
-        const timer = setInterval(() => {
-            if (novoValor > valorAtual) {
-                count += incremento;
-                if (count >= novoValor) {
-                    el.innerText = novoValor;
-                    clearInterval(timer);
-                } else {
-                    el.innerText = count;
-                }
-            } else {
-                count -= incremento;
-                if (count <= novoValor) {
-                    el.innerText = novoValor;
-                    clearInterval(timer);
-                } else {
-                    el.innerText = count;
-                }
-            }
-        }, 20);
-    }
-
     function renderPodium(ranking) {
         const container = document.getElementById('podiumContainer'); 
         if (!ranking.length) return container.innerHTML = "";
-        
         const top = ranking.slice(0, 3); 
-        
-        const order = [
-            { pos: 1, data: top[1] }, // 2º lugar
-            { pos: 0, data: top[0] }, // 1º lugar
-            { pos: 2, data: top[2] }  // 3º lugar
-        ];
-        
-        container.innerHTML = order.map((item, index) => {
-            const u = item.data;
-            if (!u) return "";
-            
-            const isFirst = item.pos === 0;
-            const avatarClass = isFirst ? 'avatar-xl' : (index === 0 ? 'avatar-large silver-border' : 'avatar-large bronze-border');
-            const scale = isFirst ? 'scale-110' : '';
-            
-            return `
-                <div class="podium-item ${scale} fade-in-data" style="animation-delay: ${index * 0.1}s">
-                    <div class="avatar-container ${avatarClass}">
-                        <img src="${fotoCache[u.nome.replace(/\s/g, '_')] || `https://ui-avatars.com/api/?name=${u.nome}&background=1e293b&color=fff&size=100`}">
-                    </div>
-                    <div class="podium-name">${u.nome.split(' ')[0]}</div>
-                    <div class="podium-value">${u.qtd}</div>
-                    <div class="flex gap-2 mt-1">
-                        <span class="text-[8px] speed-indicator"><i class="fas fa-tachometer-alt"></i> ${u.velocidade}/h</span>
-                        <span class="text-[8px] accuracy-indicator"><i class="fas fa-bullseye"></i> ${u.precisao}%</span>
-                    </div>
-                </div>
-            `;
+        const order = [top[1], top[0], top[2]];
+        container.innerHTML = order.map((u, i) => { 
+            if (!u) return ""; 
+            const is1 = u.nome === top[0].nome; 
+            const size = is1 ? 'avatar-xl' : (i === 0 ? 'avatar-large silver-border' : 'avatar-large bronze-border'); 
+            return `<div class="flex flex-col items-center ${is1 ? 'scale-105' : ''}">
+                <div class="${size}"><img src="${fotoCache[u.nome.replace(/\s/g, '_')] || `https://ui-avatars.com/api/?name=${u.nome}&background=1e293b&color=fff&size=100`}"></div>
+                <span class="mt-1 font-black text-[10px] uppercase text-slate-200">${u.nome.split(' ')[0]}</span>
+                <span class="text-xl font-black text-blue-500">${u.qtd}</span>
+            </div>`; 
         }).join('');
     }
 
     function renderTabelaRanking(ranking, media, maiorQtd) {
         document.getElementById('rankingBody').innerHTML = ranking.slice(0, 8).map((r, i) => {
             const rowClass = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : ''));
-            
-            // Medalhas para os 3 primeiros
-            let medalIcon = '';
-            if (i === 0) medalIcon = '<i class="fas fa-crown medal-gold ml-1"></i>';
-            else if (i === 1) medalIcon = '<i class="fas fa-medal medal-silver ml-1"></i>';
-            else if (i === 2) medalIcon = '<i class="fas fa-medal medal-bronze ml-1"></i>';
 
-            return `<tr class="hover:bg-white/5 transition-all border-b border-white/5 ${rowClass}" style="animation-delay: ${i * 0.05}s">
+            return `<tr class="hover:bg-white/5 transition-all border-b border-white/5 ${rowClass}">
                 <td class="px-2 py-1 font-black text-slate-500 italic text-xs">#${i+1}</td>
                 <td class="px-2 py-1 flex items-center gap-2 cursor-pointer" onclick="triggerUpload('${r.nome}')">
                     <div class="avatar shadow-lg shadow-black/40"><img src="${fotoCache[r.nome.replace(/\s/g, '_')] || `https://ui-avatars.com/api/?name=${r.nome}&background=1e293b&color=fff&size=36`}"></div>
-                    <span class="font-black text-xs uppercase text-slate-200">${r.nome.split(' ')[0]} ${medalIcon}</span>
+                    <span class="font-black text-xs uppercase text-slate-200">${r.nome.split(' ')[0]}</span>
                 </td>
                 <td class="px-2 py-1 text-center font-black text-blue-400 text-xs">${r.qtd}</td>
                 <td class="px-2 py-1 text-center font-black text-orange-400 text-xs">${r.itens}</td>
                 <td class="px-2 py-1 text-center font-bold text-purple-400 text-xs">${r.mediaItens}</td>
                 <td class="px-2 py-1 text-center text-purple-400 font-bold italic text-xs">${r.tempoMedio > 0 ? r.tempoMedio + 'm' : '-'}</td>
-                <td class="px-2 py-1 text-center">
-                    <span class="speed-indicator font-black text-xs">${r.velocidade}/h</span>
-                </td>
-                <td class="px-2 py-1 text-center">
-                    <span class="accuracy-indicator font-black text-xs">${r.precisao}%</span>
-                </td>
+                <td class="px-2 py-1 text-center text-emerald-400 font-black text-xs">${Math.floor(r.tempoTotal/60)}h</td>
+                <td class="px-2 py-1 text-center font-black text-amber-400 text-xs">${r.produtividade}</td>
                 <td class="px-2 py-1 text-center">
                     <span class="px-1 py-0.5 rounded text-[9px] font-black ${r.qtd >= media ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'}">
                         ${r.qtd >= media ? 'META' : '↓'}
@@ -1428,14 +1355,8 @@
                 maintainAspectRatio: false, 
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        grid: { color: 'rgba(255,255,255,0.1)' }, 
-                        ticks: { color: '#94a3b8', font: { size: 8 } }
-                    },
-                    x: { 
-                        ticks: { color: '#94a3b8', font: { size: 8 } }
-                    }
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#94a3b8', font: { size: 8 } } },
+                    x: { ticks: { color: '#94a3b8', font: { size: 8 } } }
                 }
             } 
         });
@@ -1487,9 +1408,8 @@
         input.click();
     }
 
-    // Timeline automática
     setInterval(() => { 
-        if (!isLoading) { 
+        if (currentFilter !== 'personalizado') { 
             tempoProgresso += 0.5; 
             document.getElementById('timelineBar').style.width = tempoProgresso + '%'; 
             if (tempoProgresso >= 100) { 
@@ -1499,10 +1419,11 @@
         } 
     }, 150);
 
-    // Atualização automática a cada 30 segundos
-    setInterval(() => {
-        if (!isLoading) {
-            init();
+    setInterval(() => { 
+        if (currentFilter === 'personalizado') {
+            renderizarSeparacao();
+        } else {
+            init(); 
         }
     }, 30000);
 
