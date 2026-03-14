@@ -159,7 +159,7 @@
         };
 
         window.App = {
-            state: { mode: 'locate', inventory: [], activeListener: null },
+            state: { mode: 'locate', labelSubMode: 'single', inventory: [], activeListener: null },
 
             ui: {
                 setMode(mode) {
@@ -205,22 +205,40 @@
                 },
 
                 renderLabels() {
+                    const isBatch = App.state.labelSubMode === 'batch';
                     document.getElementById('main-view').innerHTML = `
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                             <div class="lg:col-span-4 glass p-8 space-y-4 h-fit">
-                                <h3 class="text-blue-500 font-black uppercase text-xs">Etiquetas</h3>
-                                <input type="text" id="etq-in" class="input-pro w-full py-4 font-bold" placeholder="Código" oninput="App.logic.lookupProduct(this.value)">
-                                <div id="etq-name" class="text-center font-bold text-blue-400 text-sm h-10 uppercase"></div>
-                                <div class="grid grid-cols-1 gap-1">
-                                    <span class="text-[10px] text-slate-500 font-bold uppercase">Validade</span>
-                                    <input type="text" id="etq-val" class="input-pro p-3 text-xs font-bold" placeholder="MM/AAAA" maxlength="7" oninput="App.logic.handleDateInput(this)">
+                                <!-- Seletor de Modo Interno -->
+                                <div class="flex gap-2 p-1 bg-black/40 rounded-xl mb-4">
+                                    <button onclick="App.logic.setLabelSubMode('single')" class="flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${!isBatch ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-white'}">Individual</button>
+                                    <button onclick="App.logic.setLabelSubMode('batch')" class="flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${isBatch ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-white'}">Lote</button>
                                 </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div><span class="text-[10px] text-slate-500 font-bold uppercase">Cópias</span><input type="number" id="etq-print-qty" class="input-pro w-full p-3 text-xs font-bold" value="1"></div>
-                                    <div><span class="text-[10px] text-slate-500 font-bold uppercase">Qtd Itens</span><input type="text" id="etq-items-qty" class="input-pro w-full p-3 text-xs font-bold" placeholder="Opcional"></div>
-                                </div>
-                                <button onclick="App.logic.addLabel()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black uppercase shadow-lg">Adicionar</button>
-                                <button onclick="App.logic.cleanQueue('print_queue')" class="w-full bg-rose-600/20 text-rose-500 py-3 rounded-xl font-bold uppercase text-[10px]">Limpar Fila</button>
+
+                                <h3 class="text-blue-500 font-black uppercase text-xs">${isBatch ? 'Geração em Lote' : 'Etiqueta Individual'}</h3>
+                                
+                                ${!isBatch ? `
+                                    <input type="text" id="etq-in" class="input-pro w-full py-4 font-bold" placeholder="Código" oninput="App.logic.lookupProduct(this.value)">
+                                    <div id="etq-name" class="text-center font-bold text-blue-400 text-sm h-10 uppercase"></div>
+                                    <div class="grid grid-cols-1 gap-1">
+                                        <span class="text-[10px] text-slate-500 font-bold uppercase">Validade</span>
+                                        <input type="text" id="etq-val" class="input-pro p-3 text-xs font-bold" placeholder="MM/AAAA" maxlength="7" oninput="App.logic.handleDateInput(this)">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div><span class="text-[10px] text-slate-500 font-bold uppercase">Cópias</span><input type="number" id="etq-print-qty" class="input-pro w-full p-3 text-xs font-bold" value="1"></div>
+                                        <div><span class="text-[10px] text-slate-500 font-bold uppercase">Qtd Itens</span><input type="text" id="etq-items-qty" class="input-pro w-full p-3 text-xs font-bold" placeholder="Opcional"></div>
+                                    </div>
+                                    <button onclick="App.logic.addLabel()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black uppercase shadow-lg">Adicionar</button>
+                                ` : `
+                                    <div class="grid grid-cols-1 gap-1">
+                                        <span class="text-[10px] text-slate-500 font-bold uppercase">Validade para o Lote</span>
+                                        <input type="text" id="etq-val" class="input-pro p-3 text-xs font-bold" placeholder="MM/AAAA" maxlength="7" oninput="App.logic.handleDateInput(this)">
+                                    </div>
+                                    <textarea id="etq-batch" class="input-pro w-full h-48 p-3 text-left text-xs" placeholder="Código Qtd&#10;Ex:&#10;78945 3&#10;12345"></textarea>
+                                    <button onclick="App.logic.addLabelBatch()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black uppercase shadow-lg">Gerar Lote</button>
+                                `}
+
+                                <button onclick="App.logic.cleanQueue('print_queue')" class="w-full bg-rose-600/20 text-rose-500 py-3 rounded-xl font-bold uppercase text-[10px] mt-4">Limpar Fila</button>
                             </div>
                             <div class="lg:col-span-8 glass p-8"><div id="queue-box"></div><div id="queue-foot" class="mt-6"></div></div>
                         </div>`;
@@ -259,7 +277,6 @@
                     items.sort((a,b) => String(a.rua + a.rck).localeCompare(String(b.rua + b.rck)));
 
                     if (App.state.mode === 'picking') {
-                        // Modo reposição: exibir informações de físico e disponível
                         box.innerHTML = items.map(i => `
                             <div class="simple-list-item">
                                 <div>
@@ -274,7 +291,6 @@
                                 </div>
                             </div>`).join('');
                     } else {
-                        // Modo etiquetas (sem físico/disponível)
                         box.innerHTML = items.map(i => `
                             <div class="simple-list-item">
                                 <div>
@@ -290,12 +306,22 @@
                     }
 
                     if (App.state.mode === 'labels' && document.getElementById('queue-foot')) {
-                        document.getElementById('queue-foot').innerHTML = `<button onclick="App.logic.copyLabelsZPL()" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase shadow-xl">Copiar ZPL (2 por Etiqueta)</button>`;
+                        document.getElementById('queue-foot').innerHTML = `
+                            <div class="flex flex-col gap-3">
+                                <button onclick="App.logic.copyLabelsZPL()" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase shadow-xl">Copiar ZPL (2 por Etiqueta)</button>
+                                <button onclick="App.logic.copyLabelsZPL4()" class="w-full bg-slate-200 text-black py-4 rounded-xl font-black uppercase shadow-xl">Copiar ZPL (4 por Etiqueta)</button>
+                            </div>`;
                     }
                 }
             },
 
             logic: {
+                setLabelSubMode(mode) {
+                    App.state.labelSubMode = mode;
+                    App.ui.renderLabels();
+                    App.ui.syncQueues();
+                },
+
                 handleDateInput(el) {
                     let v = el.value.replace(/\D/g, '');
                     if (v.length > 2) v = v.substring(0, 2) + '/' + v.substring(2, 6);
@@ -345,6 +371,36 @@
                     document.getElementById('etq-in').value = '';
                 },
 
+                async addLabelBatch() {
+                    const text = document.getElementById('etq-batch').value;
+                    const lines = text.split('\n').filter(l => l.trim());
+                    const validity = document.getElementById('etq-val').value;
+
+                    for (let line of lines) {
+                        const parts = line.trim().split(/\s+/);
+                        const code = parts[0];
+                        const copies = parseInt(parts[1]) || 1;
+                        const search = Utils.cleanId(code);
+                        const p = App.state.inventory.find(i => Utils.cleanId(i.COD) === search) || { NOM: 'AVULSO' };
+
+                        for(let i = 0; i < copies; i++) {
+                            await push(ref(db, 'print_queue'), {
+                                codigo: code,
+                                nome: p.NOM,
+                                val: validity,
+                                qty: 1,
+                                qtyItems: '',
+                                rua: Utils.formatCoord(p.RUA || '-'),
+                                rck: Utils.formatCoord(p.RCK || '-'),
+                                lin: p.LIN || '-',
+                                col: p.COL || '-'
+                            });
+                        }
+                    }
+                    document.getElementById('etq-batch').value = '';
+                    Notifications.show('Lote de etiquetas gerado', 'success');
+                },
+
                 async copyLabelsZPL() {
                     onValue(ref(db, 'print_queue'), (snap) => {
                         if (!snap.exists()) return;
@@ -365,6 +421,33 @@
                             zpl += "^XZ\n";
                         }
                         navigator.clipboard.writeText(zpl).then(() => Notifications.show('ZPL 2-por-Etiqueta Copiado!', 'success'));
+                    }, { onlyOnce: true });
+                },
+
+                async copyLabelsZPL4() {
+                    onValue(ref(db, 'print_queue'), (snap) => {
+                        if (!snap.exists()) return;
+                        const items = Object.values(snap.val());
+                        let zpl = "";
+                        for (let i = 0; i < items.length; i += 4) {
+                            zpl += "^XA^CI28^PW812^LL1218\n";
+                            const offsets = [
+                                {x: 20, y: 20}, {x: 415, y: 20},
+                                {x: 20, y: 620}, {x: 415, y: 620}
+                            ];
+                            offsets.forEach((pos, idx) => {
+                                const it = items[i + idx]; if (!it) return;
+                                const addr = `${Utils.sanitizeText(it.rua)}.${Utils.sanitizeText(it.rck)}.${it.lin}/${it.col}`;
+                                zpl += `^FO${pos.x},${pos.y}^A0N,70,60^FD${Utils.cleanId(it.codigo)}^FS\n`;
+                                if (it.val) zpl += `^FO${pos.x+210},${pos.y-5}^GB160,50,50^FS^FO${pos.x+215},${pos.y}^A0N,45,40^FR^FD${it.val}^FS\n`;
+                                zpl += `^FO${pos.x},${pos.y+75}^A0N,30,30^FB375,2,0,L,0^FD${Utils.sanitizeText(it.nome)}^FS\n`;
+                                zpl += `^FO${pos.x},${pos.y+150}^A0N,28,28^FD${addr}^FS\n`;
+                                if (it.qtyItems) zpl += `^FO${pos.x+280},${pos.y+150}^A0N,40,40^FDQ:${it.qtyItems}^FS\n`;
+                                zpl += `^BY2,3,110^FO${pos.x+40},${pos.y+200}^BCN,110,Y,N,N^FD${it.codigo}^FS\n`;
+                            });
+                            zpl += "^XZ\n";
+                        }
+                        navigator.clipboard.writeText(zpl).then(() => Notifications.show('ZPL 4-por-etiqueta copiado!', 'success'));
                     }, { onlyOnce: true });
                 },
 
@@ -428,8 +511,8 @@
                                     data[r[0]] = { 
                                         COD: r[0], NOM: r[1], RUA: Utils.formatCoord(r[4]), 
                                         RCK: Utils.formatCoord(r[5]), LIN: r[6], COL: r[7], 
-                                        FIS: r[8],   // Total físico (coluna I)
-                                        EST: r[10]   // Total disponível (coluna K)
+                                        FIS: r[8],
+                                        EST: r[10]
                                     };
                                 }
                             }
