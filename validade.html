@@ -691,38 +691,33 @@
             border-color: var(--accent);
         }
 
-        .teclado-acoes {
+        .botoes-acao {
             display: flex;
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 20px;
         }
 
-        .tecla-acao {
+        .botoes-acao .btn-salvar {
             flex: 1;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 12px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: var(--text-primary);
+            margin: 0;
+            font-size: 1rem;
+            padding: 14px;
         }
 
-        .tecla-acao:hover {
-            background: var(--accent);
-            color: white;
-        }
-
-        .tecla-gravar {
+        .botoes-acao .btn-salvar:first-child {
             background: var(--success);
-            border-color: var(--success);
-            color: white;
         }
 
-        .tecla-gravar:hover {
+        .botoes-acao .btn-salvar:first-child:hover {
             background: #059669;
+        }
+
+        .botoes-acao .btn-salvar:last-child {
+            background: var(--warning);
+        }
+
+        .botoes-acao .btn-salvar:last-child:hover {
+            background: #d97706;
         }
 
         /* Lotes List */
@@ -1005,7 +1000,7 @@
     </div>
 </div>
 
-<div class="modal" id="modalData" onclick="if(event.target === this) fecharModal()">
+<div class="modal" id="modalData">
     <div class="modal-content">
         <div class="modal-header">
             <h2 id="prodNome">Carregando...</h2>
@@ -1520,6 +1515,94 @@
         }
     }
 
+    // Função para marcar produtos sem vencimento
+    window.marcarSemVencimento = async () => {
+        const quantidade = parseInt(document.getElementById('inputQuantidade')?.value);
+        
+        if (!quantidade || quantidade <= 0) {
+            mostrarToast('Digite uma quantidade válida', 'warning');
+            return;
+        }
+        
+        const itensPendentes = Object.entries(inventario)
+            .filter(([_, item]) => item.codigo === refCodigoGlobal && !item.done);
+
+        if (itensPendentes.length === 0) {
+            mostrarToast('Todos os lotes já foram processados', 'info');
+            fecharModal();
+            return;
+        }
+
+        const totalPendente = itensPendentes.reduce((acc, [_, item]) => acc + (item.qtde || 0), 0);
+        
+        if (quantidade > totalPendente) {
+            mostrarToast(`Quantidade indisponível. Total pendente: ${totalPendente}`, 'warning');
+            return;
+        }
+
+        let updates = {};
+        let quantidadeRestante = quantidade;
+
+        for (let [id, item] of itensPendentes) {
+            if (quantidadeRestante <= 0) break;
+            
+            const qtdDisponivel = item.qtde || 0;
+            
+            if (qtdDisponivel <= quantidadeRestante) {
+                const novoId = `${id}_SEM_VAL_${Date.now()}`;
+                
+                const historico = item.historico || [];
+                historico.push({
+                    data: Date.now(),
+                    tipo: 'validade_atribuida',
+                    quantidade: qtdDisponivel,
+                    validade: 'SEM VENCIMENTO'
+                });
+                
+                updates[`${novoId}`] = {
+                    ...item,
+                    validade: 'SEM VENCIMENTO',
+                    done: true,
+                    qtde: qtdDisponivel,
+                    historico: historico,
+                    semVencimento: true
+                };
+                updates[`${id}`] = null;
+                quantidadeRestante -= qtdDisponivel;
+            } else {
+                const novoId = `${id}_SEM_VAL_${Date.now()}`;
+                
+                const historico = item.historico || [];
+                historico.push({
+                    data: Date.now(),
+                    tipo: 'validade_atribuida',
+                    quantidade: quantidadeRestante,
+                    validade: 'SEM VENCIMENTO'
+                });
+                
+                updates[`${novoId}`] = {
+                    ...item,
+                    validade: 'SEM VENCIMENTO',
+                    done: true,
+                    qtde: quantidadeRestante,
+                    historico: historico,
+                    semVencimento: true
+                };
+                
+                updates[`${id}`] = {
+                    ...item,
+                    qtde: qtdDisponivel - quantidadeRestante
+                };
+                
+                quantidadeRestante = 0;
+            }
+        }
+
+        await estoqueRef.update(updates);
+        mostrarToast(`${quantidade} unidades marcadas como SEM VENCIMENTO!`, 'success');
+        fecharModal();
+    };
+
     function inicializarTeclado() {
         gerarAnos();
         
@@ -1532,11 +1615,21 @@
             });
         });
         
-        const btnLimpar = document.getElementById('btn-limpar-data');
-        if (btnLimpar) btnLimpar.addEventListener('click', limparData);
-        
+        // Botão GRAVAR (agora fora do teclado)
         const btnGravar = document.getElementById('btn-gravar-data');
-        if (btnGravar) btnGravar.addEventListener('click', gravarData);
+        if (btnGravar) {
+            const novoBtnGravar = btnGravar.cloneNode(true);
+            btnGravar.parentNode.replaceChild(novoBtnGravar, btnGravar);
+            novoBtnGravar.addEventListener('click', gravarData);
+        }
+        
+        // Botão SEM VENCIMENTO (agora fora do teclado)
+        const btnSemVencimento = document.getElementById('btn-sem-vencimento');
+        if (btnSemVencimento) {
+            const novoBtnSem = btnSemVencimento.cloneNode(true);
+            btnSemVencimento.parentNode.replaceChild(novoBtnSem, btnSemVencimento);
+            novoBtnSem.addEventListener('click', marcarSemVencimento);
+        }
         
         const inputData = document.getElementById('inputData');
         if (inputData) {
@@ -1724,7 +1817,7 @@
 
         refCodigoGlobal = codigo;
         
-        const comValidade = lotes.filter(l => l.done && l.validade);
+        const comValidade = lotes.filter(l => l.done && l.validade && l.validade !== 'SEM VENCIMENTO');
         const pendentes = lotes.filter(l => !l.done);
         const totalPendente = pendentes.reduce((acc, l) => acc + (l.qtde || 0), 0);
         const primeiroLote = lotes[0];
@@ -1818,7 +1911,7 @@
             historicoList.innerHTML = '<div style="text-align:center; padding:15px;">Nenhum histórico disponível</div>';
         }
 
-        // Input com teclado de data
+        // Input com teclado de data e botões fora
         document.getElementById('inputContainer').innerHTML = `
             <div style="margin: 15px 0;">
                 <label style="display: block; text-align: left; font-weight: 600; margin-bottom: 5px;">
@@ -1858,16 +1951,18 @@
                         <div class="teclado-label">ANO</div>
                         <div id="anos-grid" class="anos-grid"></div>
                     </div>
-                    
-                    <div class="teclado-acoes">
-                        <button type="button" class="tecla-acao" id="btn-limpar-data">LIMPAR</button>
-                        <button type="button" class="tecla-acao tecla-gravar" id="btn-gravar-data">GRAVAR</button>
-                    </div>
                 </div>
+            </div>
+            
+            <div class="botoes-acao">
+                <button type="button" class="btn-salvar" id="btn-gravar-data">💾 GRAVAR VALIDADE</button>
+                <button type="button" class="btn-salvar" id="btn-sem-vencimento">📦 SEM VENCIMENTO</button>
             </div>
         `;
 
-        document.getElementById('modalData').style.display = 'flex';
+        // Mostrar modal sem permitir fechar ao clicar fora
+        const modal = document.getElementById('modalData');
+        modal.style.display = 'flex';
         
         // Inicializar teclado após o modal abrir
         setTimeout(() => {
@@ -2246,9 +2341,6 @@
     }
     .diferenca-positiva { color: var(--success); }
     .diferenca-negativa { color: var(--danger); }
-    .modal .modal-content .teclado-container .tecla-acao {
-        background: var(--bg-secondary);
-    }
 </style>
 </body>
 </html>
