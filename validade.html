@@ -1189,6 +1189,7 @@
                         origem: 'xml',
                         ultimaVenda: null,
                         diasSemVenda: 0,
+                        endereco: '',
                         historico: [{
                             data: Date.now(),
                             tipo: 'importacao',
@@ -1212,7 +1213,7 @@
         e.target.value = '';
     });
 
-    // Upload Planilha
+    // ===== UPLOAD PLANILHA CORRIGIDO - SEM DUPLICAÇÃO =====
     document.getElementById('estoqueInput').addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -1228,6 +1229,7 @@
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
             
+            // Mapa para agrupar por código (valores da planilha)
             const novosProdutos = new Map();
             
             for (let i = 1; i < rows.length; i++) {
@@ -1239,6 +1241,7 @@
                 const qtde = parseFloat(String(row[8] || '0').replace(',', '.')) || 0;
                 const estoqueMinimo = parseFloat(String(row[11] || '0').replace(',', '.')) || 0;
                 
+                // Extrair endereço completo
                 const endereco = [row[4], row[5], row[6], row[7]]
                     .filter(c => c && String(c).trim())
                     .map(c => String(c).trim())
@@ -1255,24 +1258,28 @@
                             qtde: qtde,
                             endereco: endereco,
                             estoqueMinimo: estoqueMinimo,
-                            origem: 'estoque'
+                            origem: 'planilha'
                         });
                     }
                 }
             }
             
+            // Salvar snapshot para comparação
             estoqueAnterior = JSON.parse(JSON.stringify(inventario));
             
             let atualizacoes = {};
             let produtosVendidos = 0;
             let produtosRepostos = 0;
             let produtosNovos = 0;
-            let produtosAbaixoMinimo = 0;
+            let produtosAtualizados = 0;
             
+            // ===== PROCESSAR CADA PRODUTO DA PLANILHA =====
             for (let [codigo, novoProduto] of novosProdutos) {
-                const existentes = Object.entries(inventario).filter(([_, item]) => item.codigo === codigo && item.origem === 'estoque');
+                // Buscar TODOS os lotes com este código (independente da origem)
+                const existentes = Object.entries(inventario).filter(([_, item]) => item.codigo === codigo);
                 
                 if (existentes.length === 0) {
+                    // Produto novo - cria um novo lote
                     const id = `ESTOQUE_${codigo}_${Date.now()}_${produtosNovos}`.replace(/[.#$\[\]\/]/g, "_");
                     atualizacoes[id] = {
                         ...novoProduto,
@@ -1289,11 +1296,8 @@
                         }]
                     };
                     produtosNovos++;
-                    
-                    if (novoProduto.qtde <= novoProduto.estoqueMinimo) {
-                        produtosAbaixoMinimo++;
-                    }
                 } else {
+                    // Produto já existe - atualizar quantidades
                     const quantidadeAntiga = existentes.reduce((acc, [_, item]) => acc + (item.qtde || 0), 0);
                     const diferenca = novoProduto.qtde - quantidadeAntiga;
                     
@@ -1304,6 +1308,7 @@
                         if (tipoMovimento === 'venda') {
                             produtosVendidos += Math.abs(diferenca);
                             
+                            // Distribuir a venda entre os lotes existentes
                             for (let [id, item] of existentes) {
                                 const historico = item.historico || [];
                                 historico.push({
@@ -1324,6 +1329,7 @@
                         } else {
                             produtosRepostos += diferenca;
                             
+                            // Adicionar nova quantidade como um lote separado
                             const id = `ESTOQUE_${codigo}_${Date.now()}_${produtosRepostos}`.replace(/[.#$\[\]\/]/g, "_");
                             atualizacoes[id] = {
                                 ...novoProduto,
@@ -1339,16 +1345,26 @@
                                 }]
                             };
                         }
+                        produtosAtualizados++;
                     }
                     
-                    if (novoProduto.qtde <= novoProduto.estoqueMinimo) {
-                        produtosAbaixoMinimo++;
+                    // Atualizar endereço se mudou
+                    if (novoProduto.endereco && novoProduto.endereco !== 'S/E') {
+                        for (let [id, item] of existentes) {
+                            if (item.endereco !== novoProduto.endereco) {
+                                atualizacoes[id] = {
+                                    ...(atualizacoes[id] || item),
+                                    endereco: novoProduto.endereco
+                                };
+                            }
+                        }
                     }
                 }
             }
             
+            // Marcar produtos que sumiram da planilha (venderam tudo)
             for (let [id, item] of Object.entries(inventario)) {
-                if (item.origem === 'estoque' && !novosProdutos.has(item.codigo) && item.qtde > 0) {
+                if (!novosProdutos.has(item.codigo) && item.qtde > 0) {
                     produtosVendidos += item.qtde;
                     
                     const historico = item.historico || [];
@@ -1370,6 +1386,7 @@
                 }
             }
             
+            // Aplicar atualizações
             if (Object.keys(atualizacoes).length > 0) {
                 await estoqueRef.update(atualizacoes);
                 
@@ -1379,7 +1396,7 @@
                     produtosVendidos: produtosVendidos,
                     produtosRepostos: produtosRepostos,
                     produtosNovos: produtosNovos,
-                    produtosAbaixoMinimo: produtosAbaixoMinimo,
+                    produtosAtualizados: produtosAtualizados,
                     totalAtualizacoes: Object.keys(atualizacoes).length
                 });
                 
@@ -1388,16 +1405,10 @@
                     📉 Vendidos: ${produtosVendidos} un | 
                     📈 Repostos: ${produtosRepostos} un | 
                     🆕 Novos: ${produtosNovos} |
-                    ⚠️ Abaixo mínimo: ${produtosAbaixoMinimo}
+                    🔄 Atualizados: ${produtosAtualizados}
                 `;
                 
-                let mensagem = `Planilha processada! ${produtosVendidos} unidades vendidas`;
-                if (produtosAbaixoMinimo > 0) {
-                    mensagem += ` | ${produtosAbaixoMinimo} produtos abaixo do mínimo`;
-                    mostrarToast(mensagem, produtosAbaixoMinimo > 5 ? 'warning' : 'info');
-                } else {
-                    mostrarToast(mensagem, 'success');
-                }
+                mostrarToast(`Planilha processada! ${produtosVendidos} unidades vendidas`, 'success');
             } else {
                 statusDiv.innerHTML = '⚠️ Nenhuma alteração detectada';
                 mostrarToast('Estoque está igual ao anterior', 'info');
@@ -1615,7 +1626,7 @@
             });
         });
         
-        // Botão GRAVAR (agora fora do teclado)
+        // Botão GRAVAR
         const btnGravar = document.getElementById('btn-gravar-data');
         if (btnGravar) {
             const novoBtnGravar = btnGravar.cloneNode(true);
@@ -1623,7 +1634,7 @@
             novoBtnGravar.addEventListener('click', gravarData);
         }
         
-        // Botão SEM VENCIMENTO (agora fora do teclado)
+        // Botão SEM VENCIMENTO
         const btnSemVencimento = document.getElementById('btn-sem-vencimento');
         if (btnSemVencimento) {
             const novoBtnSem = btnSemVencimento.cloneNode(true);
