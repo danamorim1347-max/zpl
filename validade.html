@@ -500,7 +500,7 @@
         e.target.value = '';
     });
 
-    // Upload Planilha
+    // Upload Planilha - CORRIGIDO: atualiza lotes existentes em vez de criar novos
     document.getElementById('estoqueInput').addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -516,6 +516,7 @@
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
             
+            // Mapa para agrupar produtos da planilha por código
             const novosProdutos = new Map();
             
             for (let i = 1; i < rows.length; i++) {
@@ -557,13 +558,15 @@
             let produtosNovos = 0;
             let produtosAtualizados = 0;
             
-            // Filtrar apenas itens da planilha para comparação (inclui 'planilha' e também 'estoque' para compatibilidade)
-            const itensPlanilha = Object.entries(inventario).filter(([_, item]) => item.origem === 'planilha' || item.origem === 'estoque');
-            
+            // Para cada produto da planilha
             for (let [codigo, novoProduto] of novosProdutos) {
-                const existentes = itensPlanilha.filter(([_, item]) => item.codigo === codigo);
+                // Buscar todos os lotes EXISTENTES deste código na planilha (incluindo os que já têm validade)
+                const lotesExistentes = Object.entries(inventario).filter(([_, item]) => 
+                    item.codigo === codigo && (item.origem === 'planilha' || item.origem === 'estoque')
+                );
                 
-                if (existentes.length === 0) {
+                if (lotesExistentes.length === 0) {
+                    // Produto NOVO - cria um novo lote
                     const id = `PLANILHA_${codigo}_${Date.now()}_${produtosNovos}`.replace(/[.#$\[\]\/]/g, "_");
                     atualizacoes[id] = {
                         ...novoProduto,
@@ -581,19 +584,27 @@
                     };
                     produtosNovos++;
                 } else {
-                    const quantidadeAntiga = existentes.reduce((acc, [_, item]) => acc + (item.qtde || 0), 0);
-                    const diferenca = novoProduto.qtde - quantidadeAntiga;
+                    // Produto já existe - calcula diferença total
+                    const quantidadeAtual = lotesExistentes.reduce((acc, [_, item]) => acc + (item.qtde || 0), 0);
+                    const diferenca = novoProduto.qtde - quantidadeAtual;
                     
                     if (diferenca !== 0) {
                         const tipoMovimento = diferenca < 0 ? 'venda' : 'reposicao';
                         const dataMovimento = Date.now();
                         
                         if (tipoMovimento === 'venda') {
+                            // VENDA: reduzir estoque dos lotes existentes
                             const quantidadeVenda = Math.abs(diferenca);
                             produtosVendidos += quantidadeVenda;
                             
                             let restante = quantidadeVenda;
-                            for (let [id, item] of existentes) {
+                            // Ordena lotes: primeiro os pendentes (sem validade), depois os com validade
+                            const lotesOrdenados = [...lotesExistentes].sort((a, b) => {
+                                if (a[1].done === b[1].done) return 0;
+                                return a[1].done ? 1 : -1; // pendentes primeiro
+                            });
+                            
+                            for (let [id, item] of lotesOrdenados) {
                                 if (restante <= 0) break;
                                 const qtdDisponivel = item.qtde || 0;
                                 if (qtdDisponivel <= 0) continue;
@@ -609,52 +620,97 @@
                                 });
                                 
                                 const novaQtde = qtdDisponivel - qtdVender;
+                                
+                                // Se o item já tinha validade e está sendo zerado, mantém a validade
                                 atualizacoes[id] = {
                                     ...item,
                                     qtde: novaQtde,
                                     ultimaVenda: dataMovimento,
                                     alertaEstoque: novaQtde <= (item.estoqueMinimo || 0),
                                     historico: historico,
-                                    done: novaQtde === 0 ? true : item.done
+                                    // Só marca como done se zerar E não tiver validade
+                                    done: (novaQtde === 0 && !item.validade) ? true : item.done
                                 };
                                 
                                 restante -= qtdVender;
                             }
                         } else {
+                            // REPOSIÇÃO: aumentar estoque
                             produtosRepostos += diferenca;
-                            const id = `PLANILHA_${codigo}_${Date.now()}_${produtosRepostos}`.replace(/[.#$\[\]\/]/g, "_");
-                            atualizacoes[id] = {
-                                ...novoProduto,
-                                validade: '',
-                                done: false,
-                                ultimaVenda: null,
-                                alertaEstoque: novoProduto.qtde <= novoProduto.estoqueMinimo,
-                                historico: [{
+                            
+                            // Verifica se existe algum lote pendente (sem validade) para adicionar
+                            const lotesPendentes = lotesExistentes.filter(([_, item]) => !item.done && (item.qtde || 0) > 0);
+                            
+                            if (lotesPendentes.length > 0 && diferenca > 0) {
+                                // Adiciona ao primeiro lote pendente
+                                const [id, item] = lotesPendentes[0];
+                                const historico = item.historico || [];
+                                historico.push({
                                     data: dataMovimento,
                                     tipo: 'reposicao',
                                     quantidade: diferenca,
                                     origem: 'planilha'
-                                }]
-                            };
+                                });
+                                
+                                atualizacoes[id] = {
+                                    ...item,
+                                    qtde: (item.qtde || 0) + diferenca,
+                                    alertaEstoque: ((item.qtde || 0) + diferenca) <= (item.estoqueMinimo || 0),
+                                    historico: historico
+                                };
+                            } else {
+                                // Cria novo lote para a reposição
+                                const id = `PLANILHA_${codigo}_${Date.now()}_${produtosRepostos}`.replace(/[.#$\[\]\/]/g, "_");
+                                atualizacoes[id] = {
+                                    ...novoProduto,
+                                    validade: '',
+                                    done: false,
+                                    ultimaVenda: null,
+                                    alertaEstoque: diferenca <= novoProduto.estoqueMinimo,
+                                    historico: [{
+                                        data: dataMovimento,
+                                        tipo: 'reposicao',
+                                        quantidade: diferenca,
+                                        origem: 'planilha'
+                                    }]
+                                };
+                            }
                         }
                         produtosAtualizados++;
                     }
                     
-                    if (novoProduto.endereco && novoProduto.endereco !== 'S/E') {
-                        for (let [id, item] of existentes) {
-                            if (item.endereco !== novoProduto.endereco) {
-                                atualizacoes[id] = {
-                                    ...(atualizacoes[id] || item),
-                                    endereco: novoProduto.endereco
-                                };
-                            }
+                    // Atualizar endereço e descrição se necessário
+                    for (let [id, item] of lotesExistentes) {
+                        let precisaAtualizar = false;
+                        const atualizacao = { ...(atualizacoes[id] || item) };
+                        
+                        if (item.desc !== novoProduto.desc) {
+                            atualizacao.desc = novoProduto.desc;
+                            precisaAtualizar = true;
+                        }
+                        if (item.endereco !== novoProduto.endereco && novoProduto.endereco) {
+                            atualizacao.endereco = novoProduto.endereco;
+                            precisaAtualizar = true;
+                        }
+                        if (item.estoqueMinimo !== novoProduto.estoqueMinimo) {
+                            atualizacao.estoqueMinimo = novoProduto.estoqueMinimo;
+                            atualizacao.alertaEstoque = (atualizacao.qtde || 0) <= novoProduto.estoqueMinimo;
+                            precisaAtualizar = true;
+                        }
+                        
+                        if (precisaAtualizar) {
+                            atualizacoes[id] = atualizacao;
                         }
                     }
                 }
             }
             
             // Remover produtos que sumiram da planilha (zerar estoque)
-            for (let [id, item] of itensPlanilha) {
+            const todosLotesPlanilha = Object.entries(inventario).filter(([_, item]) => 
+                item.origem === 'planilha' || item.origem === 'estoque'
+            );
+            
+            for (let [id, item] of todosLotesPlanilha) {
                 if (!novosProdutos.has(item.codigo) && item.qtde > 0) {
                     produtosVendidos += item.qtde;
                     
@@ -672,7 +728,8 @@
                         ultimaVenda: Date.now(),
                         alertaEstoque: true,
                         historico: historico,
-                        done: true
+                        // Mantém a validade se tiver, senão marca como done
+                        done: item.validade ? item.done : true
                     };
                 }
             }
@@ -1113,14 +1170,13 @@
         });
     }
 
-    // Modal principal - compatível com ambas origens
+    // Modal principal
     window.abrirModal = (codigo) => {
         // Filtra os lotes do código de acordo com a aba atual
         let lotes;
         if (abaAtual === 'xml') {
             lotes = Object.values(inventario).filter(i => i.codigo === codigo && i.origem === 'xml');
         } else {
-            // Na aba planilha, aceita tanto 'planilha' quanto 'estoque' (para compatibilidade com dados antigos)
             lotes = Object.values(inventario).filter(i => i.codigo === codigo && (i.origem === 'planilha' || i.origem === 'estoque'));
         }
         
@@ -1493,7 +1549,6 @@
         if (abaAtual === 'xml') {
             itensFiltrados = itensFiltrados.filter(item => item.origem === 'xml');
         } else {
-            // Na aba planilha, aceita tanto 'planilha' quanto 'estoque' (compatibilidade)
             itensFiltrados = itensFiltrados.filter(item => item.origem === 'planilha' || item.origem === 'estoque');
         }
         
