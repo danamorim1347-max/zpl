@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>OPERA X LOGÍSTICA-PHO - v13.47 | MONITOR DE VALIDADES</title>
+    <title>OPERA X LOGÍSTICA-PHO - v13.48 | MONITOR DE VALIDADES</title>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
@@ -28,130 +28,24 @@
             width: 100%;
             height: 100vh;
             overflow: hidden;
+            background: #030712;
+            color: #f1f5f9;
             font-size: 14px;
         }
 
-        /* Temas */
-        body[data-theme="dark"] {
-            background: #030712;
-            color: #f1f5f9;
+        body {
+            padding: 12px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        body[data-theme="light"] {
-            background: #f8fafc;
-            color: #0f172a;
-        }
-
-        body[data-theme="light"] .glass { 
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px); 
-            border: 1px solid rgba(0, 0, 0, 0.1); 
-            border-radius: 20px; 
-            box-shadow: 0 20px 30px -10px rgba(0,0,0,0.1);
-        }
-
-        body[data-theme="dark"] .glass { 
+        .glass { 
             background: rgba(17, 24, 39, 0.9);
             backdrop-filter: blur(12px); 
             border: 1px solid rgba(255, 255, 255, 0.15); 
             border-radius: 20px; 
             box-shadow: 0 20px 30px -10px rgba(0,0,0,0.5);
-        }
-
-        body[data-theme="light"] .glass h1,
-        body[data-theme="light"] .glass h2,
-        body[data-theme="light"] .glass h3,
-        body[data-theme="light"] .glass p,
-        body[data-theme="light"] .glass span:not(.text-blue-500):not(.text-emerald-500):not(.text-rose-500):not(.text-yellow-500) {
-            color: #0f172a;
-        }
-
-        body[data-theme="light"] .filter-btn { 
-            background: rgba(0, 0, 0, 0.05); 
-            color: #475569; 
-        }
-
-        body[data-theme="light"] .filter-btn.active { 
-            background: #3b82f6; 
-            color: white; 
-        }
-
-        body[data-theme="light"] .er-table th { 
-            background: #e2e8f0; 
-            color: #334155; 
-            border-bottom: 2px solid rgba(0,0,0,0.1); 
-        }
-
-        body[data-theme="light"] .er-table td { 
-            color: #1e293b;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-
-        body[data-theme="light"] .reposicao-er-card {
-            background: rgba(255, 255, 255, 0.9) !important;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            color: #0f172a !important;
-        }
-
-        body[data-theme="light"] .reposicao-er-card .er-table th {
-            background: #e2e8f0;
-            color: #334155;
-            border-bottom: 2px solid rgba(0,0,0,0.1);
-        }
-
-        body[data-theme="light"] .reposicao-er-card .er-table td {
-            color: #1e293b;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-
-        body[data-theme="light"] .reposicao-er-card .expandable-header {
-            background: rgba(0,0,0,0.05) !important;
-            border-bottom: 1px solid rgba(0,0,0,0.1) !important;
-        }
-
-        body[data-theme="light"] .reposicao-er-card .expandable-header:hover {
-            background: rgba(59, 130, 246, 0.1) !important;
-        }
-
-        body[data-theme="light"] .reposicao-er-card h3 {
-            color: #0f172a !important;
-        }
-
-        body[data-theme="light"] .reposicao-er-card #reposicaoSummary {
-            color: #475569 !important;
-        }
-
-        body[data-theme="light"] .badge-open-er {
-            background: rgba(59, 130, 246, 0.1); 
-            color: #2563eb; 
-            border: 1px solid rgba(59, 130, 246, 0.2);
-        }
-
-        body[data-theme="light"] .btn-copy-er {
-            background: #2563eb;
-            color: white;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-        }
-
-        body[data-theme="light"] .loader-er { 
-            color: #64748b; 
-        }
-
-        body[data-theme="light"] .pending-alert {
-            background: #ef4444 !important;
-            color: white !important;
-        }
-
-        body[data-theme="light"] .col-desc-er { 
-            color: #0f172a; 
-        }
-
-        body[data-theme="light"] .metric-card p.text-slate-400 {
-            color: #64748b !important;
-        }
-
-        body[data-theme="light"] #statusText {
-            color: #64748b !important;
         }
 
         .timeline-bar { 
@@ -236,20 +130,16 @@
         .er-table th { 
             position: sticky; 
             top: 0; 
+            background: #1e293b; 
             padding: 8px 10px; 
             text-align: left; 
             font-weight: 800; 
             text-transform: uppercase; 
+            color: #94a3b8; 
             border-bottom: 2px solid rgba(255,255,255,0.15); 
             z-index: 20; 
             font-size: 11px;
             letter-spacing: 0.5px;
-        }
-
-        body[data-theme="dark"] .er-table th { 
-            background: #1e293b; 
-            color: #94a3b8; 
-            border-bottom: 2px solid rgba(255,255,255,0.15); 
         }
 
         .er-table td { 
@@ -287,8 +177,16 @@
             font-weight: 800; 
             font-size: 11px; 
             transition: all 0.3s; 
+            background: rgba(255, 255, 255, 0.05); 
+            color: #94a3b8; 
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        .filter-btn.active { 
+            background: #3b82f6; 
+            color: white; 
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
         }
 
         .filter-btn:hover {
@@ -369,6 +267,20 @@
             letter-spacing: 0.5px;
         }
 
+        /* Estilos da Reposição ER - Tema escuro */
+        .reposicao-er-card {
+            background: rgba(17, 24, 39, 0.9) !important;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #f1f5f9 !important;
+        }
+
+        .reposicao-er-card .er-table th {
+            background: #1e293b;
+            color: #94a3b8;
+            border-bottom: 2px solid rgba(255,255,255,0.15);
+        }
+
         .reposicao-er-card .er-table td {
             color: #f1f5f9;
             border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -439,6 +351,7 @@
             font-size: 0.9rem; 
         }
 
+        /* ANIMAÇÃO PARA ITENS PENDENTES */
         @keyframes alert-pulse {
             0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
@@ -469,6 +382,7 @@
             animation: pulse-er 1.5s infinite;
         }
 
+        /* Animação de entrada das linhas */
         @keyframes rowAppear {
             from {
                 opacity: 0;
@@ -485,6 +399,139 @@
             opacity: 0;
         }
 
+        /* Estilos do Monitor de Validades */
+        .validade-section-compact {
+            margin-top: 8px;
+        }
+
+        .validade-container {
+            display: none;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .validade-container.active {
+            display: grid;
+        }
+
+        .validade-card {
+            background: rgba(17, 24, 39, 0.7);
+            border-radius: 12px;
+            padding: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            max-height: 180px;
+        }
+
+        .validade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+
+        .validade-title {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .validade-count {
+            font-size: 0.55rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .vencido .validade-title { color: #ff6b6b; }
+        .critico .validade-title { color: #ff8787; }
+        .atencao .validade-title { color: #ffd43b; }
+
+        .product-list-compact {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .product-list-compact.custom-scroll::-webkit-scrollbar {
+            width: 2px;
+        }
+
+        .product-item {
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+            padding: 4px 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255,255,255,0.03);
+            transition: all 0.2s;
+            cursor: pointer;
+            font-size: 0.6rem;
+        }
+
+        .product-item:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: #3b82f6;
+        }
+
+        .product-item-info {
+            flex: 1;
+            min-width: 0;
+            padding-right: 4px;
+        }
+
+        .product-item-info h4 {
+            font-weight: 700;
+            font-size: 0.6rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 1px;
+        }
+
+        .product-item-details {
+            font-size: 0.5rem;
+            color: #94a3b8;
+            display: flex;
+            gap: 3px;
+            flex-wrap: wrap;
+        }
+
+        .product-item-days {
+            text-align: right;
+            min-width: 28px;
+            font-weight: 900;
+            font-size: 0.6rem;
+        }
+
+        .vencido .product-item-days { color: #ff6b6b; }
+        .critico .product-item-days { color: #ff8787; }
+        .atencao .product-item-days { color: #ffd43b; }
+
+        .empty-state-small {
+            text-align: center;
+            padding: 6px;
+            color: #64748b;
+            font-size: 0.55rem;
+            background: rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+
+        /* Alturas fixas para cada seção */
         .main-container {
             height: calc(100vh - 24px);
             display: flex;
@@ -508,33 +555,15 @@
             padding: 4px 8px !important;
         }
 
-        /* Theme toggle button */
-        .theme-toggle {
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            transition: all 0.3s;
-        }
-        .theme-toggle:hover {
-            background: rgba(59, 130, 246, 0.3);
-            transform: scale(1.1);
-        }
-        body[data-theme="light"] .theme-toggle {
-            background: rgba(0,0,0,0.1);
-        }
-        body[data-theme="light"] .theme-toggle:hover {
-            background: rgba(59, 130, 246, 0.2);
-        }
-
         @media (min-width: 1921px) {
             body { font-size: 16px; }
             .charts-section { height: 200px; }
             .performance-section { height: 280px; }
+            .validade-card { max-height: 220px; }
         }
     </style>
 </head>
-<body data-theme="dark">
+<body>
 
 <div class="timeline-bar" id="timelineBar"></div>
 
@@ -563,11 +592,6 @@
         </div>
 
         <div class="flex gap-4 items-center">
-            <!-- Theme Toggle -->
-            <div class="theme-toggle" onclick="toggleTheme()">
-                <i class="fas fa-moon text-blue-500" id="themeIcon"></i>
-            </div>
-
             <div class="flex gap-2 bg-black/40 p-1 rounded-lg border border-white/5">
                 <button onclick="aplicarFiltroTempo('hoje')" id="btnHoje" class="filter-btn">HOJE</button>
                 <button onclick="aplicarFiltroTempo('semana')" id="btnSemana" class="filter-btn">SEMANA</button>
@@ -698,12 +722,12 @@
         </div>
     </div>
 
-    <!-- REPOSIÇÃO ER -->
+    <!-- REPOSIÇÃO ER - ATUALIZADO PARA ABRIL/2026 -->
     <div class="reposicao-section reposicao-er-card glass flex flex-col overflow-hidden shadow-2xl">
         <div class="p-3 border-b border-white/10 flex justify-between items-center bg-white/5 expandable-header" onclick="toggleReposicaoER()">
             <div class="flex items-center gap-2">
                 <i class="fas fa-boxes text-blue-500 text-sm"></i>
-                <h3 class="text-sm font-black uppercase tracking-widest">REPOSIÇÃO ER / MARÇO 25</h3>
+                <h3 class="text-sm font-black uppercase tracking-widest">REPOSIÇÃO ER / ABRIL 2026</h3>
             </div>
             <div class="flex gap-3 items-center">
                 <div class="text-xs font-bold uppercase relative" id="reposicaoSummary">Conectando...</div>
@@ -716,7 +740,7 @@
                 <div class="flex justify-end mb-2">
                     <button id="copyRepBtn" class="btn-copy-er">COPIAR LISTA</button>
                 </div>
-                <div id="reposicaoLoader" class="loader-er">Carregando dados de Março...</div>
+                <div id="reposicaoLoader" class="loader-er">Carregando dados de Abril/2026...</div>
                 <div id="reposicaoTableWrapper" class="overflow-auto custom-scroll" style="max-height: 200px;">
                     <table class="er-table">
                         <thead>
@@ -732,64 +756,45 @@
                         <tbody id="reposicaoTbody"></tbody>
                     </table>
                 </div>
-                <div id="reposicaoEmptyArea" class="loader-er" style="display: none;">✅ Tudo pronto! Nenhuma pendência em Março.</div>
+                <div id="reposicaoEmptyArea" class="loader-er" style="display: none;">✅ Tudo pronto! Nenhuma pendência em Abril/2026.</div>
             </div>
         </div>
     </div>
 
-    <!-- NOVO MONITOR DE VALIDADES - Substituído pelo layout do ai_studio_code (3).html -->
-    <div class="validade-section glass p-3 shadow-2xl">
-        <div class="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
-            <div class="flex items-center gap-2">
-                <i class="fas fa-chart-line text-blue-500"></i>
-                <h3 class="text-sm font-black uppercase tracking-widest italic">SAÚDE DO ESTOQUE</h3>
-            </div>
-            <div class="live-badge flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full text-[10px] font-bold">
-                <div class="pulse w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div> 
-                <span class="text-slate-400">SINCRO EM TEMPO REAL</span>
-            </div>
+    <!-- MONITOR DE VALIDADES -->
+    <div id="validadeSection" class="validade-section glass p-2 shadow-2xl" style="display: none;">
+        <div class="flex items-center gap-1 mb-1 border-b border-white/5 pb-1">
+            <i class="fas fa-calendar-alt text-blue-500 text-xs"></i>
+            <h3 class="text-xs font-black uppercase tracking-widest italic">VALIDADES</h3>
         </div>
-
-        <!-- STATUS DO ESTOQUE -->
-        <div class="stock-health-panel bg-white/5 rounded-xl p-3 mb-3">
-            <div class="flex items-center justify-between gap-4">
-                <div class="health-info flex-1">
-                    <h4 class="text-[10px] font-black uppercase text-slate-500 mb-2">Status Global do Estoque</h4>
-                    <div class="health-bar-wrapper w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-2">
-                        <div class="health-bar-fill h-full bg-emerald-500 transition-all duration-1000" id="health-bar" style="width: 0%"></div>
-                    </div>
-                    <div class="health-stats flex gap-4 text-[10px]">
-                        <div class="stat-item text-slate-400">Monitorando: <b class="text-white" id="stat-total">0</b> SKUs</div>
-                        <div class="stat-item text-slate-400">Vencidos: <b class="text-rose-500" id="stat-vencidos">0</b></div>
-                        <div class="stat-item text-slate-400">Em Risco: <b class="text-yellow-500" id="stat-alertas">0</b></div>
-                    </div>
+        
+        <div id="validadeContainer" class="validade-container">
+            <!-- VENCIDOS -->
+            <div class="validade-card vencido">
+                <div class="validade-header">
+                    <h4 class="validade-title">💀 VENCIDOS</h4>
+                    <span class="validade-count" id="count-vencido">0</span>
                 </div>
-                <div class="health-score text-right min-w-[100px]">
-                    <span class="score-val text-2xl font-black text-emerald-500" id="health-pct">0%</span>
-                    <span class="score-label text-[8px] uppercase text-slate-500 block">Saúde do Estoque</span>
-                </div>
+                <div id="list-vencido" class="product-list-compact custom-scroll"></div>
             </div>
-        </div>
 
-        <!-- MONITORING GRID -->
-        <div class="monitor-grid grid grid-cols-2 gap-3">
-            <!-- Prioridade Crítica -->
-            <section class="crit-col">
-                <div class="column-header flex justify-between items-center mb-2">
-                    <h4 class="text-[11px] font-black uppercase text-rose-500">🔴 Críticos (até 150d)</h4>
-                    <span class="count-pill bg-white/10 px-2 py-0.5 rounded text-[9px] font-bold text-white" id="count-critico">0</span>
+            <!-- CRÍTICOS -->
+            <div class="validade-card critico">
+                <div class="validade-header">
+                    <h4 class="validade-title">🔴 CRÍTICOS</h4>
+                    <span class="validade-count" id="count-critico">0</span>
                 </div>
-                <div id="list-critico" class="card-list space-y-2 max-h-[140px] overflow-y-auto custom-scroll pr-1"></div>
-            </section>
+                <div id="list-critico" class="product-list-compact custom-scroll"></div>
+            </div>
 
-            <!-- Alerta de Atenção -->
-            <section class="atn-col">
-                <div class="column-header flex justify-between items-center mb-2">
-                    <h4 class="text-[11px] font-black uppercase text-yellow-500">🟡 Atenção (até 365d)</h4>
-                    <span class="count-pill bg-white/10 px-2 py-0.5 rounded text-[9px] font-bold text-white" id="count-atencao">0</span>
+            <!-- ATENÇÃO -->
+            <div class="validade-card atencao">
+                <div class="validade-header">
+                    <h4 class="validade-title">🟡 ATENÇÃO</h4>
+                    <span class="validade-count" id="count-atencao">0</span>
                 </div>
-                <div id="list-atencao" class="card-list space-y-2 max-h-[140px] overflow-y-auto custom-scroll pr-1"></div>
-            </section>
+                <div id="list-atencao" class="product-list-compact custom-scroll"></div>
+            </div>
         </div>
     </div>
 
@@ -797,7 +802,7 @@
     <footer class="footer-section flex justify-between items-center px-3 py-2 glass text-[9px] font-bold text-slate-500 uppercase tracking-[2px]">
         <div>© 2026</div>
         <div>BENILSON AMORIM</div>
-        <div>V13.47</div>
+        <div>V13.48</div>
     </footer>
 </div>
 
@@ -834,10 +839,10 @@
 </div>
 
 <!-- MODAL DETALHES VALIDADE -->
-<div id="modal-validade" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="if(event.target == this) fecharModal()">
+<div id="modal-validade" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="if(event.target == this) fecharModalValidade()">
     <div class="glass p-4 rounded-xl w-full max-w-sm border border-white/10">
         <div id="modal-body-validade"></div>
-        <button class="w-full mt-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-black rounded-lg uppercase border border-white/5 transition-all" onclick="fecharModal()">
+        <button class="w-full mt-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-black rounded-lg uppercase border border-white/5 transition-all" onclick="fecharModalValidade()">
             FECHAR
         </button>
     </div>
@@ -846,20 +851,6 @@
 <input type="file" id="uploadInput" class="hidden" accept="image/*">
 
 <script>
-    // Theme Toggle Function
-    function toggleTheme() {
-        const body = document.body;
-        const themeIcon = document.getElementById('themeIcon');
-        
-        if (body.getAttribute('data-theme') === 'dark') {
-            body.setAttribute('data-theme', 'light');
-            themeIcon.className = 'fas fa-sun text-blue-500';
-        } else {
-            body.setAttribute('data-theme', 'dark');
-            themeIcon.className = 'fas fa-moon text-blue-500';
-        }
-    }
-
     // Firebase Config Principal
     const firebaseConfig = { 
         apiKey: "AIzaSyDlp5p7c3xpc42cRa1un_-zd3HNwqnGuQU", 
@@ -877,7 +868,7 @@
     const CONFIG = { 
         SEP_ID: '1yVyIxhLpjUv0RmEgAgo7GrE0ax0azFG28nFW7pKupLw', 
         REPO_ID: '1pQD4qViThkVjxsbFj8yrG7p2wdW0vuo_197hKVtvTRY',
-        REPO_ABA: 'MES DE MARÇO/25'
+        REPO_ABA: 'REPOSIÇÃO ABRIL26'  // ATUALIZADO: ABA CORRETA PARA ABRIL/2026
     };
 
     let dadosBrutosSep = [], estoqueExcelData = [], fotoCache = {}, currentFilter = 'mes', tempoProgresso = 0, dataInicioFiltro = null, dataFimFiltro = null;
@@ -885,7 +876,7 @@
     
     // Dados do Monitor de Validades
     let produtosValidade = [];
-    let reposicaoData = [];
+    let reposicaoData = []; // Dados da reposição ER
     
     Chart.register(ChartDataLabels);
 
@@ -903,9 +894,11 @@
         icon.style.transform = content.classList.contains('expanded') ? 'rotate(180deg)' : 'rotate(0)';
     }
 
+    // CORREÇÃO: Listener do estoque_base para endereçamento
     db.ref('estoque_base').on('value', snap => { 
         estoqueExcelData = snap.val() || []; 
-        atualizarEnderecamento();
+        console.log("Estoque base carregado:", estoqueExcelData.length);
+        atualizarEnderecamento(); // Atualiza os contadores de endereçamento
     });
     
     db.ref('fotos_separadores').on('value', snap => { 
@@ -913,7 +906,7 @@
         renderizarSeparacao(); 
     });
 
-    // Firebase do Monitor de Validades (segunda instância) - NOVO LAYOUT
+    // Firebase do Monitor de Validades (segunda instância)
     const firebaseConfig2 = {
         apiKey: "AIzaSyDr8Q2oJJ46ZANAjnV0_iSokdHnZ-YqGP4",
         authDomain: "controle-validade-de623.firebaseapp.com",
@@ -927,6 +920,7 @@
     const app2 = firebase.initializeApp(firebaseConfig2, "validadeApp");
     const db2 = firebase.database(app2);
 
+    // CORREÇÃO: Função para atualizar os contadores de endereçamento
     function atualizarEnderecamento() {
         const totalExcel = estoqueExcelData.length;
         const comEnd = estoqueExcelData.filter(i => i.endereco && !["", "null", "0"].includes(String(i.endereco).trim())).length;
@@ -937,9 +931,11 @@
         document.getElementById('statExcelSem').innerText = totalExcel - comEnd;
         document.getElementById('statExcelPerc2').innerText = perc + "%";
         document.getElementById('progress-fill').style.width = perc + "%";
+        
+        console.log("Endereçamento atualizado:", {total: totalExcel, comEnd: comEnd, perc: perc});
     }
 
-    // NOVO: Monitor Validades com layout do ai_studio_code (3).html
+    // Monitor Validades - Listener
     db2.ref('estoque/').on('value', (snap) => {
         const dados = snap.val() || {};
         const map = new Map();
@@ -948,93 +944,106 @@
 
         Object.values(dados).forEach(item => {
             if (!item.codigo || !item.validade || !item.done) return;
+            
             const partes = item.validade.split('/');
             const vDate = new Date(partes[2], partes[1]-1, partes[0]);
             const diff = Math.ceil((vDate - hoje) / 86400000);
             
+            if (diff > 365) return;
+
             if (!map.has(item.codigo)) {
                 map.set(item.codigo, {
                     codigo: item.codigo,
                     desc: item.desc,
                     endereco: item.endereco || 'S/E',
-                    total: 0,
                     lotes: [],
                     menorDias: diff
                 });
             }
 
             const p = map.get(item.codigo);
-            p.total += item.qtde;
-            p.lotes.push({ v: item.validade, q: item.qtde, d: diff });
+            p.lotes.push({ v: item.validade, d: diff });
+            
             if (diff < p.menorDias) p.menorDias = diff;
         });
 
-        produtosValidade = Array.from(map.values()).map(p => {
-            if (p.menorDias < 0) p.status = 'vencido';
-            else if (p.menorDias <= 150) p.status = 'critico';
-            else if (p.menorDias <= 365) p.status = 'atencao';
-            else p.status = 'ok';
-            return p;
-        }).sort((a,b) => a.menorDias - b.menorDias);
-
-        renderValidadesNovo();
+        produtosValidade = Array.from(map.values())
+            .map(p => {
+                if (p.menorDias < 0) p.status = 'vencido';
+                else if (p.menorDias <= 150) p.status = 'critico';
+                else p.status = 'atencao';
+                return p;
+            })
+            .sort((a,b) => a.menorDias - b.menorDias);
+            
+        renderValidades();
     });
 
-    // NOVA função de renderização para o layout do ai_studio_code (3).html
-    function renderValidadesNovo() {
-        const listCrit = document.getElementById('list-critico');
-        const listAtn = document.getElementById('list-atencao');
+    function renderValidades() {
+        const lists = {
+            vencido: document.getElementById('list-vencido'),
+            critico: document.getElementById('list-critico'),
+            atencao: document.getElementById('list-atencao')
+        };
         
-        const criticos = produtosValidade.filter(p => p.status === 'critico');
-        const atencao = produtosValidade.filter(p => p.status === 'atencao');
-        const vencidos = produtosValidade.filter(p => p.status === 'vencido');
-        const saudaveis = produtosValidade.filter(p => p.status === 'ok').length;
-        const total = produtosValidade.length;
+        const counts = { vencido: 0, critico: 0, atencao: 0 };
 
-        // Update Stock Health Panel
-        const healthPct = Math.round((saudaveis / total) * 100 || 0);
-        document.getElementById('health-pct').innerText = healthPct + '%';
-        document.getElementById('health-bar').style.width = healthPct + '%';
-        document.getElementById('stat-total').innerText = total;
-        document.getElementById('stat-vencidos').innerText = vencidos.length;
-        document.getElementById('stat-alertas').innerText = criticos.length + atencao.length;
+        Object.values(lists).forEach(l => l.innerHTML = '');
 
-        // Update Badges
-        document.getElementById('count-critico').innerText = criticos.length;
-        document.getElementById('count-atencao').innerText = atencao.length;
-
-        const template = (p) => `
-            <div class="card bg-white/5 hover:bg-white/10 rounded-lg p-2 cursor-pointer transition-all" onclick="abrirModalValidade('${p.codigo}')">
-                <div class="flex justify-between items-center">
-                    <div class="card-content flex-1 min-w-0">
-                        <h4 class="text-xs font-bold text-white truncate">${p.desc}</h4>
-                        <div class="card-meta flex gap-2 text-[9px] text-slate-400 mt-0.5">
-                            <span>#${p.codigo}</span>
-                            <span>📍 ${p.endereco}</span>
-                            <span>📦 ${p.total} un</span>
-                        </div>
-                    </div>
-                    <div class="card-timer text-right ml-2">
-                        <span class="time-val text-sm font-black ${p.status === 'critico' ? 'text-rose-500' : 'text-yellow-500'}">${p.menorDias}</span>
-                        <span class="time-lbl text-[8px] uppercase text-slate-500 block">Dias</span>
+        produtosValidade.forEach(p => {
+            counts[p.status]++;
+            
+            const item = document.createElement('div');
+            item.className = 'product-item';
+            item.onclick = () => abrirModalValidade(p.codigo);
+            
+            item.innerHTML = `
+                <div class="product-item-info">
+                    <h4>${p.desc.substring(0, 20)}${p.desc.length > 20 ? '...' : ''}</h4>
+                    <div class="product-item-details">
+                        <span>#${p.codigo}</span>
+                        <span>📍 ${p.endereco}</span>
                     </div>
                 </div>
-            </div>`;
+                <div class="product-item-days ${p.status}">
+                    ${p.status === 'vencido' ? 'VENC' : p.menorDias}
+                </div>
+            `;
+            
+            lists[p.status].appendChild(item);
+        });
 
-        listCrit.innerHTML = criticos.map(template).join('') || '<div class="text-center text-slate-500 text-[10px] py-2">Nenhum item crítico</div>';
-        listAtn.innerHTML = atencao.map(template).join('') || '<div class="text-center text-slate-500 text-[10px] py-2">Nenhum item em atenção</div>';
+        Object.keys(counts).forEach(key => {
+            document.getElementById(`count-${key}`).innerText = counts[key];
+            if (counts[key] === 0) {
+                lists[key].innerHTML = `<div class="empty-state-small">Vazio</div>`;
+            }
+        });
+
+        const totalItens = Object.values(counts).reduce((a, b) => a + b, 0);
+        const validadeSection = document.getElementById('validadeSection');
+        const validadeContainer = document.getElementById('validadeContainer');
+        
+        if (totalItens > 0) {
+            validadeSection.style.display = 'block';
+            validadeContainer.classList.add('active');
+        } else {
+            validadeSection.style.display = 'none';
+            validadeContainer.classList.remove('active');
+        }
     }
 
     window.abrirModalValidade = (codigo) => {
         const p = produtosValidade.find(x => x.codigo === codigo);
+        if (!p) return;
+        
         document.getElementById('modal-body-validade').innerHTML = `
             <h2 style="font-size: 0.9rem; margin-bottom: 2px; font-weight: 800;">${p.desc}</h2>
-            <p style="font-size: 0.65rem; color: #94a3b8; margin-bottom: 10px;">SKU #${p.codigo} · Local: ${p.endereco}</p>
+            <p style="font-size: 0.65rem; color: #94a3b8; margin-bottom: 10px;">SKU #${p.codigo} · ${p.endereco}</p>
             ${p.lotes.sort((a,b)=>a.d - b.d).map(l => `
                 <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.7rem;">
                     <span style="font-weight: 700;">📅 ${l.v}</span>
-                    <span style="font-weight: 600; color: #94a3b8">${l.q} un</span>
-                    <span style="font-weight: 900; color: ${l.d < 0 ? '#ff6b6b' : (l.d <= 150 ? '#f43f5e' : '#f59e0b')}">
+                    <span style="font-weight: 900; color: ${l.d < 0 ? '#ff6b6b' : (l.d <= 150 ? '#ff8787' : '#ffd43b')}">
                         ${l.d < 0 ? 'VENCIDO' : l.d + 'd'}
                     </span>
                 </div>
@@ -1043,59 +1052,127 @@
         document.getElementById('modal-validade').style.display = 'flex';
     };
 
-    window.fecharModal = () => {
+    window.fecharModalValidade = () => {
         document.getElementById('modal-validade').style.display = 'none';
     };
 
-    // Função para buscar dados da Reposição ER
-    async function fetchReposicaoER() {
-        const url = `https://opensheet.elk.sh/${CONFIG.REPO_ID}/${encodeURIComponent(CONFIG.REPO_ABA)}`;
+    // Função para buscar dados da Reposição ER - ATUALIZADA para ler qualquer aba
+    async function fetchReposicaoER(aba = CONFIG.REPO_ABA) {
+        const url = `https://opensheet.elk.sh/${CONFIG.REPO_ID}/${encodeURIComponent(aba)}`;
         const loader = document.getElementById('reposicaoLoader');
         const tableWrapper = document.getElementById('reposicaoTableWrapper');
         const emptyArea = document.getElementById('reposicaoEmptyArea');
         const tbody = document.getElementById('reposicaoTbody');
         const summary = document.getElementById('reposicaoSummary');
         const copyBtn = document.getElementById('copyRepBtn');
+        const sectionTitle = document.querySelector('.reposicao-er-card h3');
+
+        // Atualiza o título da seção baseado na aba
+        if (aba === 'REPOSIÇÃO ABRIL26') {
+            sectionTitle.innerHTML = '<i class="fas fa-boxes text-blue-500 text-sm"></i> REPOSIÇÃO ER / ABRIL 2026';
+            loader.innerText = 'Carregando dados de Abril/2026...';
+        } else if (aba === 'REPOSIÇÃO MARÇO26') {
+            sectionTitle.innerHTML = '<i class="fas fa-boxes text-blue-500 text-sm"></i> REPOSIÇÃO ER / MARÇO 2026';
+            loader.innerText = 'Carregando dados de Março/2026...';
+        } else if (aba === 'MES DE MARÇO/25') {
+            sectionTitle.innerHTML = '<i class="fas fa-boxes text-blue-500 text-sm"></i> REPOSIÇÃO ER / MARÇO 2025';
+            loader.innerText = 'Carregando dados de Março/2025...';
+        } else {
+            sectionTitle.innerHTML = `<i class="fas fa-boxes text-blue-500 text-sm"></i> REPOSIÇÃO ER / ${aba}`;
+            loader.innerText = `Carregando dados de ${aba}...`;
+        }
 
         try {
+            console.log("Carregando dados da aba:", aba);
             const response = await fetch(url);
             const data = await response.json();
+            console.log("Dados recebidos:", data);
 
             if (!Array.isArray(data)) throw new Error("Erro de dados");
 
+            // Função para normalizar texto (ignorar acentos)
+            const normalizeText = (text) => {
+                if (!text) return '';
+                return String(text).toLowerCase().trim()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '');
+            };
+
             reposicaoData = data.filter(item => {
                 const keys = Object.keys(item);
-                const sitCol = keys.find(k => /situa|separa|status|ok|situação|situacao/i.test(k));
-                const codCol = keys.find(k => /cód|cod|part|item|sku|codigo|código/i.test(k));
+                
+                // Busca a coluna de status (situação) - mais flexível
+                const sitCol = keys.find(k => {
+                    const norm = normalizeText(k);
+                    return norm.includes('situa') || norm.includes('separ') || 
+                           norm.includes('status') || norm.includes('ok') ||
+                           norm.includes('situacao') || norm.includes('andamento');
+                });
+                
+                // Busca a coluna de código
+                const codCol = keys.find(k => {
+                    const norm = normalizeText(k);
+                    return norm.includes('cod') || norm.includes('part') || 
+                           norm.includes('item') || norm.includes('sku') ||
+                           norm.includes('produto');
+                });
                 
                 const status = sitCol ? String(item[sitCol] || '').trim() : "";
                 const codigo = codCol ? String(item[codCol] || '').trim() : "";
                 
-                return codigo !== "" && (status === "" || status.toLowerCase() === "aberto");
+                // Filtra itens que tem código e estão em aberto (status vazio ou "aberto")
+                const isOpen = status === "" || 
+                              normalizeText(status) === "aberto" || 
+                              normalizeText(status) === "pendente" ||
+                              normalizeText(status) === "nao";
+                
+                return codigo !== "" && codigo !== "-" && codigo !== "0" && isOpen;
             });
+
+            console.log("Dados filtrados:", reposicaoData.length);
 
             loader.style.display = 'none';
 
             if (reposicaoData.length > 0) {
+                // Adiciona animação no contador
                 summary.innerHTML = `<span class="pending-alert">${reposicaoData.length} ITENS PENDENTES</span>`;
                 tableWrapper.style.display = 'block';
                 copyBtn.style.display = 'block';
                 
+                // Renderiza a tabela com animação
                 tbody.innerHTML = reposicaoData.map((row, idx) => {
                     const keys = Object.keys(row);
                     
+                    // Data (primeira coluna)
                     const dataOriginal = String(Object.values(row)[0] || '');
                     const dataFormatada = dataOriginal.includes('/') ? dataOriginal.split(' ')[0].substring(0, 5) : dataOriginal.substring(0, 5);
                     
-                    const solicitante = row[keys[5]] || row['SOLICITANTE'] || '---';
+                    // Solicitante - tenta encontrar a coluna correta
+                    const solCol = keys.find(k => {
+                        const norm = normalizeText(k);
+                        return norm.includes('solic') || norm.includes('nome') || 
+                               norm.includes('responsavel') || k === keys[5];
+                    });
+                    const solicitante = solCol ? (row[solCol] || '---') : (row[keys[5]] || '---');
                     
-                    const codKey = keys.find(k => /cód|cod|part|item|sku|codigo|código/i.test(k)) || keys[2];
+                    // Código
+                    const codKey = keys.find(k => {
+                        const norm = normalizeText(k);
+                        return norm.includes('cod') || norm.includes('part') || 
+                               norm.includes('item') || norm.includes('sku');
+                    }) || keys[2];
                     const cod = String(row[codKey] || '').trim();
                     
-                    const descKey = keys.find(k => /desc/i.test(k)) || keys[3];
+                    // Descrição
+                    const descKey = keys.find(k => normalizeText(k).includes('desc')) || keys[3];
                     const desc = String(row[descKey] || '').trim() || 'N/A';
                     
-                    const qtdKey = keys.find(k => /qtd|quant|unid|quantidade/i.test(k)) || keys[4];
+                    // Quantidade
+                    const qtdKey = keys.find(k => {
+                        const norm = normalizeText(k);
+                        return norm.includes('qtd') || norm.includes('quant') || 
+                               norm.includes('unid') || norm.includes('quantidade');
+                    }) || keys[4];
                     const qtd = String(row[qtdKey] || '0').trim();
 
                     return `
@@ -1112,16 +1189,25 @@
                     `;
                 }).join('');
 
+                // Botão de cópia - com ESPAÇO
                 copyBtn.onclick = function() {
                     const text = reposicaoData.map(item => {
                         const keys = Object.keys(item);
-                        const codKey = keys.find(k => /cód|cod|part|item|sku|codigo|código/i.test(k)) || keys[2];
-                        const qtdKey = keys.find(k => /qtd|quant|unid|quantidade/i.test(k)) || keys[4];
+                        const codKey = keys.find(k => {
+                            const norm = normalizeText(k);
+                            return norm.includes('cod') || norm.includes('part') || 
+                                   norm.includes('item') || norm.includes('sku');
+                        }) || keys[2];
+                        const qtdKey = keys.find(k => {
+                            const norm = normalizeText(k);
+                            return norm.includes('qtd') || norm.includes('quant') || 
+                                   norm.includes('unid');
+                        }) || keys[4];
                         
                         const cod = String(item[codKey] || '').trim();
                         const qtd = String(item[qtdKey] || '0').trim();
                         
-                        return `${cod} ${qtd}`;
+                        return `${cod} ${qtd}`; // ESPAÇO, NÃO BARRA
                     }).join('\n');
 
                     navigator.clipboard.writeText(text).then(() => {
@@ -1141,7 +1227,8 @@
                 copyBtn.style.display = 'none';
             }
         } catch (e) {
-            loader.innerText = "Erro ao acessar a aba. Verifique o nome na planilha.";
+            console.error("Erro detalhado:", e);
+            loader.innerHTML = `❌ Erro ao acessar a aba "${aba}".<br><small>Verifique se a aba existe e a planilha está publicada.</small>`;
             summary.innerText = "ERRO";
         }
     }
@@ -1168,7 +1255,7 @@
 
         dadosBrutosSep = [];
         buscarDadosSep(nomeAba);
-        fetchReposicaoER();
+        fetchReposicaoER(CONFIG.REPO_ABA); // Carregar dados da reposição com a aba correta
     }
 
     function buscarDadosSep(aba) {
@@ -1316,7 +1403,7 @@
                         ${r.qtd >= media ? 'META' : '↓'}
                     </span>
                 </td>
-            </tr>`;
+             </tr>`;
         }).join('');
     }
 
@@ -1378,7 +1465,7 @@
             
             db.ref('estoque_base').set(processed).then(() => {
                 notify("BASE SINCRONIZADA!");
-                atualizarEnderecamento();
+                atualizarEnderecamento(); // Atualiza após sincronizar
             });
         }; 
         reader.readAsArrayBuffer(file);
@@ -1427,6 +1514,7 @@
         }
     }, 30000);
 
+    // Expandir reposição por padrão
     setTimeout(() => {
         toggleReposicaoER();
     }, 500);
