@@ -14,7 +14,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* Estilos preservados do original */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         :root {
             --bg-primary: #f3f4f6; --bg-secondary: #ffffff; --text-primary: #111827; --text-secondary: #6b7280;
@@ -46,7 +45,9 @@
         .upload-tab { flex: 1; padding: 14px; text-align: center; background: var(--bg-secondary); border-radius: 16px; font-weight: 700; font-size: 0.9rem; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; border: 1px solid var(--border); }
         .upload-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
         .upload-card { background: var(--bg-secondary); border-radius: 24px; padding: 25px; margin-bottom: 25px; box-shadow: var(--card-shadow); }
-        .upload-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; }
+        .upload-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-undo-xml { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+        .btn-undo-xml:hover { background: var(--danger-dark); }
         .upload-area { border: 2px dashed var(--border); border-radius: 20px; padding: 30px 20px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 20px; }
         .upload-area:hover { border-color: var(--accent); background: rgba(79, 70, 229, 0.05); }
         .upload-area i { font-size: 2.5rem; display: block; margin-bottom: 10px; color: var(--accent); }
@@ -139,54 +140,14 @@
         .btn-salvar:hover { background: #059669; }
         .btn-cancelar { background: var(--danger); color: white; }
         .btn-cancelar:hover { background: var(--danger-dark); }
-        
-        /* NOVOS ESTILOS PARA BOTÕES RÁPIDOS */
-        .quick-dates {
-            display: flex;
-            gap: 8px;
-            margin: 10px 0;
-            flex-wrap: wrap;
-        }
-        .quick-date-btn {
-            flex: 1;
-            min-width: 80px;
-            padding: 10px;
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .quick-date-btn:hover {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-        .btn-sem-vencimento {
-            background: var(--warning);
-            color: white;
-            border: none;
-        }
-        .btn-sem-vencimento:hover {
-            background: #d97706;
-        }
-        .atalho-info {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            text-align: center;
-            margin-top: 5px;
-        }
-        .atalho-info kbd {
-            background: var(--bg-primary);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 2px 6px;
-            font-family: monospace;
-        }
-        
+        .quick-date-selector { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-primary); color: var(--text-primary); font-weight: 500; margin: 10px 0; cursor: pointer; }
+        .quick-date-row { display: flex; gap: 8px; margin: 10px 0; }
+        .quick-date-btn { flex: 1; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 12px; font-size: 0.8rem; font-weight: 600; color: var(--text-primary); cursor: pointer; transition: all 0.2s; }
+        .quick-date-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+        .btn-sem-vencimento { background: var(--warning); color: white; border: none; }
+        .btn-sem-vencimento:hover { background: #d97706; }
+        .atalho-info { font-size: 0.7rem; color: var(--text-secondary); text-align: center; margin-top: 5px; }
+        .atalho-info kbd { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 2px 6px; font-family: monospace; }
         .dica-enter { font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; text-align: center; }
         .comparacao-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); gap: 10px; flex-wrap: wrap; }
         .comparacao-diferenca { font-weight: 700; }
@@ -235,7 +196,12 @@
 
     <div id="aba-xml">
         <div class="upload-card">
-            <div class="upload-title">📄 Importar XML</div>
+            <div class="upload-title">
+                <span>📄 Importar XML</span>
+                <button class="btn-undo-xml" onclick="desfazerUltimaImportacaoXML()" title="Remove todos os itens importados no último lote de XML">
+                    <i class="fas fa-undo-alt"></i> Desfazer última
+                </button>
+            </div>
             <label class="upload-area">
                 <i class="fas fa-file-upload"></i>
                 <span>SELECIONAR MÚLTIPLOS XMLs</span>
@@ -337,7 +303,6 @@
 
         <div class="modal-info" id="modalInfo"></div>
 
-        <!-- Gráfico -->
         <div class="chart-container">
             <canvas id="graficoVendas"></canvas>
             <div class="grafico-legend">
@@ -393,7 +358,6 @@
         appId: "1:788364390731:web:6c92c01576a3c64ed7b8ce"
     };
 
-    // Inicializar Firebase
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const estoqueRef = database.ref('estoque');
@@ -407,6 +371,14 @@
     let filtroAtual = 'todos';
     let grafico = null;
     let totalPendenteGlobal = 0;
+    
+    // Recupera último timestamp do localStorage
+    let ultimoTimestampXML = parseInt(localStorage.getItem('ultimoTimestampXML')) || null;
+
+    // ===== FUNÇÃO AUXILIAR: ESTOQUE REAL =====
+    function isEstoqueReal(item) {
+        return item.origem === 'estoque' || (item.origem === 'xml' && item.done === true);
+    }
 
     // Carregar tema
     if (localStorage.getItem('darkMode') === 'true') {
@@ -414,85 +386,48 @@
         document.querySelector('.theme-toggle i').classList.replace('fa-moon', 'fa-sun');
     }
 
-    // Carregar dados
+    // Listener principal
     estoqueRef.on('value', (snapshot) => {
         inventario = snapshot.val() || {};
-        console.log('Dados carregados:', Object.keys(inventario).length, 'itens');
+        console.log(`📦 Dados carregados: ${Object.keys(inventario).length} itens`);
         atualizarStatus();
         renderizarLista();
         verificarProdutosParados();
     });
 
-    // Funções de UI
+    // Toast
     window.mostrarToast = (mensagem, tipo = 'success') => {
         const container = document.getElementById('toastContainer');
         const toastId = 'toast_' + Date.now() + '_' + Math.random();
-        
-        const icons = {
-            success: '✓',
-            error: '✗',
-            warning: '⚠',
-            info: 'ℹ'
-        };
-        
+        const icons = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
         const toast = document.createElement('div');
         toast.className = `toast ${tipo}`;
         toast.id = toastId;
-        toast.innerHTML = `
-            <div class="toast-icon">${icons[tipo]}</div>
-            <div class="toast-content">${mensagem}</div>
-            <div class="toast-close" onclick="fecharToast('${toastId}')">×</div>
-        `;
-        
+        toast.innerHTML = `<div class="toast-icon">${icons[tipo]}</div><div class="toast-content">${mensagem}</div><div class="toast-close" onclick="fecharToast('${toastId}')">×</div>`;
         container.appendChild(toast);
-        
         setTimeout(() => {
-            const toastElement = document.getElementById(toastId);
-            if (toastElement) {
-                toastElement.classList.add('fade-out');
-                setTimeout(() => {
-                    if (toastElement.parentNode) {
-                        toastElement.remove();
-                    }
-                }, 300);
-            }
+            const el = document.getElementById(toastId);
+            if (el) { el.classList.add('fade-out'); setTimeout(() => el.remove(), 300); }
         }, 5000);
     };
-
-    window.fecharToast = (id) => {
-        const toast = document.getElementById(id);
-        if (toast) {
-            toast.classList.add('fade-out');
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.remove();
-                }
-            }, 300);
-        }
-    };
+    window.fecharToast = (id) => document.getElementById(id)?.remove();
 
     window.toggleDarkMode = () => {
         document.body.classList.toggle('dark-mode');
         const isDark = document.body.classList.contains('dark-mode');
         localStorage.setItem('darkMode', isDark);
-        
         const icon = document.querySelector('.theme-toggle i');
-        if (isDark) {
-            icon.classList.replace('fa-moon', 'fa-sun');
-        } else {
-            icon.classList.replace('fa-sun', 'fa-moon');
-        }
-        
+        icon.classList.toggle('fa-moon');
+        icon.classList.toggle('fa-sun');
         mostrarToast('Tema alterado!', 'info');
     };
 
     // Abas
     window.mudarAba = (aba) => {
         abaAtual = aba;
-        document.querySelectorAll('.upload-tab').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.upload-tab').forEach(t => t.classList.remove('active'));
         document.getElementById('aba-xml').style.display = 'none';
         document.getElementById('aba-estoque').style.display = 'none';
-        
         if (aba === 'xml') {
             document.querySelectorAll('.upload-tab')[0].classList.add('active');
             document.getElementById('aba-xml').style.display = 'block';
@@ -502,86 +437,134 @@
             document.getElementById('aba-estoque').style.display = 'block';
             document.getElementById('filterText').innerText = 'Mostrando: APENAS PRODUTOS DA PLANILHA';
         }
-        
         renderizarLista();
     };
 
-    // Upload XML
+    // Upload XML (com timestamp e localStorage)
     document.getElementById('xmlInput').addEventListener('change', async (e) => {
         const files = Array.from(e.target.files);
         let total = 0;
         let updates = {};
+        const timestampImportacao = Date.now();
+        ultimoTimestampXML = timestampImportacao;
+        localStorage.setItem('ultimoTimestampXML', timestampImportacao);
 
         for (let file of files) {
             try {
                 const text = await file.text();
                 const parser = new DOMParser();
                 const xml = parser.parseFromString(text, "text/xml");
-                
                 const nNF = xml.querySelector('nNF')?.textContent || 'S/N';
                 const itens = xml.querySelectorAll('det');
 
                 for (let item of itens) {
                     const prod = item.querySelector('prod');
                     if (!prod) continue;
-                    
                     const codigo = prod.querySelector('cProd')?.textContent?.trim() || '';
                     const desc = prod.querySelector('xProd')?.textContent?.trim() || '';
-                    
                     let qtde = 0;
                     const qCom = prod.querySelector('qCom')?.textContent;
                     if (qCom) qtde = parseFloat(qCom.replace(',', '.'));
-                    
                     if (!qtde) {
                         const qTrib = prod.querySelector('qTrib')?.textContent;
                         if (qTrib) qtde = parseFloat(qTrib.replace(',', '.'));
                     }
-                    
                     if (qtde <= 0) continue;
 
-                    const id = `XML_${nNF}_${codigo}_${Date.now()}_${total}`.replace(/[.#$\[\]\/]/g, "_");
-                    
-                    updates[`${id}`] = {
-                        nf: nNF,
-                        codigo: codigo,
-                        desc: desc,
-                        qtde: qtde,
-                        validade: '',
-                        done: false,
-                        origem: 'xml',
-                        ultimaVenda: null,
-                        diasSemVenda: 0,
-                        historico: [{
-                            data: Date.now(),
-                            tipo: 'importacao',
-                            quantidade: qtde,
-                            origem: 'xml'
-                        }]
+                    const id = `XML_${nNF}_${codigo}_${timestampImportacao}_${total}`.replace(/[.#$\[\]\/]/g, "_");
+                    updates[id] = {
+                        nf: nNF, codigo, desc, qtde, validade: '', done: false, origem: 'xml',
+                        ultimaVenda: null, diasSemVenda: 0, importadoEm: timestampImportacao,
+                        historico: [{ data: timestampImportacao, tipo: 'importacao', quantidade: qtde, origem: 'xml' }]
                     };
                     total++;
                 }
-            } catch (error) {
-                console.error(error);
+            } catch (err) {
+                console.error(err);
                 mostrarToast(`Erro no arquivo ${file.name}`, 'error');
             }
         }
-        
         if (total > 0) {
             await estoqueRef.update(updates);
             mostrarToast(`${total} itens importados dos XMLs!`, 'success');
         }
-        
         e.target.value = '';
     });
 
-    // Upload Planilha (mantido igual)
+    // Desfazer última importação XML (CORRIGIDO)
+    window.desfazerUltimaImportacaoXML = async () => {
+        // Buscar todos os itens XML
+        const xmlItems = Object.entries(inventario).filter(([_, item]) => item.origem === 'xml');
+        if (xmlItems.length === 0) {
+            mostrarToast('Nenhum item XML encontrado', 'warning');
+            return;
+        }
+        
+        // Encontrar o timestamp mais recente (campo importadoEm ou extraído do ID)
+        let maxTimestamp = 0;
+        for (let [id, item] of xmlItems) {
+            let ts = item.importadoEm;
+            if (!ts) {
+                // Tentar extrair do ID (formato: XML_..._timestamp_...)
+                const parts = id.split('_');
+                for (let part of parts) {
+                    const num = parseInt(part);
+                    if (!isNaN(num) && num > 1000000000000) { // timestamp em ms > 1e12
+                        ts = num;
+                        break;
+                    }
+                }
+            }
+            if (ts && ts > maxTimestamp) maxTimestamp = ts;
+        }
+        
+        if (maxTimestamp === 0) {
+            mostrarToast('Não foi possível identificar o último lote', 'error');
+            return;
+        }
+        
+        if (!confirm(`Remover todos os itens XML importados em ${new Date(maxTimestamp).toLocaleString()}?`)) return;
+        
+        const updates = {};
+        let removidos = 0;
+        for (let [id, item] of xmlItems) {
+            let ts = item.importadoEm;
+            if (!ts) {
+                const parts = id.split('_');
+                for (let part of parts) {
+                    const num = parseInt(part);
+                    if (!isNaN(num) && num > 1000000000000) {
+                        ts = num;
+                        break;
+                    }
+                }
+            }
+            if (ts === maxTimestamp) {
+                updates[id] = null;
+                removidos++;
+            }
+        }
+        
+        if (removidos > 0) {
+            await estoqueRef.update(updates);
+            mostrarToast(`${removidos} itens XML removidos!`, 'success');
+            // Atualiza localStorage se o timestamp removido for o mesmo armazenado
+            if (ultimoTimestampXML === maxTimestamp) {
+                localStorage.removeItem('ultimoTimestampXML');
+                ultimoTimestampXML = null;
+            }
+        } else {
+            mostrarToast('Nenhum item encontrado para desfazer', 'warning');
+        }
+    };
+
+    // Upload Planilha
     document.getElementById('estoqueInput').addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         const statusDiv = document.getElementById('estoque-status');
         const detalhesDiv = document.getElementById('estoque-detalhes');
-        statusDiv.innerHTML = '<span class="loading"></span> Processando planilha...';
+        statusDiv.innerHTML = '<span class="loading"></span> Processando...';
         detalhesDiv.innerHTML = '';
         
         try {
@@ -589,1170 +572,449 @@
             const workbook = XLSX.read(data);
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-            
             const novosProdutos = new Map();
             
             for (let i = 1; i < rows.length; i++) {
                 const row = rows[i];
                 if (!row || row.length < 11) continue;
-                
                 const codigo = String(row[0] || '').trim();
                 const desc = String(row[1] || '').trim();
                 const qtde = parseFloat(String(row[8] || '0').replace(',', '.')) || 0;
                 const estoqueMinimo = parseFloat(String(row[11] || '0').replace(',', '.')) || 0;
-                
-                const endereco = [row[4], row[5], row[6], row[7]]
-                    .filter(c => c && String(c).trim())
-                    .map(c => String(c).trim())
-                    .join(' • ');
-                
+                const endereco = [row[4], row[5], row[6], row[7]].filter(c => c).map(String).join(' • ');
                 if (codigo && desc) {
                     if (novosProdutos.has(codigo)) {
-                        const existente = novosProdutos.get(codigo);
-                        existente.qtde += qtde;
+                        novosProdutos.get(codigo).qtde += qtde;
                     } else {
-                        novosProdutos.set(codigo, {
-                            codigo: codigo,
-                            desc: desc,
-                            qtde: qtde,
-                            endereco: endereco,
-                            estoqueMinimo: estoqueMinimo,
-                            origem: 'estoque'
-                        });
+                        novosProdutos.set(codigo, { codigo, desc, qtde, endereco, estoqueMinimo, origem: 'estoque' });
                     }
                 }
             }
             
+            // Salvar snapshot do estoque real
             const estoqueReal = {};
             for (let [id, item] of Object.entries(inventario)) {
-                if (item.origem === 'estoque' || (item.origem === 'xml' && item.done === true)) {
-                    estoqueReal[id] = item;
-                }
+                if (isEstoqueReal(item)) estoqueReal[id] = item;
             }
             estoqueAnterior = JSON.parse(JSON.stringify(estoqueReal));
             
             let atualizacoes = {};
-            let produtosVendidos = 0;
-            let produtosRepostos = 0;
-            let produtosNovos = 0;
-            let produtosAbaixoMinimo = 0;
+            let produtosVendidos = 0, produtosRepostos = 0, produtosNovos = 0, produtosAbaixoMinimo = 0;
             
             for (let [codigo, novoProduto] of novosProdutos) {
                 const existentes = Object.entries(inventario).filter(([_, item]) => 
-                    item.codigo === codigo && 
-                    (item.origem === 'estoque' || (item.origem === 'xml' && item.done === true))
+                    item.codigo === codigo && isEstoqueReal(item)
                 );
                 
                 if (existentes.length === 0) {
                     const id = `ESTOQUE_${codigo}_${Date.now()}_${produtosNovos}`.replace(/[.#$\[\]\/]/g, "_");
                     atualizacoes[id] = {
-                        ...novoProduto,
-                        validade: '',
-                        done: false,
-                        ultimaVenda: null,
-                        diasSemVenda: 0,
+                        ...novoProduto, validade: '', done: false, ultimaVenda: null, diasSemVenda: 0,
                         alertaEstoque: novoProduto.qtde <= novoProduto.estoqueMinimo,
-                        historico: [{
-                            data: Date.now(),
-                            tipo: 'importacao',
-                            quantidade: novoProduto.qtde,
-                            origem: 'planilha'
-                        }]
+                        historico: [{ data: Date.now(), tipo: 'importacao', quantidade: novoProduto.qtde, origem: 'planilha' }]
                     };
                     produtosNovos++;
-                    
-                    if (novoProduto.qtde <= novoProduto.estoqueMinimo) {
-                        produtosAbaixoMinimo++;
-                    }
+                    if (novoProduto.qtde <= novoProduto.estoqueMinimo) produtosAbaixoMinimo++;
                 } else {
                     const quantidadeAntiga = existentes.reduce((acc, [_, item]) => acc + (item.qtde || 0), 0);
                     const diferenca = novoProduto.qtde - quantidadeAntiga;
-                    
                     if (diferenca !== 0) {
                         const tipoMovimento = diferenca < 0 ? 'venda' : 'reposicao';
                         const dataMovimento = Date.now();
-                        
                         if (tipoMovimento === 'venda') {
                             produtosVendidos += Math.abs(diferenca);
-                            
                             for (let [id, item] of existentes) {
                                 const historico = item.historico || [];
-                                historico.push({
-                                    data: dataMovimento,
-                                    tipo: 'venda',
-                                    quantidade: -Math.abs(diferenca) / existentes.length,
-                                    origem: 'planilha'
-                                });
-                                
+                                historico.push({ data: dataMovimento, tipo: 'venda', quantidade: -Math.abs(diferenca) / existentes.length, origem: 'planilha' });
                                 atualizacoes[id] = {
-                                    ...item,
-                                    qtde: Math.max(0, item.qtde - (Math.abs(diferenca) / existentes.length)),
-                                    ultimaVenda: dataMovimento,
-                                    alertaEstoque: (item.qtde - (Math.abs(diferenca) / existentes.length)) <= (item.estoqueMinimo || 0),
-                                    historico: historico
+                                    ...item, qtde: Math.max(0, item.qtde - (Math.abs(diferenca) / existentes.length)),
+                                    ultimaVenda: dataMovimento, historico
                                 };
                             }
                         } else {
                             produtosRepostos += diferenca;
-                            
                             const id = `ESTOQUE_${codigo}_${Date.now()}_${produtosRepostos}`.replace(/[.#$\[\]\/]/g, "_");
                             atualizacoes[id] = {
-                                ...novoProduto,
-                                validade: '',
-                                done: false,
-                                ultimaVenda: null,
+                                ...novoProduto, validade: '', done: false, ultimaVenda: null,
                                 alertaEstoque: novoProduto.qtde <= novoProduto.estoqueMinimo,
-                                historico: [{
-                                    data: dataMovimento,
-                                    tipo: 'reposicao',
-                                    quantidade: diferenca,
-                                    origem: 'planilha'
-                                }]
+                                historico: [{ data: dataMovimento, tipo: 'reposicao', quantidade: diferenca, origem: 'planilha' }]
                             };
                         }
                     }
-                    
-                    if (novoProduto.qtde <= novoProduto.estoqueMinimo) {
-                        produtosAbaixoMinimo++;
-                    }
+                    if (novoProduto.qtde <= novoProduto.estoqueMinimo) produtosAbaixoMinimo++;
                 }
             }
             
+            // Itens que sumiram
             for (let [id, item] of Object.entries(inventario)) {
-                const fazParteDoEstoqueReal = item.origem === 'estoque' || (item.origem === 'xml' && item.done === true);
-                if (fazParteDoEstoqueReal && !novosProdutos.has(item.codigo) && item.qtde > 0) {
+                if (isEstoqueReal(item) && !novosProdutos.has(item.codigo) && item.qtde > 0) {
                     produtosVendidos += item.qtde;
-                    
                     const historico = item.historico || [];
-                    historico.push({
-                        data: Date.now(),
-                        tipo: 'venda',
-                        quantidade: -item.qtde,
-                        origem: 'planilha'
-                    });
-                    
-                    atualizacoes[id] = {
-                        ...item,
-                        qtde: 0,
-                        ultimaVenda: Date.now(),
-                        alertaEstoque: true,
-                        historico: historico,
-                        done: true
-                    };
+                    historico.push({ data: Date.now(), tipo: 'venda', quantidade: -item.qtde, origem: 'planilha' });
+                    atualizacoes[id] = { ...item, qtde: 0, ultimaVenda: Date.now(), historico, done: true };
                 }
             }
             
             if (Object.keys(atualizacoes).length > 0) {
                 await estoqueRef.update(atualizacoes);
-                
-                await historicoRef.push({
-                    data: Date.now(),
-                    tipo: 'importacao_planilha',
-                    produtosVendidos: produtosVendidos,
-                    produtosRepostos: produtosRepostos,
-                    produtosNovos: produtosNovos,
-                    produtosAbaixoMinimo: produtosAbaixoMinimo,
-                    totalAtualizacoes: Object.keys(atualizacoes).length
-                });
-                
+                await historicoRef.push({ data: Date.now(), tipo: 'importacao_planilha', produtosVendidos, produtosRepostos, produtosNovos, produtosAbaixoMinimo });
                 statusDiv.innerHTML = `✅ ${Object.keys(atualizacoes).length} produtos atualizados!`;
-                detalhesDiv.innerHTML = `
-                    📉 Vendidos: ${produtosVendidos} un | 
-                    📈 Repostos: ${produtosRepostos} un | 
-                    🆕 Novos: ${produtosNovos} |
-                    ⚠️ Abaixo mínimo: ${produtosAbaixoMinimo}
-                `;
-                
-                let mensagem = `Planilha processada! ${produtosVendidos} unidades vendidas`;
-                if (produtosAbaixoMinimo > 0) {
-                    mensagem += ` | ${produtosAbaixoMinimo} produtos abaixo do mínimo`;
-                    mostrarToast(mensagem, produtosAbaixoMinimo > 5 ? 'warning' : 'info');
-                } else {
-                    mostrarToast(mensagem, 'success');
-                }
+                detalhesDiv.innerHTML = `📉 Vendidos: ${produtosVendidos} un | 📈 Repostos: ${produtosRepostos} un | 🆕 Novos: ${produtosNovos} | ⚠️ Abaixo mín: ${produtosAbaixoMinimo}`;
+                mostrarToast(`Planilha processada! ${produtosVendidos} un vendidas`, 'success');
             } else {
                 statusDiv.innerHTML = '⚠️ Nenhuma alteração detectada';
-                mostrarToast('Estoque está igual ao anterior', 'info');
+                mostrarToast('Estoque está igual', 'info');
             }
-            
-        } catch (error) {
-            console.error(error);
-            statusDiv.innerHTML = '❌ Erro ao processar planilha';
-            mostrarToast('Erro ao processar planilha: ' + error.message, 'error');
+        } catch (err) {
+            console.error(err);
+            statusDiv.innerHTML = '❌ Erro';
+            mostrarToast('Erro: ' + err.message, 'error');
         }
         e.target.value = '';
     });
 
-    // Busca
+    // Busca / Scanner / Comparação
     window.buscarManual = () => {
         const termo = document.getElementById('manualCode').value.trim();
-        if (termo) {
-            abrirModal(termo);
-        } else {
-            mostrarToast('Digite um código para buscar', 'warning');
-        }
+        termo ? abrirModal(termo) : mostrarToast('Digite um código', 'warning');
     };
-
-    // Scanner
     window.alternarScanner = () => {
         const r = document.getElementById('reader');
         if (r.style.display === 'none' || r.style.display === '') {
             r.style.display = 'block';
             if (!scanner) {
                 scanner = new Html5Qrcode("reader");
-                scanner.start(
-                    { facingMode: "environment" }, 
-                    { fps: 10, qrbox: 250 },
+                scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
                     (text) => {
                         let clean = text.replace(/^\]d2/, "").trim();
-                        scanner.stop().then(() => {
-                            r.style.display = 'none';
-                            scanner = null;
-                            abrirModal(clean);
-                        }).catch(err => console.warn(err));
+                        scanner.stop().then(() => { r.style.display = 'none'; scanner = null; abrirModal(clean); });
                     },
                     (error) => console.warn(error)
                 );
             }
         } else {
             r.style.display = 'none';
-            if (scanner) {
-                scanner.stop().then(() => {
-                    scanner = null;
-                }).catch(err => console.warn(err));
-            }
+            if (scanner) scanner.stop().then(() => scanner = null);
         }
     };
+    document.getElementById('manualCode').addEventListener('keypress', (e) => { if (e.key === 'Enter') buscarManual(); });
 
-    document.getElementById('manualCode').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') buscarManual();
-    });
-
-    // Comparação
     window.compararImportacoes = () => {
         if (!estoqueAnterior || Object.keys(estoqueAnterior).length === 0) {
             const estoqueReal = {};
-            for (let [id, item] of Object.entries(inventario)) {
-                if (item.origem === 'estoque' || (item.origem === 'xml' && item.done === true)) {
-                    estoqueReal[id] = item;
-                }
-            }
+            for (let [id, item] of Object.entries(inventario)) if (isEstoqueReal(item)) estoqueReal[id] = item;
             estoqueAnterior = estoqueReal;
-            mostrarToast('📸 Snapshot do estoque real salvo! Importe outra planilha para comparar', 'info');
+            mostrarToast('📸 Snapshot salvo!', 'info');
         } else {
             const diferencas = [];
-            
             const atualMap = new Map();
-            Object.values(inventario).forEach(p => {
-                if (p.origem === 'estoque' || (p.origem === 'xml' && p.done === true)) {
-                    const codigo = p.codigo;
-                    if (!atualMap.has(codigo)) {
-                        atualMap.set(codigo, {
-                            codigo: codigo,
-                            desc: p.desc,
-                            quantidade: 0
-                        });
-                    }
-                    atualMap.get(codigo).quantidade += p.qtde || 0;
-                }
-            });
-            
+            Object.values(inventario).forEach(p => { if (isEstoqueReal(p)) { const c = p.codigo; if (!atualMap.has(c)) atualMap.set(c, { codigo: c, desc: p.desc, quantidade: 0 }); atualMap.get(c).quantidade += p.qtde || 0; } });
             const anteriorMap = new Map();
-            Object.values(estoqueAnterior).forEach(p => {
-                const codigo = p.codigo;
-                if (!anteriorMap.has(codigo)) {
-                    anteriorMap.set(codigo, {
-                        codigo: codigo,
-                        desc: p.desc,
-                        quantidade: 0
-                    });
-                }
-                anteriorMap.get(codigo).quantidade += p.qtde || 0;
-            });
-            
+            Object.values(estoqueAnterior).forEach(p => { const c = p.codigo; if (!anteriorMap.has(c)) anteriorMap.set(c, { codigo: c, desc: p.desc, quantidade: 0 }); anteriorMap.get(c).quantidade += p.qtde || 0; });
             const todosCodigos = new Set([...atualMap.keys(), ...anteriorMap.keys()]);
-            
             todosCodigos.forEach(codigo => {
                 const atual = atualMap.get(codigo)?.quantidade || 0;
                 const anterior = anteriorMap.get(codigo)?.quantidade || 0;
-                const desc = atualMap.get(codigo)?.desc || anteriorMap.get(codigo)?.desc || '';
-                
-                if (atual !== anterior) {
-                    diferencas.push({
-                        codigo,
-                        desc,
-                        anterior,
-                        atual,
-                        diferenca: atual - anterior,
-                        percentual: anterior ? ((atual - anterior) / anterior * 100).toFixed(1) : '∞'
-                    });
-                }
+                if (atual !== anterior) diferencas.push({ codigo, desc: atualMap.get(codigo)?.desc || anteriorMap.get(codigo)?.desc, anterior, atual, diferenca: atual - anterior });
             });
-            
-            diferencas.sort((a, b) => Math.abs(b.diferenca) - Math.abs(a.diferenca));
-            
+            diferencas.sort((a,b) => Math.abs(b.diferenca) - Math.abs(a.diferenca));
             const modal = document.getElementById('modalComparacao');
             const conteudo = document.getElementById('comparacaoConteudo');
-            
-            if (diferencas.length > 0) {
-                const vendas = diferencas.filter(d => d.diferenca < 0).reduce((acc, d) => acc + Math.abs(d.diferenca), 0);
-                const reposicoes = diferencas.filter(d => d.diferenca > 0).reduce((acc, d) => acc + d.diferenca, 0);
-                
-                conteudo.innerHTML = `
-                    <div style="margin-bottom:20px; padding:15px; background:var(--bg-primary); border-radius:12px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
-                            <span>📉 Total vendas:</span>
-                            <span style="color:var(--danger); font-weight:700;">${vendas} un</span>
-                        </div>
-                        <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-                            <span>📈 Total reposições:</span>
-                            <span style="color:var(--success); font-weight:700;">${reposicoes} un</span>
-                        </div>
-                    </div>
-                    
-                    <div style="font-weight:600; margin-bottom:10px;">📊 Produtos com alteração (${diferencas.length}):</div>
-                    ${diferencas.map(d => {
-                        const classeDiferenca = d.diferenca > 0 ? 'diferenca-positiva' : 'diferenca-negativa';
-                        const sinal = d.diferenca > 0 ? '▲' : '▼';
-                        return `
-                            <div class="comparacao-item">
-                                <div style="flex:1;">
-                                    <div><strong>${d.codigo}</strong> - ${d.desc.substring(0, 30)}${d.desc.length > 30 ? '...' : ''}</div>
-                                    <div style="font-size:0.8rem; color:var(--text-secondary);">
-                                        Anterior: ${d.anterior} | Atual: ${d.atual}
-                                    </div>
-                                </div>
-                                <div class="comparacao-diferenca ${classeDiferenca}">
-                                    ${sinal} ${Math.abs(d.diferenca)} (${d.percentual}%)
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                `;
+            if (diferencas.length) {
+                const vendas = diferencas.filter(d => d.diferenca < 0).reduce((acc,d) => acc + Math.abs(d.diferenca),0);
+                const repos = diferencas.filter(d => d.diferenca > 0).reduce((acc,d) => acc + d.diferenca,0);
+                conteudo.innerHTML = `<div>📉 Vendas: ${vendas} un | 📈 Reposições: ${repos} un</div>` + diferencas.map(d => `<div>${d.codigo}: ${d.anterior} → ${d.atual} (${d.diferenca>0?'+':''}${d.diferenca})</div>`).join('');
             } else {
-                conteudo.innerHTML = '<div style="text-align:center; padding:30px;">Nenhuma diferença encontrada!</div>';
+                conteudo.innerHTML = '<div>Nenhuma diferença</div>';
             }
-            
             modal.style.display = 'flex';
             estoqueAnterior = null;
         }
     };
-
-    window.fecharModalComparacao = () => {
-        document.getElementById('modalComparacao').style.display = 'none';
-    };
+    window.fecharModalComparacao = () => document.getElementById('modalComparacao').style.display = 'none';
 
     // Filtros
     window.aplicarFiltro = (filtro) => {
         filtroAtual = filtro;
         document.querySelectorAll('.filtro-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.filtro === filtro) {
-                btn.classList.add('active');
-            }
+            btn.classList.toggle('active', btn.dataset.filtro === filtro);
         });
         renderizarLista();
     };
 
-    // Cálculo de performance
-    function getPerformanceIcon(dias, vendasPorMes = 0) {
-        if (dias >= 90) return '🐌';
-        if (dias >= 60) return '⏳';
-        if (dias >= 30) return '🔄';
-        if (vendasPorMes > 20) return '⚡';
-        if (vendasPorMes > 10) return '📈';
-        if (vendasPorMes > 5) return '📊';
+    // Funções auxiliares
+    function getPerformanceIcon(dias, vendasMes) {
+        if (dias >= 90) return '🐌'; if (dias >= 60) return '⏳'; if (dias >= 30) return '🔄';
+        if (vendasMes > 20) return '⚡'; if (vendasMes > 10) return '📈'; if (vendasMes > 5) return '📊';
         return '🆕';
     }
-
-    // Previsão de estoque
-    function calcularDiasEstoque(historico, quantidadeAtual) {
-        if (!historico || historico.length === 0) return '∞';
-        
-        const ultimos30dias = historico
-            .filter(h => h.tipo === 'venda' && (Date.now() - h.data) < 30 * 86400000)
-            .reduce((acc, h) => acc + Math.abs(h.quantidade), 0);
-        
-        const mediaDiaria = ultimos30dias / 30;
-        if (mediaDiaria === 0 || isNaN(mediaDiaria)) return '∞';
-        return Math.floor(quantidadeAtual / mediaDiaria);
+    function calcularDiasEstoque(historico, qtd) {
+        if (!historico?.length) return '∞';
+        const vendas30 = historico.filter(h => h.tipo==='venda' && (Date.now()-h.data)<2592000000).reduce((a,h)=>a+Math.abs(h.quantidade),0);
+        const media = vendas30/30;
+        return media===0?'∞':Math.floor(qtd/media);
     }
 
-    // Modal principal ATUALIZADO com botões rápidos
+    // Gerar opções de data rápida (próximos 12 meses)
+    function gerarOpcoesDataRapida() {
+        const hoje = new Date();
+        let opcoes = '';
+        for (let i = 0; i < 12; i++) {
+            const data = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
+            const mes = String(data.getMonth() + 1).padStart(2, '0');
+            const ano = data.getFullYear();
+            const valor = `${mes}/${ano}`;
+            const label = data.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+            opcoes += `<option value="${valor}">${label}</option>`;
+        }
+        return opcoes;
+    }
+
+    // Modal principal
     window.abrirModal = (codigo) => {
         const lotes = Object.values(inventario).filter(i => i.codigo === codigo);
-        if (lotes.length === 0) {
-            mostrarToast('Produto não encontrado', 'error');
-            return;
-        }
-
+        if (!lotes.length) return mostrarToast('Produto não encontrado', 'error');
         refCodigoGlobal = codigo;
-        
         const comValidade = lotes.filter(l => l.done && l.validade);
         const pendentes = lotes.filter(l => !l.done);
-        totalPendenteGlobal = pendentes.reduce((acc, l) => acc + (l.qtde || 0), 0);
-        const primeiroLote = lotes[0];
-
-        // Calcular dias sem venda
-        const todasVendas = lotes.flatMap(l => l.historico || [])
-            .filter(h => h.tipo === 'venda')
-            .sort((a, b) => b.data - a.data);
+        totalPendenteGlobal = pendentes.reduce((a,l) => a + (l.qtde||0), 0);
+        const primeiro = lotes[0];
+        const historicoTotal = lotes.flatMap(l => l.historico||[]);
+        const vendas = historicoTotal.filter(h => h.tipo==='venda').sort((a,b)=>b.data-a.data);
+        const ultimaVenda = vendas[0]?.data;
+        const diasSemVenda = ultimaVenda ? Math.floor((Date.now()-ultimaVenda)/86400000) : 0;
+        const vendasMes = vendas.filter(v=>Date.now()-v.data<2592000000).reduce((a,v)=>a+Math.abs(v.quantidade),0);
         
-        const ultimaVenda = todasVendas.length > 0 ? todasVendas[0].data : null;
-        const diasSemVenda = ultimaVenda ? Math.floor((Date.now() - ultimaVenda) / 86400000) : 
-                              (primeiroLote.historico && primeiroLote.historico.length > 0 ? Math.floor((Date.now() - primeiroLote.historico[0]?.data) / 86400000) : 0);
-
-        // Calcular previsão de estoque
-        const historicoCompleto = lotes.flatMap(l => l.historico || []);
-        const diasEstoque = calcularDiasEstoque(historicoCompleto, lotes.reduce((acc, l) => acc + (l.qtde || 0), 0));
-        
-        // Calcular vendas por mês
-        const vendasUltimos30dias = historicoCompleto
-            .filter(h => h.tipo === 'venda' && (Date.now() - h.data) < 30 * 86400000)
-            .reduce((acc, h) => acc + Math.abs(h.quantidade), 0);
-
-        document.getElementById('prodNome').innerHTML = `
-            ${primeiroLote.desc || "Sem descrição"}
-            <span style="font-size:0.8rem; margin-left:8px;">${getPerformanceIcon(diasSemVenda, vendasUltimos30dias)}</span>
-        `;
-        
+        document.getElementById('prodNome').innerHTML = `${primeiro.desc||'Sem descrição'} <span>${getPerformanceIcon(diasSemVenda, vendasMes)}</span>`;
         document.getElementById('modalInfo').innerHTML = `
             <p><strong>Código:</strong> ${codigo}</p>
-            <p><strong>Origem:</strong> ${primeiroLote.origem === 'xml' ? '📄 XML' : '📦 Planilha'}</p>
-            ${primeiroLote.endereco ? `<p><strong>Endereço:</strong> ${primeiroLote.endereco}</p>` : ''}
-            <p><strong>Total em estoque:</strong> ${lotes.reduce((acc, l) => acc + (l.qtde || 0), 0)} un</p>
-            ${primeiroLote.estoqueMinimo ? `
-                <p><strong>Estoque mínimo:</strong> ${primeiroLote.estoqueMinimo} un 
-                ${(lotes.reduce((acc, l) => acc + (l.qtde || 0), 0) <= primeiroLote.estoqueMinimo) ? 
-                    '<span style="color:var(--danger);">⚠️ Abaixo do mínimo</span>' : ''}
-                </p>
-            ` : ''}
-            <p><strong>Última venda:</strong> ${ultimaVenda ? new Date(ultimaVenda).toLocaleDateString('pt-BR') : 'Nunca'}</p>
-            <p><strong>Dias sem vender:</strong> <span style="color: ${diasSemVenda > 90 ? 'var(--danger)' : (diasSemVenda > 60 ? 'var(--warning)' : (diasSemVenda > 30 ? '#fbbf24' : 'var(--success)'))}; font-weight: 700;">${diasSemVenda} dias</span></p>
-            <p><strong>Previsão estoque:</strong> ${diasEstoque === '∞' ? 'Sem vendas' : diasEstoque + ' dias'}</p>
+            <p><strong>Origem:</strong> ${primeiro.origem==='xml'?'📄 XML':'📦 Planilha'}</p>
+            ${primeiro.endereco?`<p><strong>Endereço:</strong> ${primeiro.endereco}</p>`:''}
+            <p><strong>Total estoque:</strong> ${lotes.reduce((a,l)=>a+(l.qtde||0),0)} un</p>
+            <p><strong>Última venda:</strong> ${ultimaVenda?new Date(ultimaVenda).toLocaleDateString('pt-BR'):'Nunca'}</p>
+            <p><strong>Dias sem vender:</strong> ${diasSemVenda} dias</p>
         `;
-
-        setTimeout(() => {
-            renderizarGrafico(historicoCompleto);
-        }, 100);
-
-        // Lotes com validade
-        const lotesPorValidade = new Map();
-        comValidade.forEach(l => {
-            const key = l.validade;
-            if (!lotesPorValidade.has(key)) {
-                lotesPorValidade.set(key, {
-                    validade: key,
-                    qtde: 0,
-                    ids: []
-                });
-            }
-            const grupo = lotesPorValidade.get(key);
-            grupo.qtde += l.qtde || 0;
-            grupo.ids.push(Object.keys(inventario).find(k => inventario[k] === l));
-        });
-
-        const lotesList = document.getElementById('lotesList');
-        if (comValidade.length > 0) {
-            lotesList.innerHTML = Array.from(lotesPorValidade.values()).map(grupo => `
-                <div class="lote-item">
-                    <div class="lote-info">
-                        <span class="lote-validade">📅 ${grupo.validade}</span>
-                        <span class="lote-qtd">${grupo.qtde} unidades</span>
-                    </div>
-                    <button class="btn-remover" onclick="removerLotes('${grupo.ids.join(',')}')">✕</button>
-                </div>
-            `).join('');
-        } else {
-            lotesList.innerHTML = '<div style="text-align:center; padding:15px;">Nenhum lote com validade</div>';
-        }
-
-        // Histórico
-        const historicoList = document.getElementById('historicoList');
-        const todosHistoricos = lotes.flatMap(l => (l.historico || []).map(h => ({
-            ...h,
-            desc: l.desc
-        }))).sort((a, b) => b.data - a.data).slice(0, 20);
         
-        if (todosHistoricos.length > 0) {
-            historicoList.innerHTML = todosHistoricos.map(h => {
-                const data = new Date(h.data).toLocaleDateString('pt-BR');
-                const cor = h.tipo === 'venda' ? 'negativo' : (h.tipo === 'reposicao' ? 'positivo' : '');
-                const sinal = h.tipo === 'venda' ? '▼' : (h.tipo === 'reposicao' ? '▲' : '•');
-                return `
-                    <div class="historico-item">
-                        <span class="historico-data">${data}</span>
-                        <span>${h.tipo === 'venda' ? 'Venda' : (h.tipo === 'reposicao' ? 'Reposição' : 'Importação')}</span>
-                        <span class="historico-qtd ${cor}">${sinal} ${Math.abs(h.quantidade)} un</span>
-                    </div>
-                `;
-            }).join('');
-        } else {
-            historicoList.innerHTML = '<div style="text-align:center; padding:15px;">Nenhum histórico disponível</div>';
-        }
-
-        // NOVO: Input com botões rápidos e atalhos
+        setTimeout(() => renderizarGrafico(historicoTotal), 100);
+        
+        // Lotes
+        const lotesMap = new Map();
+        comValidade.forEach(l => { const k=l.validade; if(!lotesMap.has(k)) lotesMap.set(k,{validade:k,qtde:0,ids:[]}); const g=lotesMap.get(k); g.qtde+=l.qtde||0; g.ids.push(Object.keys(inventario).find(id=>inventario[id]===l)); });
+        document.getElementById('lotesList').innerHTML = comValidade.length ? 
+            Array.from(lotesMap.values()).map(g => `<div class="lote-item"><div>📅 ${g.validade} (${g.qtde} un)</div><button class="btn-remover" onclick="removerLotes('${g.ids.join(',')}')">✕</button></div>`).join('') :
+            '<div style="text-align:center;padding:15px;">Nenhum lote</div>';
+        
+        // Histórico
+        const hist = lotes.flatMap(l=>(l.historico||[]).map(h=>({...h,desc:l.desc}))).sort((a,b)=>b.data-a.data).slice(0,20);
+        document.getElementById('historicoList').innerHTML = hist.length ? hist.map(h => {
+            const data = new Date(h.data).toLocaleDateString('pt-BR');
+            const sinal = h.tipo==='venda'?'▼':(h.tipo==='reposicao'?'▲':'•');
+            const cor = h.tipo==='venda'?'negativo':(h.tipo==='reposicao'?'positivo':'');
+            return `<div class="historico-item"><span>${data}</span><span>${h.tipo}</span><span class="historico-qtd ${cor}">${sinal} ${Math.abs(h.quantidade)} un</span></div>`;
+        }).join('') : '<div>Sem histórico</div>';
+        
+        // Input com seletor de data
         document.getElementById('inputContainer').innerHTML = `
-            <div style="margin: 15px 0;">
-                <label style="display: block; text-align: left; font-weight: 600; margin-bottom: 5px;">
-                    📦 Quantidade (disponível: ${totalPendenteGlobal}):
-                </label>
-                <input type="number" id="inputQuantidade" class="modal-input" 
-                       placeholder="Quantidade" min="1" max="${totalPendenteGlobal}" value="${totalPendenteGlobal}">
+            <div><label>Quantidade (disp: ${totalPendenteGlobal})</label><input type="number" id="inputQuantidade" class="modal-input" value="${totalPendenteGlobal}" min="1" max="${totalPendenteGlobal}"></div>
+            <div><label>Validade (MM/AAAA)</label><input type="text" id="inputMesAno" class="modal-input" placeholder="MM/AAAA" maxlength="7"></div>
+            <select id="quickDateSelect" class="quick-date-selector" onchange="aplicarDataSelecionada()"><option value="">📆 Selecionar mês/ano rápido...</option>${gerarOpcoesDataRapida()}</select>
+            <div class="quick-date-row">
+                <button class="quick-date-btn" onclick="preencherDataRapida(30)">+30d</button>
+                <button class="quick-date-btn" onclick="preencherDataRapida(60)">+60d</button>
+                <button class="quick-date-btn" onclick="preencherDataRapida(90)">+90d</button>
+                <button class="quick-date-btn" onclick="preencherDataRapida(365)">+1a</button>
             </div>
-            <div style="margin: 15px 0;">
-                <label style="display: block; text-align: left; font-weight: 600; margin-bottom: 5px;">
-                    📅 Data de validade (MM/AAAA):
-                </label>
-                <input type="text" id="inputMesAno" class="modal-input" placeholder="MM/AAAA" maxlength="7" autocomplete="off">
-            </div>
-            
-            <!-- Botões rápidos de data -->
-            <div class="quick-dates">
-                <button class="quick-date-btn" onclick="preencherDataRapida(30)">+30 dias</button>
-                <button class="quick-date-btn" onclick="preencherDataRapida(60)">+60 dias</button>
-                <button class="quick-date-btn" onclick="preencherDataRapida(90)">+90 dias</button>
-                <button class="quick-date-btn" onclick="preencherDataRapida(365)">+1 ano</button>
-            </div>
-            
-            <!-- Botão Sem Vencimento -->
-            <button class="btn-salvar btn-sem-vencimento" onclick="marcarSemVencimento()" style="margin-top: 5px;">
-                🚫 ITEM SEM VENCIMENTO (N/A)
-            </button>
-            
-            <div class="atalho-info">
-                <kbd>Enter</kbd> no campo data = Salvar &nbsp;|&nbsp; 
-                <kbd>Ctrl</kbd> + <kbd>Enter</kbd> = Sem vencimento &nbsp;|&nbsp;
-                <kbd>Esc</kbd> = Fechar
-            </div>
-            
+            <button class="btn-salvar btn-sem-vencimento" onclick="marcarSemVencimento()">🚫 SEM VENCIMENTO</button>
+            <div class="atalho-info"><kbd>Enter</kbd> salvar | <kbd>Ctrl+Enter</kbd> sem venc. | <kbd>Esc</kbd> fechar</div>
             <button class="btn-salvar" onclick="salvarData()">💾 ADICIONAR VALIDADE</button>
         `;
-
+        
         document.getElementById('modalData').style.display = 'flex';
+        document.getElementById('inputQuantidade').focus();
+        document.getElementById('inputQuantidade').select();
         
-        // Configurar atalhos de teclado
-        const inputData = document.getElementById('inputMesAno');
-        const inputQtd = document.getElementById('inputQuantidade');
-        
-        inputQtd.focus();
-        inputQtd.select();
-        
-        // Atalhos
-        inputData.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (e.ctrlKey) {
-                    marcarSemVencimento();
-                } else {
-                    salvarData();
-                }
-            }
-        });
-        
-        // Esc para fechar
-        document.addEventListener('keydown', function escHandler(e) {
-            if (e.key === 'Escape') {
-                fecharModal();
-                document.removeEventListener('keydown', escHandler);
-            }
-        });
-        
-        // Máscara melhorada para data
-        inputData.addEventListener('input', (e) => {
-            let v = e.target.value.replace(/\D/g, "");
-            if (v.length >= 2) {
-                v = v.substring(0, 2) + "/" + v.substring(2, 6);
-            }
-            e.target.value = v;
-            
-            // Auto-completar ano
-            if (v.length === 2) {
-                // Só mês, aguarda
-            } else if (v.length === 4 && v.indexOf('/') === -1) {
-                // Digitou 4 números seguidos (ex: 1225)
-                const mes = v.substring(0, 2);
-                const ano = v.substring(2, 6);
-                e.target.value = mes + "/" + ano;
-            }
-        });
+        const inpData = document.getElementById('inputMesAno');
+        inpData.addEventListener('keydown', (e) => { if(e.key==='Enter') { e.preventDefault(); e.ctrlKey?marcarSemVencimento():salvarData(); } });
+        inpData.addEventListener('input', (e) => { let v=e.target.value.replace(/\D/g,''); if(v.length>=2) v=v.substring(0,2)+'/'+v.substring(2,6); e.target.value=v; });
+        document.addEventListener('keydown', function escHandler(e) { if(e.key==='Escape') { fecharModal(); document.removeEventListener('keydown', escHandler); } });
     };
 
-    // NOVA FUNÇÃO: Preencher data rápida
-    window.preencherDataRapida = (diasAdicionar) => {
-        const hoje = new Date();
-        hoje.setDate(hoje.getDate() + diasAdicionar);
-        const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-        const ano = hoje.getFullYear();
-        document.getElementById('inputMesAno').value = `${mes}/${ano}`;
-        document.getElementById('inputMesAno').focus();
-    };
-
-    // NOVA FUNÇÃO: Marcar como sem vencimento
+    window.aplicarDataSelecionada = () => { const s=document.getElementById('quickDateSelect'); if(s.value) { document.getElementById('inputMesAno').value=s.value; s.value=''; } };
+    window.preencherDataRapida = (dias) => { const d=new Date(); d.setDate(d.getDate()+dias); document.getElementById('inputMesAno').value = `${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; };
+    
     window.marcarSemVencimento = async () => {
-        const quantidade = parseInt(document.getElementById('inputQuantidade')?.value);
-        
-        if (!quantidade || quantidade <= 0) {
-            mostrarToast('Digite uma quantidade válida', 'warning');
-            return;
-        }
-        
-        if (quantidade > totalPendenteGlobal) {
-            mostrarToast(`Quantidade indisponível. Total pendente: ${totalPendenteGlobal}`, 'warning');
-            return;
-        }
-
-        // Usar data futura longa para itens sem vencimento
-        const dataSalvar = "31/12/2099";
-        
-        const itensPendentes = Object.entries(inventario)
-            .filter(([_, item]) => item.codigo === refCodigoGlobal && !item.done);
-
-        if (itensPendentes.length === 0) {
-            mostrarToast('Todos os lotes já têm validade', 'info');
-            fecharModal();
-            return;
-        }
-
-        let updates = {};
-        let quantidadeRestante = quantidade;
-
-        for (let [id, item] of itensPendentes) {
-            if (quantidadeRestante <= 0) break;
-            
-            const qtdDisponivel = item.qtde || 0;
-            
-            if (qtdDisponivel <= quantidadeRestante) {
-                const novoId = `${id}_NOVENC_${Date.now()}`;
-                
-                const historico = item.historico || [];
-                historico.push({
-                    data: Date.now(),
-                    tipo: 'validade_atribuida',
-                    quantidade: qtdDisponivel,
-                    validade: 'N/A (Sem vencimento)'
-                });
-                
-                updates[`${novoId}`] = {
-                    ...item,
-                    validade: dataSalvar,
-                    done: true,
-                    qtde: qtdDisponivel,
-                    historico: historico,
-                    semVencimento: true
-                };
-                updates[`${id}`] = null;
-                quantidadeRestante -= qtdDisponivel;
+        const qtd = parseInt(document.getElementById('inputQuantidade')?.value);
+        if(!qtd||qtd<=0) return mostrarToast('Quantidade inválida','warning');
+        if(qtd>totalPendenteGlobal) return mostrarToast(`Máximo ${totalPendenteGlobal}`,'warning');
+        const pendentes = Object.entries(inventario).filter(([_,i])=>i.codigo===refCodigoGlobal&&!i.done);
+        if(!pendentes.length) { fecharModal(); return; }
+        let updates={}, restante=qtd;
+        for(let [id,item] of pendentes) {
+            if(restante<=0) break;
+            const disp=item.qtde||0;
+            if(disp<=restante) {
+                const nId=`${id}_NOVENC_${Date.now()}`;
+                updates[nId]={...item, validade:'31/12/2099', done:true, qtde:disp, historico:[...(item.historico||[]),{data:Date.now(),tipo:'validade',quantidade:disp,validade:'N/A'}]};
+                updates[id]=null; restante-=disp;
             } else {
-                const novoId = `${id}_NOVENC_${Date.now()}`;
-                
-                const historico = item.historico || [];
-                historico.push({
-                    data: Date.now(),
-                    tipo: 'validade_atribuida',
-                    quantidade: quantidadeRestante,
-                    validade: 'N/A (Sem vencimento)'
-                });
-                
-                updates[`${novoId}`] = {
-                    ...item,
-                    validade: dataSalvar,
-                    done: true,
-                    qtde: quantidadeRestante,
-                    historico: historico,
-                    semVencimento: true
-                };
-                
-                updates[`${id}`] = {
-                    ...item,
-                    qtde: qtdDisponivel - quantidadeRestante
-                };
-                
-                quantidadeRestante = 0;
+                const nId=`${id}_NOVENC_${Date.now()}`;
+                updates[nId]={...item, validade:'31/12/2099', done:true, qtde:restante, historico:[...(item.historico||[]),{data:Date.now(),tipo:'validade',quantidade:restante,validade:'N/A'}]};
+                updates[id]={...item, qtde:disp-restante}; restante=0;
             }
         }
-
         await estoqueRef.update(updates);
-        mostrarToast(`${quantidade} unidades marcadas como SEM VENCIMENTO!`, 'success');
+        mostrarToast(`${qtd} un sem vencimento!`,'success');
         fecharModal();
+    };
+
+    window.salvarData = async () => {
+        const qtd = parseInt(document.getElementById('inputQuantidade')?.value);
+        const data = document.getElementById('inputMesAno').value;
+        if(!qtd||qtd<=0) return mostrarToast('Quantidade inválida','warning');
+        if(!/^\d{2}\/\d{4}$/.test(data)) return mostrarToast('Formato MM/AAAA inválido','warning');
+        if(qtd>totalPendenteGlobal) return mostrarToast(`Máximo ${totalPendenteGlobal}`,'warning');
+        const dataSalvar = "01/"+data;
+        const pendentes = Object.entries(inventario).filter(([_,i])=>i.codigo===refCodigoGlobal&&!i.done);
+        if(!pendentes.length) { fecharModal(); return; }
+        let updates={}, restante=qtd;
+        for(let [id,item] of pendentes) {
+            if(restante<=0) break;
+            const disp=item.qtde||0;
+            if(disp<=restante) {
+                const nId=`${id}_VAL_${Date.now()}`;
+                updates[nId]={...item, validade:dataSalvar, done:true, qtde:disp, historico:[...(item.historico||[]),{data:Date.now(),tipo:'validade',quantidade:disp,validade:data}]};
+                updates[id]=null; restante-=disp;
+            } else {
+                const nId=`${id}_VAL_${Date.now()}`;
+                updates[nId]={...item, validade:dataSalvar, done:true, qtde:restante, historico:[...(item.historico||[]),{data:Date.now(),tipo:'validade',quantidade:restante,validade:data}]};
+                updates[id]={...item, qtde:disp-restante}; restante=0;
+            }
+        }
+        await estoqueRef.update(updates);
+        mostrarToast(`${qtd} un com validade ${data}!`,'success');
+        fecharModal();
+    };
+
+    window.removerLotes = async (ids) => {
+        if(!confirm('Remover estes lotes?')) return;
+        const updates = {};
+        ids.split(',').forEach(id => updates[id]=null);
+        await estoqueRef.update(updates);
+        mostrarToast('Lotes removidos','success');
+        fecharModal();
+    };
+
+    window.fecharModal = () => {
+        document.getElementById('modalData').style.display='none';
+        if(grafico) grafico.destroy();
     };
 
     // Gráfico
     function renderizarGrafico(historico) {
         const canvas = document.getElementById('graficoVendas');
-        if (!canvas) return;
-        
+        if(!canvas) return;
         const ctx = canvas.getContext('2d');
-        
         const ultimos6meses = [];
         const hoje = new Date();
-        
-        for (let i = 5; i >= 0; i--) {
-            const data = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
-            const mes = data.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
-            ultimos6meses.push({
-                mes: mes,
-                vendas: 0,
-                reposicoes: 0
-            });
+        for(let i=5; i>=0; i--) {
+            const d = new Date(hoje.getFullYear(), hoje.getMonth()-i, 1);
+            ultimos6meses.push({ mes: d.toLocaleDateString('pt-BR',{month:'short'}).replace('.',''), vendas:0, reposicoes:0 });
         }
-        
         historico.forEach(h => {
-            const dataH = new Date(h.data);
-            const diffMeses = (hoje.getFullYear() - dataH.getFullYear()) * 12 + (hoje.getMonth() - dataH.getMonth());
-            if (diffMeses >= 0 && diffMeses < 6) {
-                const index = 5 - diffMeses;
-                if (h.tipo === 'venda') {
-                    ultimos6meses[index].vendas += Math.abs(h.quantidade);
-                } else if (h.tipo === 'reposicao') {
-                    ultimos6meses[index].reposicoes += h.quantidade;
-                }
+            const dh = new Date(h.data);
+            const diff = (hoje.getFullYear()-dh.getFullYear())*12 + (hoje.getMonth()-dh.getMonth());
+            if(diff>=0 && diff<6) {
+                const idx = 5-diff;
+                if(h.tipo==='venda') ultimos6meses[idx].vendas += Math.abs(h.quantidade);
+                else if(h.tipo==='reposicao') ultimos6meses[idx].reposicoes += h.quantidade;
             }
         });
-
-        if (grafico) {
-            grafico.destroy();
-        }
-
-        try {
-            grafico = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ultimos6meses.map(m => m.mes),
-                    datasets: [
-                        {
-                            label: 'Vendas',
-                            data: ultimos6meses.map(m => m.vendas),
-                            backgroundColor: '#ef4444',
-                            borderRadius: 4,
-                            barPercentage: 0.7,
-                            categoryPercentage: 0.8
-                        },
-                        {
-                            label: 'Reposições',
-                            data: ultimos6meses.map(m => m.reposicoes),
-                            backgroundColor: '#10b981',
-                            borderRadius: 4,
-                            barPercentage: 0.7,
-                            categoryPercentage: 0.8
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0,0,0,0.05)'
-                            },
-                            ticks: {
-                                stepSize: 1
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
-        } catch (error) {
-            console.error('Erro ao criar gráfico:', error);
-        }
-    }
-
-    window.salvarData = async () => {
-        const quantidade = parseInt(document.getElementById('inputQuantidade')?.value);
-        const data = document.getElementById('inputMesAno').value;
-        
-        if (!quantidade || quantidade <= 0) {
-            mostrarToast('Digite uma quantidade válida', 'warning');
-            return;
-        }
-        
-        if (data.length < 7) {
-            mostrarToast('Digite MM/AAAA', 'warning');
-            return;
-        }
-        
-        if (!/^\d{2}\/\d{4}$/.test(data)) {
-            mostrarToast('Formato inválido. Use MM/AAAA', 'warning');
-            return;
-        }
-
-        const dataSalvar = "01/" + data;
-        
-        const itensPendentes = Object.entries(inventario)
-            .filter(([_, item]) => item.codigo === refCodigoGlobal && !item.done);
-
-        if (itensPendentes.length === 0) {
-            mostrarToast('Todos os lotes já têm validade', 'info');
-            fecharModal();
-            return;
-        }
-
-        const totalPendente = itensPendentes.reduce((acc, [_, item]) => acc + (item.qtde || 0), 0);
-        
-        if (quantidade > totalPendente) {
-            mostrarToast(`Quantidade indisponível. Total pendente: ${totalPendente}`, 'warning');
-            return;
-        }
-
-        let updates = {};
-        let quantidadeRestante = quantidade;
-
-        for (let [id, item] of itensPendentes) {
-            if (quantidadeRestante <= 0) break;
-            
-            const qtdDisponivel = item.qtde || 0;
-            
-            if (qtdDisponivel <= quantidadeRestante) {
-                const novoId = `${id}_VAL_${Date.now()}`;
-                
-                const historico = item.historico || [];
-                historico.push({
-                    data: Date.now(),
-                    tipo: 'validade_atribuida',
-                    quantidade: qtdDisponivel,
-                    validade: dataSalvar
-                });
-                
-                updates[`${novoId}`] = {
-                    ...item,
-                    validade: dataSalvar,
-                    done: true,
-                    qtde: qtdDisponivel,
-                    historico: historico
-                };
-                updates[`${id}`] = null;
-                quantidadeRestante -= qtdDisponivel;
-            } else {
-                const novoId = `${id}_VAL_${Date.now()}`;
-                
-                const historico = item.historico || [];
-                historico.push({
-                    data: Date.now(),
-                    tipo: 'validade_atribuida',
-                    quantidade: quantidadeRestante,
-                    validade: dataSalvar
-                });
-                
-                updates[`${novoId}`] = {
-                    ...item,
-                    validade: dataSalvar,
-                    done: true,
-                    qtde: quantidadeRestante,
-                    historico: historico
-                };
-                
-                updates[`${id}`] = {
-                    ...item,
-                    qtde: qtdDisponivel - quantidadeRestante
-                };
-                
-                quantidadeRestante = 0;
-            }
-        }
-
-        await estoqueRef.update(updates);
-        mostrarToast(`${quantidade} unidades com validade ${data} adicionadas!`, 'success');
-        fecharModal();
-    };
-
-    window.removerLotes = async (idsString) => {
-        if (!confirm('Remover estes lotes?')) return;
-        
-        const ids = idsString.split(',');
-        let updates = {};
-        ids.forEach(id => {
-            updates[id] = null;
+        if(grafico) grafico.destroy();
+        grafico = new Chart(ctx, {
+            type:'bar', data:{ labels:ultimos6meses.map(m=>m.mes), datasets:[
+                { label:'Vendas', data:ultimos6meses.map(m=>m.vendas), backgroundColor:'#ef4444' },
+                { label:'Reposições', data:ultimos6meses.map(m=>m.reposicoes), backgroundColor:'#10b981' }
+            ]},
+            options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } } }
         });
-        
-        await estoqueRef.update(updates);
-        mostrarToast(`${ids.length} lote(s) removidos`, 'success');
-        fecharModal();
-    };
-
-    window.fecharModal = () => {
-        document.getElementById('modalData').style.display = 'none';
-        document.getElementById('inputContainer').innerHTML = '';
-        if (grafico) {
-            grafico.destroy();
-            grafico = null;
-        }
-    };
-
-    // Exportar relatório
-    window.exportarRelatorioParados = () => {
-        const produtos = Object.values(inventario).filter(item => 
-            item.origem === 'estoque' || (item.origem === 'xml' && item.done === true)
-        );
-        
-        const grupos = new Map();
-        produtos.forEach(p => {
-            if (!grupos.has(p.codigo)) {
-                grupos.set(p.codigo, {
-                    codigo: p.codigo,
-                    desc: p.desc,
-                    endereco: p.endereco || 'N/I',
-                    quantidade: 0,
-                    diasSemVenda: 0,
-                    ultimaVenda: null,
-                    estoqueMinimo: p.estoqueMinimo || 0
-                });
-            }
-            const grupo = grupos.get(p.codigo);
-            grupo.quantidade += p.qtde || 0;
-            
-            if (p.historico && p.historico.length > 0) {
-                const vendas = p.historico.filter(h => h.tipo === 'venda');
-                if (vendas.length > 0) {
-                    const ultima = Math.max(...vendas.map(v => v.data));
-                    grupo.ultimaVenda = ultima;
-                    grupo.diasSemVenda = Math.floor((Date.now() - ultima) / 86400000);
-                }
-            }
-        });
-        
-        const paradosArray = Array.from(grupos.values())
-            .filter(g => g.diasSemVenda >= 30)
-            .sort((a, b) => b.diasSemVenda - a.diasSemVenda);
-        
-        let csv = "Código;Descrição;Endereço;Quantidade;Dias sem venda;Última venda;Estoque Mínimo;Status\n";
-        paradosArray.forEach(p => {
-            const dataUlt = p.ultimaVenda ? new Date(p.ultimaVenda).toLocaleDateString('pt-BR') : 'Nunca';
-            const status = p.diasSemVenda >= 90 ? 'Crítico' : (p.diasSemVenda >= 60 ? 'Alerta' : (p.diasSemVenda >= 30 ? 'Atenção' : 'Normal'));
-            csv += `${p.codigo};${p.desc};${p.endereco};${p.quantidade};${p.diasSemVenda};${dataUlt};${p.estoqueMinimo};${status}\n`;
-        });
-        
-        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `produtos_parados_${new Date().toISOString().split('T')[0]}.csv`;
-        link.click();
-        
-        mostrarToast(`📊 Relatório com ${paradosArray.length} produtos gerado!`, 'success');
-    };
-
-    // Verificar produtos parados
-    let notificados = new Set();
-    
-    function verificarProdutosParados() {
-        const produtos = Object.values(inventario).filter(item => 
-            item.origem === 'estoque' || (item.origem === 'xml' && item.done === true)
-        );
-        const parados90 = new Set();
-        
-        produtos.forEach(p => {
-            if (p.historico && p.historico.length > 0) {
-                const vendas = p.historico.filter(h => h.tipo === 'venda');
-                const ultimaVenda = vendas.length > 0 ? Math.max(...vendas.map(v => v.data)) : null;
-                const dias = ultimaVenda ? Math.floor((Date.now() - ultimaVenda) / 86400000) : 
-                             Math.floor((Date.now() - (p.historico[0]?.data || Date.now())) / 86400000);
-                
-                if (dias >= 90 && !notificados.has(p.codigo)) {
-                    parados90.add(p.codigo);
-                    notificados.add(p.codigo);
-                }
-            }
-        });
-        
-        if (parados90.size > 0) {
-            mostrarToast(`🔴 Atenção! ${parados90.size} produtos com 90+ dias sem venda!`, 'warning');
-        }
     }
 
-    // Funções de estilo
-    function getClasseSemMovimento(dias) {
-        if (dias >= 120) return 'sem-movimento-120';
-        if (dias >= 90) return 'sem-movimento-90';
-        if (dias >= 60) return 'sem-movimento-60';
-        if (dias >= 30) return 'sem-movimento-30';
-        return '';
-    }
-
-    function getStatusText(dias) {
-        if (dias >= 120) return '🔥 120+ DIAS';
-        if (dias >= 90) return '🔴 90+ DIAS';
-        if (dias >= 60) return '🟠 60+ DIAS';
-        if (dias >= 30) return '🟡 30+ DIAS';
-        return '✅ Normal';
-    }
-
-    function getStatusClass(dias) {
-        if (dias >= 120) return 'status-parado-120';
-        if (dias >= 90) return 'status-parado-90';
-        if (dias >= 60) return 'status-parado-60';
-        if (dias >= 30) return 'status-parado-30';
-        return 'status-pendente';
-    }
-
-    // Renderizar lista
+    // Renderizar lista e status
     function renderizarLista() {
         const container = document.getElementById('lista-estoque');
-        const ordenarPor = document.getElementById('ordenarPor').value;
-        
-        let itensFiltrados = Object.values(inventario);
-        
-        if (abaAtual === 'xml') {
-            itensFiltrados = itensFiltrados.filter(item => item.origem === 'xml');
-        } else {
-            itensFiltrados = itensFiltrados.filter(item => item.origem === 'estoque');
-        }
-        
-        const produtosAgrupados = new Map();
-        itensFiltrados.forEach(item => {
-            if (!produtosAgrupados.has(item.codigo)) {
-                produtosAgrupados.set(item.codigo, {
-                    ...item,
-                    lotes: [item]
-                });
-            } else {
-                const existente = produtosAgrupados.get(item.codigo);
-                existente.lotes.push(item);
-                existente.qtde = (existente.qtde || 0) + (item.qtde || 0);
-            }
+        let itens = Object.values(inventario).filter(i => abaAtual==='xml'? i.origem==='xml' : i.origem==='estoque');
+        const agrupados = new Map();
+        itens.forEach(i => {
+            if(!agrupados.has(i.codigo)) agrupados.set(i.codigo, {...i, lotes:[i], qtde:i.qtde||0});
+            else { const e=agrupados.get(i.codigo); e.lotes.push(i); e.qtde=(e.qtde||0)+(i.qtde||0); }
         });
-        
-        let produtos = Array.from(produtosAgrupados.values());
-        
-        produtos.forEach(prod => {
-            const todasVendas = prod.lotes.flatMap(l => l.historico || [])
-                .filter(h => h.tipo === 'venda')
-                .sort((a, b) => b.data - a.data);
-            
-            const ultimaVenda = todasVendas.length > 0 ? todasVendas[0].data : null;
-            prod.diasSemVenda = ultimaVenda ? Math.floor((Date.now() - ultimaVenda) / 86400000) : 
-                                (prod.historico && prod.historico.length > 0 ? Math.floor((Date.now() - prod.historico[0]?.data) / 86400000) : 0);
-            
-            const historicoCompleto = prod.lotes.flatMap(l => l.historico || []);
-            prod.vendasMes = historicoCompleto
-                .filter(h => h.tipo === 'venda' && (Date.now() - h.data) < 30 * 86400000)
-                .reduce((acc, h) => acc + Math.abs(h.quantidade), 0);
+        let produtos = Array.from(agrupados.values());
+        produtos.forEach(p => {
+            const vendas = p.lotes.flatMap(l=>l.historico||[]).filter(h=>h.tipo==='venda').sort((a,b)=>b.data-a.data);
+            p.diasSemVenda = vendas.length ? Math.floor((Date.now()-vendas[0].data)/86400000) : 0;
         });
-        
-        if (filtroAtual !== 'todos') {
-            produtos = produtos.filter(prod => {
-                switch(filtroAtual) {
-                    case 'pendente': return !prod.done;
-                    case 'concluido': return prod.done;
-                    case 'parado30': return prod.diasSemVenda >= 30;
-                    case 'parado60': return prod.diasSemVenda >= 60;
-                    case 'parado90': return prod.diasSemVenda >= 90;
-                    default: return true;
-                }
-            });
-        }
-        
-        produtos.sort((a, b) => {
-            switch(ordenarPor) {
-                case 'dias': return (b.diasSemVenda || 0) - (a.diasSemVenda || 0);
-                case 'dias-menor': return (a.diasSemVenda || 0) - (b.diasSemVenda || 0);
-                case 'quantidade': return (b.qtde || 0) - (a.qtde || 0);
-                case 'quantidade-menor': return (a.qtde || 0) - (b.qtde || 0);
-                case 'codigo': return (a.codigo || '').localeCompare(b.codigo || '');
-                case 'nome': return (a.desc || '').localeCompare(b.desc || '');
-                default: return (b.diasSemVenda || 0) - (a.diasSemVenda || 0);
-            }
+        if(filtroAtual!=='todos') produtos = produtos.filter(p => {
+            if(filtroAtual==='pendente') return !p.done;
+            if(filtroAtual==='concluido') return p.done;
+            if(filtroAtual==='parado30') return p.diasSemVenda>=30;
+            if(filtroAtual==='parado60') return p.diasSemVenda>=60;
+            if(filtroAtual==='parado90') return p.diasSemVenda>=90;
         });
-        
+        produtos.sort((a,b) => (b.diasSemVenda||0) - (a.diasSemVenda||0));
         document.getElementById('result-count').innerText = `${produtos.length} itens`;
-        
-        if (produtos.length === 0) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px; background: var(--bg-secondary); border-radius: 16px; color: var(--text-secondary);">
-                    <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 10px;"></i>
-                    <p>Nenhum produto encontrado</p>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = produtos.map(prod => {
-            const classeMovimento = getClasseSemMovimento(prod.diasSemVenda);
-            const statusText = getStatusText(prod.diasSemVenda);
-            const statusClass = getStatusClass(prod.diasSemVenda);
-            const performanceIcon = getPerformanceIcon(prod.diasSemVenda, prod.vendasMes);
-            
-            const historicoCompleto = prod.lotes.flatMap(l => l.historico || []);
-            const diasEstoque = calcularDiasEstoque(historicoCompleto, prod.qtde || 0);
-            
-            return `
-            <div class="produto-item ${prod.done ? 'concluido' : 'pendente'} ${classeMovimento}" onclick="abrirModal('${prod.codigo}')">
-                <div class="produto-header">
-                    <span class="produto-codigo">
-                        <span class="performance-icon">${performanceIcon}</span>
-                        ${prod.codigo}
-                    </span>
-                    <span class="produto-status ${prod.done ? 'status-concluido' : (prod.diasSemVenda >= 30 ? statusClass : 'status-pendente')}">
-                        ${prod.done ? '✅ Concluído' : statusText}
-                    </span>
-                </div>
-                <div class="produto-desc">${(prod.desc || '').substring(0, 50)}${prod.desc?.length > 50 ? '...' : ''}</div>
-                <div class="produto-detalhes">
-                    <span><i class="fas fa-file"></i> ${prod.origem === 'xml' ? `NF ${prod.nf}` : 'Estoque'}</span>
-                    <span><i class="fas fa-box"></i> ${prod.qtde} un</span>
-                    ${diasEstoque !== '∞' ? `<span><i class="fas fa-clock"></i> ${diasEstoque}d</span>` : ''}
-                </div>
-                ${prod.endereco ? `
-                <div class="produto-endereco">
-                    <i class="fas fa-map-marker-alt"></i> ${prod.endereco}
-                </div>
-                ` : ''}
-                <div class="produto-movimento">
-                    ${prod.diasSemVenda >= 30 ? `
-                        <span class="badge-dias ${prod.diasSemVenda >= 90 ? 'badge-90' : (prod.diasSemVenda >= 60 ? 'badge-60' : 'badge-30')}">
-                            <i class="fas fa-hourglass-half"></i> ${prod.diasSemVenda} dias
-                        </span>
-                    ` : ''}
-                    ${prod.alertaEstoque ? `
-                        <span class="badge-dias badge-90">
-                            <i class="fas fa-exclamation-triangle"></i> Estoque mínimo
-                        </span>
-                    ` : ''}
-                </div>
+        container.innerHTML = produtos.map(p => `
+            <div class="produto-item ${p.done?'concluido':'pendente'}" onclick="abrirModal('${p.codigo}')">
+                <div class="produto-header"><span class="produto-codigo">${p.codigo}</span><span class="produto-status">${p.done?'✅':'⏳'}</span></div>
+                <div class="produto-desc">${p.desc||''}</div>
+                <div class="produto-detalhes"><span>${p.qtde} un</span><span>${p.diasSemVenda}d</span></div>
             </div>
-        `}).join('');
+        `).join('') || '<div style="text-align:center;padding:40px;">Nenhum produto</div>';
     }
 
     function atualizarStatus() {
         const lotes = Object.values(inventario);
-        
-        const produtosParados = new Set();
-        const produtosParados90 = new Set();
-        
-        lotes.forEach(item => {
-            if ((item.origem === 'estoque' || (item.origem === 'xml' && item.done === true)) && 
-                item.historico && item.historico.length > 0) {
-                const vendas = item.historico.filter(h => h.tipo === 'venda');
-                const ultimaVenda = vendas.length > 0 ? Math.max(...vendas.map(v => v.data)) : null;
-                const diasSemVenda = ultimaVenda ? Math.floor((Date.now() - ultimaVenda) / 86400000) : 
-                                     Math.floor((Date.now() - (item.historico[0]?.data || Date.now())) / 86400000);
-                
-                if (diasSemVenda >= 30) produtosParados.add(item.codigo);
-                if (diasSemVenda >= 90) produtosParados90.add(item.codigo);
-            }
+        const real = lotes.filter(isEstoqueReal);
+        const parados = real.filter(i => {
+            const v=i.historico?.filter(h=>h.tipo==='venda');
+            return v?.length && (Date.now()-Math.max(...v.map(x=>x.data)))/86400000 >= 30;
         });
-        
         document.getElementById('stat-lotes').innerText = lotes.length;
-        document.getElementById('stat-pendentes').innerText = lotes.filter(l => !l.done).length;
-        document.getElementById('stat-parados').innerText = produtosParados.size;
-        document.getElementById('stat-parados-90').innerText = produtosParados90.size;
+        document.getElementById('stat-pendentes').innerText = lotes.filter(l=>!l.done).length;
+        document.getElementById('stat-parados').innerText = parados.length;
+        document.getElementById('stat-parados-90').innerText = parados.filter(p=> (Date.now()-Math.max(...p.historico.filter(h=>h.tipo==='venda').map(x=>x.data)))/86400000 >= 90).length;
     }
 
-    console.log('Sistema de gestão de estoque iniciado!');
+    function verificarProdutosParados() {
+        const real = Object.values(inventario).filter(isEstoqueReal);
+        const parados90 = real.filter(i => {
+            const v=i.historico?.filter(h=>h.tipo==='venda');
+            return v?.length && (Date.now()-Math.max(...v.map(x=>x.data)))/86400000 >= 90;
+        });
+        if(parados90.length) mostrarToast(`🔴 ${parados90.length} produtos com 90+ dias parados!`, 'warning');
+    }
+
+    window.exportarRelatorioParados = () => {
+        const real = Object.values(inventario).filter(isEstoqueReal);
+        const grupos = new Map();
+        real.forEach(p => {
+            if(!grupos.has(p.codigo)) grupos.set(p.codigo, { codigo:p.codigo, desc:p.desc, endereco:p.endereco||'N/I', quantidade:0, diasSemVenda:0 });
+            const g = grupos.get(p.codigo);
+            g.quantidade += p.qtde||0;
+            const vendas = p.historico?.filter(h=>h.tipo==='venda') || [];
+            if(vendas.length) {
+                const ultima = Math.max(...vendas.map(v=>v.data));
+                g.diasSemVenda = Math.floor((Date.now()-ultima)/86400000);
+            }
+        });
+        const parados = Array.from(grupos.values()).filter(g=>g.diasSemVenda>=30).sort((a,b)=>b.diasSemVenda-a.diasSemVenda);
+        let csv = "Código;Descrição;Endereço;Quantidade;Dias sem venda\n";
+        parados.forEach(p => csv += `${p.codigo};${p.desc};${p.endereco};${p.quantidade};${p.diasSemVenda}\n`);
+        const blob = new Blob(["\uFEFF"+csv], {type:'text/csv'});
+        const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`parados_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+        mostrarToast(`Relatório com ${parados.length} produtos gerado!`, 'success');
+    };
+
+    console.log('✅ Sistema pronto! Use "Desfazer última" para remover XMLs importados por engano.');
 </script>
 </body>
 </html>
