@@ -31,7 +31,7 @@
             --info: #3b82f6;
             --border: #e5e7eb;
             --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            --expired: #450a0a;
+            --expired: #991b1b;
             --critical: #dc2626;
             --attention: #d97706;
             --six-months: #3b82f6;
@@ -372,7 +372,7 @@
 
         .top-container {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -386,7 +386,7 @@
         }
 
         .top-card h3 {
-            font-size: 1.1rem;
+            font-size: 1rem;
             margin-bottom: 15px;
             display: flex;
             align-items: center;
@@ -404,8 +404,8 @@
         .top-item {
             display: flex;
             align-items: center;
-            gap: 15px;
-            padding: 12px;
+            gap: 12px;
+            padding: 10px;
             background: var(--bg-primary);
             border-radius: 12px;
             cursor: pointer;
@@ -419,14 +419,14 @@
         }
 
         .top-position {
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             flex-shrink: 0;
         }
 
@@ -451,15 +451,15 @@
         }
 
         .top-info h4 {
-            font-size: 0.95rem;
-            margin-bottom: 4px;
+            font-size: 0.85rem;
+            margin-bottom: 3px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .top-info p {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
             white-space: nowrap;
             overflow: hidden;
@@ -472,8 +472,22 @@
 
         .top-value {
             font-weight: 800;
-            font-size: 1.2rem;
+            font-size: 0.9rem;
             flex-shrink: 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background: var(--border);
+            border-radius: 4px;
+            margin-top: 4px;
+            height: 4px;
+        }
+
+        .progress-fill {
+            background: var(--six-months);
+            border-radius: 4px;
+            height: 4px;
         }
 
         .modal {
@@ -508,7 +522,7 @@
         }
 
         .modal-header h2 {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 800;
         }
 
@@ -561,12 +575,12 @@
         .produto-item-modal.sem-endereco { border-left-color: var(--endereco-missing); }
 
         .produto-item-modal h4 {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             margin-bottom: 5px;
         }
 
         .produto-item-modal p {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-secondary);
         }
 
@@ -579,7 +593,7 @@
             justify-content: space-between;
             padding: 12px 0;
             border-bottom: 1px solid var(--border);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             gap: 10px;
             flex-wrap: wrap;
         }
@@ -589,15 +603,15 @@
             justify-content: space-between;
             padding: 8px 0;
             border-bottom: 1px dashed var(--border);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             gap: 10px;
             flex-wrap: wrap;
         }
 
         .btn-close {
             width: 100%;
-            padding: 16px;
-            margin-top: 24px;
+            padding: 14px;
+            margin-top: 20px;
             border: none;
             background: var(--text-primary);
             color: white;
@@ -630,7 +644,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            min-width: 300px;
+            min-width: 280px;
             animation: slideIn 0.3s ease;
             color: var(--text-primary);
         }
@@ -647,16 +661,16 @@
 
         .empty {
             text-align: center;
-            padding: 30px;
+            padding: 25px;
             border: 2px dashed var(--border);
             border-radius: 16px;
             color: var(--text-secondary);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 500;
         }
 
         @media (max-width: 1200px) {
-            .metrics-grid { grid-template-columns: repeat(3, 1fr); }
+            .top-container { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
@@ -664,7 +678,6 @@
             header { flex-direction: column; align-items: flex-start; }
             .header-actions { width: 100%; justify-content: space-between; }
             .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .top-container { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -701,6 +714,7 @@
         </div>
     </header>
 
+    <!-- Barra de Saúde do Estoque -->
     <div class="health-section">
         <div class="health-header">
             <div class="health-title">
@@ -713,7 +727,7 @@
             </div>
         </div>
         
-        <div class="health-bar-container" id="healthBar">
+        <div class="health-bar-container">
             <div class="health-segment excellent" id="healthExcellent" style="width: 0%">0%</div>
             <div class="health-segment good" id="healthGood" style="width: 0%">0%</div>
             <div class="health-segment fair" id="healthFair" style="width: 0%">0%</div>
@@ -730,6 +744,7 @@
         </div>
     </div>
 
+    <!-- Cards de Métricas -->
     <div class="metrics-grid">
         <div class="metric-card">
             <div class="label"><i class="fas fa-boxes"></i> Total em estoque</div>
@@ -790,27 +805,28 @@
             <div class="sub">SKUs</div>
         </div>
 
-        <!-- NOVO CARD: Vence em até 6 meses -->
         <div class="metric-card clickable seis-meses" onclick="mostrarListaProdutos('seis-meses')">
             <div class="label"><i class="fas fa-calendar-week"></i> Vence em ≤6 meses</div>
             <div class="value" id="total-seis-meses">0</div>
-            <div class="sub">SKUs (até 180 dias)</div>
+            <div class="sub">SKUs (31-180 dias)</div>
         </div>
     </div>
 
+    <!-- Top 10 - Dois cards lado a lado -->
     <div class="top-container">
         <div class="top-card criticos">
-            <h3><i class="fas fa-fire" style="color: var(--danger);"></i> Top 10 - Mais Críticos (validade próxima)</h3>
+            <h3><i class="fas fa-fire"></i> Top 10 - Mais Críticos (≤30 dias / Vencidos)</h3>
             <div id="topCriticos" class="top-list"></div>
         </div>
         
         <div class="top-card seis-meses">
-            <h3><i class="fas fa-calendar-week" style="color: var(--six-months);"></i> Top 10 - Vencem em até 6 meses</h3>
+            <h3><i class="fas fa-calendar-week"></i> Top 10 - Vencem em 31 a 180 dias</h3>
             <div id="topSeisMeses" class="top-list"></div>
         </div>
     </div>
 </div>
 
+<!-- Modal de Lista de Produtos -->
 <div id="modalLista" class="modal" onclick="if(event.target === this) fecharModalLista()">
     <div class="modal-content">
         <div class="modal-header">
@@ -822,6 +838,7 @@
     </div>
 </div>
 
+<!-- Modal de Detalhes do Produto -->
 <div id="modalProduto" class="modal" onclick="if(event.target === this) fecharModalProduto()">
     <div class="modal-content">
         <div class="modal-header">
@@ -853,10 +870,12 @@
     let produtosPendentes = [];
     let todosProdutos = [];
     
+    // Data atual
     document.getElementById('display-date').innerText = new Date().toLocaleDateString('pt-BR', { 
         weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
 
+    // Tema
     if (localStorage.getItem('darkMode') === 'true') {
         document.body.classList.add('dark-mode');
         const icon = document.querySelector('.theme-toggle i');
@@ -905,16 +924,12 @@
     function processarDados(dados) {
         const produtosPorCodigo = new Map();
         
+        // Filtrar apenas itens com quantidade > 0
         const itensValidos = Object.entries(dados).filter(([_, item]) => item && item.qtde && item.qtde > 0);
-        
-        console.log(`Total de itens válidos (qtde > 0): ${itensValidos.length}`);
         
         for (const [id, item] of itensValidos) {
             const codigo = item.codigo;
-            if (!codigo) {
-                console.warn(`Item sem código ignorado: ${id}`);
-                continue;
-            }
+            if (!codigo) continue;
             
             if (!produtosPorCodigo.has(codigo)) {
                 produtosPorCodigo.set(codigo, {
@@ -941,12 +956,8 @@
             const diasRestantes = temValidade ? calcularDiasRestantes(item.validade) : null;
             
             prod.lotes.push({ 
-                id, 
-                qtde, 
-                validade: item.validade, 
-                done: item.done === true, 
-                diasRestantes,
-                historico: item.historico || []
+                id, qtde, validade: item.validade, done: item.done === true, 
+                diasRestantes, historico: item.historico || []
             });
             
             if (temValidade && diasRestantes !== null) {
@@ -963,11 +974,9 @@
             }
         }
         
-        console.log(`Total de produtos distintos: ${produtosPorCodigo.size}`);
-        
+        // Calcular dias sem venda
         for (const prod of produtosPorCodigo.values()) {
             const vendas = prod.historicoCompleto.filter(h => h && h.tipo === 'venda');
-            
             if (vendas.length > 0) {
                 const ultimaVenda = Math.max(...vendas.map(v => v.data));
                 prod.ultimaVenda = ultimaVenda;
@@ -978,8 +987,6 @@
                 if (importacoes.length > 0) {
                     const primeiraImportacao = Math.min(...importacoes.map(i => i.data));
                     prod.diasSemVenda = Math.floor((Date.now() - primeiraImportacao) / 86400000);
-                } else {
-                    prod.diasSemVenda = 999;
                 }
                 prod.ultimaVenda = null;
             }
@@ -998,10 +1005,6 @@
         
         todosProdutos = Array.from(produtosPorCodigo.values());
         
-        console.log(`Produtos com validade: ${produtosComValidade.length}`);
-        console.log(`Produtos pendentes: ${produtosPendentes.length}`);
-        console.log(`Total produtos: ${todosProdutos.length}`);
-        
         atualizarMetricas();
         renderizarTopCriticos();
         renderizarTopSeisMeses();
@@ -1019,9 +1022,8 @@
         const parados90 = todosProdutos.filter(p => p.diasSemVenda >= 90 && p.diasSemVenda < 999).length;
         const vencidos = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias < 0).length;
         const criticos = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 30).length;
-        
-        // NOVO: Produtos que vencem em até 6 meses (180 dias)
-        const seisMeses = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 180).length;
+        // Seis meses: produtos com validade entre 31 e 180 dias (exclui críticos)
+        const seisMeses = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 31 && p.menorDias <= 180).length;
         
         document.getElementById('total-estoque').innerText = Math.round(totalUnidades);
         document.getElementById('total-produtos').innerText = totalProdutos;
@@ -1037,31 +1039,17 @@
     }
     
     function calcularSaudeEstoque() {
-        const healthExcellent = document.getElementById('healthExcellent');
-        const healthGood = document.getElementById('healthGood');
-        const healthFair = document.getElementById('healthFair');
-        const healthPoor = document.getElementById('healthPoor');
-        const healthCritical = document.getElementById('healthCritical');
-        const healthScore = document.getElementById('healthScore');
-        
         const categorias = { excellent: 0, good: 0, fair: 0, poor: 0, critical: 0 };
         
         for (const produto of produtosComValidade) {
             const dias = produto.menorDias;
             if (dias !== null) {
-                if (dias < 0) {
-                    categorias.critical += produto.total;
-                } else if (dias <= 30) {
-                    categorias.critical += produto.total;
-                } else if (dias <= 90) {
-                    categorias.poor += produto.total;
-                } else if (dias <= 180) {
-                    categorias.fair += produto.total;
-                } else if (dias <= 365) {
-                    categorias.good += produto.total;
-                } else {
-                    categorias.excellent += produto.total;
-                }
+                if (dias < 0) categorias.critical += produto.total;
+                else if (dias <= 30) categorias.critical += produto.total;
+                else if (dias <= 90) categorias.poor += produto.total;
+                else if (dias <= 180) categorias.fair += produto.total;
+                else if (dias <= 365) categorias.good += produto.total;
+                else categorias.excellent += produto.total;
             }
         }
         
@@ -1074,33 +1062,29 @@
             const pctPoor = (categorias.poor / total * 100).toFixed(1);
             const pctCrit = (categorias.critical / total * 100).toFixed(1);
             
-            healthExcellent.style.width = pctExc + '%'; 
-            healthExcellent.innerText = pctExc + '%';
-            healthGood.style.width = pctGood + '%'; 
-            healthGood.innerText = pctGood + '%';
-            healthFair.style.width = pctFair + '%'; 
-            healthFair.innerText = pctFair + '%';
-            healthPoor.style.width = pctPoor + '%'; 
-            healthPoor.innerText = pctPoor + '%';
-            healthCritical.style.width = pctCrit + '%'; 
-            healthCritical.innerText = pctCrit + '%';
+            document.getElementById('healthExcellent').style.width = pctExc + '%';
+            document.getElementById('healthExcellent').innerText = pctExc + '%';
+            document.getElementById('healthGood').style.width = pctGood + '%';
+            document.getElementById('healthGood').innerText = pctGood + '%';
+            document.getElementById('healthFair').style.width = pctFair + '%';
+            document.getElementById('healthFair').innerText = pctFair + '%';
+            document.getElementById('healthPoor').style.width = pctPoor + '%';
+            document.getElementById('healthPoor').innerText = pctPoor + '%';
+            document.getElementById('healthCritical').style.width = pctCrit + '%';
+            document.getElementById('healthCritical').innerText = pctCrit + '%';
             
             const score = (categorias.excellent * 100 + categorias.good * 80 + categorias.fair * 60 + categorias.poor * 30 + categorias.critical * 10) / total;
-            healthScore.innerText = Math.round(score);
+            document.getElementById('healthScore').innerText = Math.round(score);
         } else {
-            healthExcellent.style.width = '0%'; healthExcellent.innerText = '0%';
-            healthGood.style.width = '0%'; healthGood.innerText = '0%';
-            healthFair.style.width = '0%'; healthFair.innerText = '0%';
-            healthPoor.style.width = '0%'; healthPoor.innerText = '0%';
-            healthCritical.style.width = '0%'; healthCritical.innerText = '0%';
-            healthScore.innerText = '0';
+            document.getElementById('healthScore').innerText = '0';
         }
     }
     
+    // Top 10 - Mais Críticos (Vencidos + até 30 dias)
     function renderizarTopCriticos() {
         const topList = document.getElementById('topCriticos');
         const criticos = produtosComValidade
-            .filter(p => p.menorDias !== null && p.menorDias <= 90)
+            .filter(p => p.menorDias !== null && p.menorDias <= 30)
             .sort((a, b) => a.menorDias - b.menorDias)
             .slice(0, 10);
         
@@ -1117,32 +1101,31 @@
                 </div>`;
             }).join('');
         } else {
-            topList.innerHTML = '<div class="empty">Nenhum produto com validade crítica</div>';
+            topList.innerHTML = '<div class="empty">Nenhum produto crítico</div>';
         }
     }
     
-    // NOVA FUNÇÃO: Renderizar Top 10 que vencem em até 6 meses
+    // Top 10 - Vence em 31 a 180 dias
     function renderizarTopSeisMeses() {
         const topList = document.getElementById('topSeisMeses');
         const seisMeses = produtosComValidade
-            .filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 180)
+            .filter(p => p.menorDias !== null && p.menorDias >= 31 && p.menorDias <= 180)
             .sort((a, b) => a.menorDias - b.menorDias)
             .slice(0, 10);
         
         if (seisMeses.length > 0) {
             topList.innerHTML = seisMeses.map((p, index) => {
-                const statusText = p.menorDias + ' dias';
-                const barraWidth = Math.max(10, (p.menorDias / 180) * 100);
+                const percent = ((180 - p.menorDias) / 180) * 100;
                 return `<div class="top-item" onclick="abrirModalProduto('${p.codigo}')">
                     <div class="top-position">${index + 1}</div>
                     <div class="top-info">
                         <h4>${p.desc.substring(0, 40)}${p.desc.length > 40 ? '...' : ''}</h4>
                         <p>Cód: ${p.codigo} • ${Math.round(p.total)} un • ${p.endereco}</p>
-                        <div style="width: 100%; background: var(--border); border-radius: 4px; margin-top: 4px; height: 4px;">
-                            <div style="width: ${barraWidth}%; background: var(--six-months); border-radius: 4px; height: 4px;"></div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${percent}%"></div>
                         </div>
                     </div>
-                    <div class="top-value" style="color: var(--six-months);">${statusText}</div>
+                    <div class="top-value">${p.menorDias} dias</div>
                 </div>`;
             }).join('');
         } else {
@@ -1164,8 +1147,8 @@
                 classe = 'critico'; 
                 break;
             case 'seis-meses': 
-                titulo = 'Produtos que Vencem em até 6 meses (≤180 dias)'; 
-                lista = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 180)
+                titulo = 'Produtos que Vencem em até 6 meses (31-180 dias)'; 
+                lista = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 31 && p.menorDias <= 180)
                     .sort((a, b) => a.menorDias - b.menorDias); 
                 classe = 'seis-meses'; 
                 break;
@@ -1265,9 +1248,6 @@
             } else if (produto.menorDias <= 180) { 
                 statusText = `${produto.menorDias} dias restantes`; 
                 statusColor = 'var(--six-months)'; 
-            } else if (produto.menorDias <= 365) { 
-                statusText = `${produto.menorDias} dias restantes`; 
-                statusColor = 'var(--success)'; 
             } else { 
                 statusText = `${produto.menorDias} dias restantes`; 
                 statusColor = 'var(--success)'; 
@@ -1281,32 +1261,12 @@
         
         document.getElementById('modalProdutoBody').innerHTML = `
             <div style="background: var(--bg-primary); border-radius: 16px; padding: 15px; margin-bottom: 20px;">
-                <p style="display: flex; justify-content: space-between; margin: 8px 0;">
-                    <span>Código:</span>
-                    <span style="font-weight: 700;">${produto.codigo}</span>
-                </p>
-                <p style="display: flex; justify-content: space-between; margin: 8px 0;">
-                    <span>Localização:</span>
-                    <span style="font-weight: 700;">${produto.endereco}</span>
-                </p>
-                <p style="display: flex; justify-content: space-between; margin: 8px 0;">
-                    <span>Total em estoque:</span>
-                    <span style="font-weight: 700;">${Math.round(produto.total)} unidades</span>
-                </p>
-                <p style="display: flex; justify-content: space-between; margin: 8px 0;">
-                    <span>Status:</span>
-                    <span style="font-weight: 700; color: ${statusColor};">${statusText}</span>
-                </p>
-                <p style="display: flex; justify-content: space-between; margin: 8px 0;">
-                    <span>Dias sem venda:</span>
-                    <span style="font-weight: 700; color: ${produto.diasSemVenda >= 90 ? 'var(--danger)' : (produto.diasSemVenda >= 60 ? 'var(--warning)' : 'var(--attention)')}">
-                        ${diasSemVendaText}
-                    </span>
-                </p>
-                ${produto.ultimaVenda ? `<p style="display: flex; justify-content: space-between; margin: 8px 0;">
-                    <span>Última venda:</span>
-                    <span style="font-weight: 700;">${new Date(produto.ultimaVenda).toLocaleDateString('pt-BR')}</span>
-                </p>` : ''}
+                <p><strong>Código:</strong> ${produto.codigo}</p>
+                <p><strong>Localização:</strong> ${produto.endereco}</p>
+                <p><strong>Total em estoque:</strong> ${Math.round(produto.total)} unidades</p>
+                <p><strong>Status:</strong> <span style="color: ${statusColor};">${statusText}</span></p>
+                <p><strong>Dias sem venda:</strong> ${diasSemVendaText}</p>
+                ${produto.ultimaVenda ? `<p><strong>Última venda:</strong> ${new Date(produto.ultimaVenda).toLocaleDateString('pt-BR')}</p>` : ''}
             </div>
             
             ${lotesAgrupados.size > 0 ? `
@@ -1324,19 +1284,18 @@
                             if (diff < 0) cor = 'var(--expired)'; 
                             else if (diff <= 30) cor = 'var(--critical)'; 
                             else if (diff <= 180) cor = 'var(--six-months)'; 
-                            else if (diff <= 365) cor = 'var(--success)'; 
                             else cor = 'var(--success)'; 
                         }
                         return `<div class="lote-row">
-                            <span style="font-weight: 700;">📅 ${validade}</span>
+                            <span>📅 ${validade}</span>
                             <span>${Math.round(qtde)} un</span>
                             ${diff !== null ? `<span style="color: ${cor};">${diff < 0 ? 'VENCIDO' : diff + ' dias'}</span>` : ''}
                         </div>`;
                     }).join('')}
             ` : (produto.temPendente ? `
-                <div style="background: var(--bg-primary); border-radius: 16px; padding: 15px; text-align: center; margin: 10px 0;">
+                <div style="background: var(--bg-primary); border-radius: 16px; padding: 15px; text-align: center;">
                     <i class="fas fa-hourglass-half" style="color: var(--warning); font-size: 1.5rem;"></i>
-                    <p style="margin-top: 8px;">Este produto está pendente de validade.</p>
+                    <p>Produto pendente de validade.</p>
                 </div>
             ` : '<div style="text-align:center; padding:15px;">Nenhum lote com validade</div>')}
             
@@ -1375,14 +1334,13 @@
         doc.setFontSize(18); 
         doc.text('Relatório de Estoque - Dashboard', 20, 20);
         doc.setFontSize(10); 
-        doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`, 20, 30);
+        doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 20, 30);
         doc.setFontSize(12); 
         doc.text('Resumo do Estoque:', 20, 45); 
         doc.setFontSize(10);
         
         const totalEstoque = document.getElementById('total-estoque')?.innerText || 0;
         const totalProdutos = document.getElementById('total-produtos')?.innerText || 0;
-        const totalEndereco = document.getElementById('total-endereco-percent')?.innerText || '0%';
         const totalComEndereco = document.getElementById('total-com-endereco')?.innerText || 0;
         const totalSemEndereco = document.getElementById('total-sem-endereco')?.innerText || 0;
         const totalPendentes = document.getElementById('total-pendentes')?.innerText || 0;
@@ -1394,69 +1352,66 @@
         
         doc.text(`Total em estoque: ${totalEstoque} unidades`, 25, 55);
         doc.text(`Produtos distintos: ${totalProdutos} SKUs`, 25, 62);
-        doc.text(`Endereçamento: ${totalEndereco}`, 25, 69);
-        doc.text(`Com endereço: ${totalComEndereco} | Sem endereço: ${totalSemEndereco}`, 25, 76);
-        doc.text(`Pendentes (sem validade): ${totalPendentes}`, 25, 83);
-        doc.text(`Vencidos: ${totalVencidos}`, 25, 90);
-        doc.text(`Críticos (≤30d): ${totalCriticos}`, 25, 97);
-        doc.text(`Vence em ≤6 meses: ${totalSeisMeses}`, 25, 104);
-        doc.text(`Parados 30d+: ${totalParados30}`, 25, 111);
-        doc.text(`Parados 90d+: ${totalParados90}`, 25, 118);
+        doc.text(`Com endereço: ${totalComEndereco} | Sem endereço: ${totalSemEndereco}`, 25, 69);
+        doc.text(`Pendentes: ${totalPendentes} | Vencidos: ${totalVencidos}`, 25, 76);
+        doc.text(`Críticos (≤30d): ${totalCriticos} | Vencem ≤6m: ${totalSeisMeses}`, 25, 83);
+        doc.text(`Parados 30d+: ${totalParados30} | Parados 90d+: ${totalParados90}`, 25, 90);
         
-        let y = 140;
-        if (produtosComValidade.length > 0) {
-            doc.setFontSize(12); 
-            doc.text('Top 10 - Vencem em até 6 meses:', 20, y); 
-            y += 10;
-            const seisMeses = produtosComValidade
-                .filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 180)
-                .sort((a, b) => a.menorDias - b.menorDias)
-                .slice(0, 10);
-            seisMeses.forEach((p, i) => { 
-                if (y > 270) { doc.addPage(); y = 20; } 
-                doc.setFontSize(9); 
-                doc.text(`${i+1}. ${p.desc.substring(0, 35)} - ${p.menorDias + ' dias'}`, 25, y); 
-                y += 7; 
+        let y = 110;
+        
+        // Top 10 Críticos
+        const criticos = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias <= 30).slice(0, 10);
+        if (criticos.length > 0) {
+            doc.setFontSize(11);
+            doc.text('Top 10 - Mais Críticos:', 20, y);
+            y += 7;
+            criticos.forEach((p, i) => {
+                if (y > 270) { doc.addPage(); y = 20; }
+                doc.setFontSize(8);
+                const status = p.menorDias < 0 ? 'VENCIDO' : p.menorDias + 'd';
+                doc.text(`${i+1}. ${p.desc.substring(0, 35)} - ${status}`, 25, y);
+                y += 5;
+            });
+            y += 5;
+        }
+        
+        // Top 10 6 meses
+        const seisMeses = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 31 && p.menorDias <= 180).slice(0, 10);
+        if (seisMeses.length > 0) {
+            doc.setFontSize(11);
+            doc.text('Top 10 - Vencem em 31-180 dias:', 20, y);
+            y += 7;
+            seisMeses.forEach((p, i) => {
+                if (y > 270) { doc.addPage(); y = 20; }
+                doc.setFontSize(8);
+                doc.text(`${i+1}. ${p.desc.substring(0, 35)} - ${p.menorDias}d`, 25, y);
+                y += 5;
             });
         }
+        
         doc.save('dashboard_estoque.pdf');
         mostrarToast('PDF gerado com sucesso!', 'success');
     };
     
     window.exportarRelatorioCompleto = () => {
-        let csv = "Tipo;Código;Descrição;Endereço;Quantidade;DiasRestantes;DiasSemVenda;UltimaVenda;Status\n";
+        let csv = "Categoria;Código;Descrição;Endereço;Quantidade;DiasRestantes;DiasSemVenda;UltimaVenda\n";
         for (const produto of todosProdutos) {
-            let tipo = '', status = '', diasRestantes = '';
+            let categoria = '';
             if (produto.menorDias !== null) {
-                if (produto.menorDias < 0) { 
-                    tipo = 'Vencido'; 
-                    status = 'VENCIDO'; 
-                } else if (produto.menorDias <= 30) { 
-                    tipo = 'Crítico'; 
-                    status = 'CRÍTICO'; 
-                } else if (produto.menorDias <= 180) { 
-                    tipo = '6 meses'; 
-                    status = 'ATENÇÃO'; 
-                } else if (produto.menorDias <= 365) { 
-                    tipo = 'Normal'; 
-                    status = 'OK'; 
-                } else { 
-                    tipo = 'Longa'; 
-                    status = 'OK'; 
-                }
-                diasRestantes = produto.menorDias.toString();
-            } else if (produto.temPendente) { 
-                tipo = 'Pendente'; 
-                status = 'PENDENTE'; 
-                diasRestantes = 'N/A'; 
-            } else { 
-                tipo = 'Normal'; 
-                status = 'NORMAL'; 
-                diasRestantes = 'N/A'; 
+                if (produto.menorDias < 0) categoria = 'Vencido';
+                else if (produto.menorDias <= 30) categoria = 'Crítico';
+                else if (produto.menorDias <= 180) categoria = '6 meses';
+                else if (produto.menorDias <= 365) categoria = 'Normal';
+                else categoria = 'Longa duração';
+            } else if (produto.temPendente) {
+                categoria = 'Pendente';
+            } else {
+                categoria = 'Sem informação';
             }
+            const diasRestantes = produto.menorDias !== null ? produto.menorDias : 'N/A';
             const diasSemVenda = produto.diasSemVenda >= 999 ? 'Nunca' : produto.diasSemVenda;
             const ultimaVenda = produto.ultimaVenda ? new Date(produto.ultimaVenda).toLocaleDateString('pt-BR') : 'Nunca';
-            csv += `${tipo};${produto.codigo};${produto.desc};${produto.endereco};${Math.round(produto.total)};${diasRestantes};${diasSemVenda};${ultimaVenda};${status}\n`;
+            csv += `${categoria};${produto.codigo};${produto.desc};${produto.endereco};${Math.round(produto.total)};${diasRestantes};${diasSemVenda};${ultimaVenda}\n`;
         }
         const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
@@ -1466,6 +1421,7 @@
         mostrarToast('CSV exportado!', 'success');
     };
     
+    // Iniciar
     carregarDadosFirebase();
 </script>
 
