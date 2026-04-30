@@ -28,11 +28,13 @@
             --warning: #f59e0b;
             --danger: #ef4444;
             --danger-dark: #dc2626;
+            --info: #3b82f6;
             --border: #e5e7eb;
             --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
             --expired: #450a0a;
             --critical: #dc2626;
             --attention: #d97706;
+            --six-months: #3b82f6;
             --sem-mov-30: #fbbf24;
             --sem-mov-60: #f59e0b;
             --sem-mov-90: #ef4444;
@@ -363,6 +365,7 @@
 
         .metric-card.vencido .value { color: var(--expired); }
         .metric-card.critico .value { color: var(--critical); }
+        .metric-card.seis-meses .value { color: var(--six-months); }
         .metric-card.pendente .value { color: var(--warning); }
         .metric-card.parado30 .value { color: var(--sem-mov-30); }
         .metric-card.parado90 .value { color: var(--sem-mov-90); }
@@ -391,6 +394,7 @@
         }
 
         .top-card.criticos h3 { color: var(--danger); }
+        .top-card.seis-meses h3 { color: var(--six-months); }
 
         .top-list {
             display: grid;
@@ -428,6 +432,11 @@
 
         .top-card.criticos .top-position {
             background: var(--danger);
+            color: white;
+        }
+
+        .top-card.seis-meses .top-position {
+            background: var(--six-months);
             color: white;
         }
 
@@ -545,6 +554,7 @@
 
         .produto-item-modal.vencido { border-left-color: var(--expired); }
         .produto-item-modal.critico { border-left-color: var(--critical); }
+        .produto-item-modal.seis-meses { border-left-color: var(--six-months); }
         .produto-item-modal.pendente { border-left-color: var(--warning); }
         .produto-item-modal.parado30 { border-left-color: var(--sem-mov-30); }
         .produto-item-modal.parado90 { border-left-color: var(--sem-mov-90); }
@@ -779,12 +789,24 @@
             <div class="value" id="total-criticos">0</div>
             <div class="sub">SKUs</div>
         </div>
+
+        <!-- NOVO CARD: Vence em até 6 meses -->
+        <div class="metric-card clickable seis-meses" onclick="mostrarListaProdutos('seis-meses')">
+            <div class="label"><i class="fas fa-calendar-week"></i> Vence em ≤6 meses</div>
+            <div class="value" id="total-seis-meses">0</div>
+            <div class="sub">SKUs (até 180 dias)</div>
+        </div>
     </div>
 
     <div class="top-container">
         <div class="top-card criticos">
             <h3><i class="fas fa-fire" style="color: var(--danger);"></i> Top 10 - Mais Críticos (validade próxima)</h3>
             <div id="topCriticos" class="top-list"></div>
+        </div>
+        
+        <div class="top-card seis-meses">
+            <h3><i class="fas fa-calendar-week" style="color: var(--six-months);"></i> Top 10 - Vencem em até 6 meses</h3>
+            <div id="topSeisMeses" class="top-list"></div>
         </div>
     </div>
 </div>
@@ -883,7 +905,6 @@
     function processarDados(dados) {
         const produtosPorCodigo = new Map();
         
-        // CORREÇÃO: Processar TODOS os itens com quantidade > 0, independente de done
         const itensValidos = Object.entries(dados).filter(([_, item]) => item && item.qtde && item.qtde > 0);
         
         console.log(`Total de itens válidos (qtde > 0): ${itensValidos.length}`);
@@ -916,7 +937,6 @@
             const qtde = Math.round(item.qtde);
             prod.total += qtde;
             
-            // Verificar se é um lote com validade (done = true E validade preenchida)
             const temValidade = item.done === true && item.validade && item.validade !== '';
             const diasRestantes = temValidade ? calcularDiasRestantes(item.validade) : null;
             
@@ -945,25 +965,21 @@
         
         console.log(`Total de produtos distintos: ${produtosPorCodigo.size}`);
         
-        // Calcular dias sem venda para cada produto baseado no histórico
         for (const prod of produtosPorCodigo.values()) {
-            // Buscar todas as vendas no histórico completo
             const vendas = prod.historicoCompleto.filter(h => h && h.tipo === 'venda');
             
             if (vendas.length > 0) {
-                // Pega a data da última venda
                 const ultimaVenda = Math.max(...vendas.map(v => v.data));
                 prod.ultimaVenda = ultimaVenda;
                 prod.diasSemVenda = Math.floor((Date.now() - ultimaVenda) / 86400000);
                 if (prod.diasSemVenda < 0) prod.diasSemVenda = 0;
             } else {
-                // Se nunca teve venda, verifica a data da primeira importacao
                 const importacoes = prod.historicoCompleto.filter(h => h && h.tipo === 'importacao');
                 if (importacoes.length > 0) {
                     const primeiraImportacao = Math.min(...importacoes.map(i => i.data));
                     prod.diasSemVenda = Math.floor((Date.now() - primeiraImportacao) / 86400000);
                 } else {
-                    prod.diasSemVenda = 999; // Indica "nunca vendeu"
+                    prod.diasSemVenda = 999;
                 }
                 prod.ultimaVenda = null;
             }
@@ -988,6 +1004,7 @@
         
         atualizarMetricas();
         renderizarTopCriticos();
+        renderizarTopSeisMeses();
         calcularSaudeEstoque();
     }
     
@@ -1003,6 +1020,9 @@
         const vencidos = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias < 0).length;
         const criticos = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 30).length;
         
+        // NOVO: Produtos que vencem em até 6 meses (180 dias)
+        const seisMeses = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 180).length;
+        
         document.getElementById('total-estoque').innerText = Math.round(totalUnidades);
         document.getElementById('total-produtos').innerText = totalProdutos;
         document.getElementById('total-com-endereco').innerText = produtosComEndereco;
@@ -1013,6 +1033,7 @@
         document.getElementById('total-parados90').innerText = parados90;
         document.getElementById('total-vencidos').innerText = vencidos;
         document.getElementById('total-criticos').innerText = criticos;
+        document.getElementById('total-seis-meses').innerText = seisMeses;
     }
     
     function calcularSaudeEstoque() {
@@ -1079,7 +1100,7 @@
     function renderizarTopCriticos() {
         const topList = document.getElementById('topCriticos');
         const criticos = produtosComValidade
-            .filter(p => p.menorDias !== null)
+            .filter(p => p.menorDias !== null && p.menorDias <= 90)
             .sort((a, b) => a.menorDias - b.menorDias)
             .slice(0, 10);
         
@@ -1100,6 +1121,35 @@
         }
     }
     
+    // NOVA FUNÇÃO: Renderizar Top 10 que vencem em até 6 meses
+    function renderizarTopSeisMeses() {
+        const topList = document.getElementById('topSeisMeses');
+        const seisMeses = produtosComValidade
+            .filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 180)
+            .sort((a, b) => a.menorDias - b.menorDias)
+            .slice(0, 10);
+        
+        if (seisMeses.length > 0) {
+            topList.innerHTML = seisMeses.map((p, index) => {
+                const statusText = p.menorDias + ' dias';
+                const barraWidth = Math.max(10, (p.menorDias / 180) * 100);
+                return `<div class="top-item" onclick="abrirModalProduto('${p.codigo}')">
+                    <div class="top-position">${index + 1}</div>
+                    <div class="top-info">
+                        <h4>${p.desc.substring(0, 40)}${p.desc.length > 40 ? '...' : ''}</h4>
+                        <p>Cód: ${p.codigo} • ${Math.round(p.total)} un • ${p.endereco}</p>
+                        <div style="width: 100%; background: var(--border); border-radius: 4px; margin-top: 4px; height: 4px;">
+                            <div style="width: ${barraWidth}%; background: var(--six-months); border-radius: 4px; height: 4px;"></div>
+                        </div>
+                    </div>
+                    <div class="top-value" style="color: var(--six-months);">${statusText}</div>
+                </div>`;
+            }).join('');
+        } else {
+            topList.innerHTML = '<div class="empty">Nenhum produto vence nos próximos 6 meses</div>';
+        }
+    }
+    
     window.mostrarListaProdutos = (tipo) => {
         let titulo = '', lista = [], classe = '';
         switch(tipo) {
@@ -1112,6 +1162,12 @@
                 titulo = 'Produtos Críticos (≤30 dias para vencer)'; 
                 lista = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 30); 
                 classe = 'critico'; 
+                break;
+            case 'seis-meses': 
+                titulo = 'Produtos que Vencem em até 6 meses (≤180 dias)'; 
+                lista = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 180)
+                    .sort((a, b) => a.menorDias - b.menorDias); 
+                classe = 'seis-meses'; 
                 break;
             case 'pendente': 
                 titulo = 'Produtos Pendentes (sem validade)'; 
@@ -1152,7 +1208,9 @@
                 }
                 let classeItem = '';
                 if (p.menorDias !== null) {
-                    classeItem = p.menorDias < 0 ? 'vencido' : (p.menorDias <= 30 ? 'critico' : '');
+                    if (p.menorDias < 0) classeItem = 'vencido';
+                    else if (p.menorDias <= 30) classeItem = 'critico';
+                    else if (p.menorDias <= 180) classeItem = 'seis-meses';
                 } else {
                     classeItem = classe;
                 }
@@ -1204,9 +1262,12 @@
             } else if (produto.menorDias <= 30) { 
                 statusText = `${produto.menorDias} dias restantes (CRÍTICO)`; 
                 statusColor = 'var(--critical)'; 
-            } else if (produto.menorDias <= 90) { 
+            } else if (produto.menorDias <= 180) { 
                 statusText = `${produto.menorDias} dias restantes`; 
-                statusColor = 'var(--attention)'; 
+                statusColor = 'var(--six-months)'; 
+            } else if (produto.menorDias <= 365) { 
+                statusText = `${produto.menorDias} dias restantes`; 
+                statusColor = 'var(--success)'; 
             } else { 
                 statusText = `${produto.menorDias} dias restantes`; 
                 statusColor = 'var(--success)'; 
@@ -1262,7 +1323,8 @@
                         if (diff !== null) { 
                             if (diff < 0) cor = 'var(--expired)'; 
                             else if (diff <= 30) cor = 'var(--critical)'; 
-                            else if (diff <= 90) cor = 'var(--attention)'; 
+                            else if (diff <= 180) cor = 'var(--six-months)'; 
+                            else if (diff <= 365) cor = 'var(--success)'; 
                             else cor = 'var(--success)'; 
                         }
                         return `<div class="lote-row">
@@ -1326,6 +1388,7 @@
         const totalPendentes = document.getElementById('total-pendentes')?.innerText || 0;
         const totalVencidos = document.getElementById('total-vencidos')?.innerText || 0;
         const totalCriticos = document.getElementById('total-criticos')?.innerText || 0;
+        const totalSeisMeses = document.getElementById('total-seis-meses')?.innerText || 0;
         const totalParados30 = document.getElementById('total-parados30')?.innerText || 0;
         const totalParados90 = document.getElementById('total-parados90')?.innerText || 0;
         
@@ -1336,22 +1399,23 @@
         doc.text(`Pendentes (sem validade): ${totalPendentes}`, 25, 83);
         doc.text(`Vencidos: ${totalVencidos}`, 25, 90);
         doc.text(`Críticos (≤30d): ${totalCriticos}`, 25, 97);
-        doc.text(`Parados 30d+: ${totalParados30}`, 25, 104);
-        doc.text(`Parados 90d+: ${totalParados90}`, 25, 111);
+        doc.text(`Vence em ≤6 meses: ${totalSeisMeses}`, 25, 104);
+        doc.text(`Parados 30d+: ${totalParados30}`, 25, 111);
+        doc.text(`Parados 90d+: ${totalParados90}`, 25, 118);
         
-        let y = 130;
+        let y = 140;
         if (produtosComValidade.length > 0) {
             doc.setFontSize(12); 
-            doc.text('Top 10 Produtos Críticos:', 20, y); 
+            doc.text('Top 10 - Vencem em até 6 meses:', 20, y); 
             y += 10;
-            const criticos = produtosComValidade
-                .filter(p => p.menorDias !== null)
+            const seisMeses = produtosComValidade
+                .filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 180)
                 .sort((a, b) => a.menorDias - b.menorDias)
                 .slice(0, 10);
-            criticos.forEach((p, i) => { 
+            seisMeses.forEach((p, i) => { 
                 if (y > 270) { doc.addPage(); y = 20; } 
                 doc.setFontSize(9); 
-                doc.text(`${i+1}. ${p.desc.substring(0, 35)} - ${p.menorDias < 0 ? 'VENCIDO' : p.menorDias + ' dias'}`, 25, y); 
+                doc.text(`${i+1}. ${p.desc.substring(0, 35)} - ${p.menorDias + ' dias'}`, 25, y); 
                 y += 7; 
             });
         }
@@ -1370,12 +1434,15 @@
                 } else if (produto.menorDias <= 30) { 
                     tipo = 'Crítico'; 
                     status = 'CRÍTICO'; 
-                } else if (produto.menorDias <= 90) { 
-                    tipo = 'Atenção'; 
+                } else if (produto.menorDias <= 180) { 
+                    tipo = '6 meses'; 
                     status = 'ATENÇÃO'; 
-                } else { 
+                } else if (produto.menorDias <= 365) { 
                     tipo = 'Normal'; 
-                    status = 'NORMAL'; 
+                    status = 'OK'; 
+                } else { 
+                    tipo = 'Longa'; 
+                    status = 'OK'; 
                 }
                 diasRestantes = produto.menorDias.toString();
             } else if (produto.temPendente) { 
@@ -1399,7 +1466,6 @@
         mostrarToast('CSV exportado!', 'success');
     };
     
-    // Iniciar
     carregarDadosFirebase();
 </script>
 
