@@ -2,173 +2,659 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Coletor Cloud | Gestão de Estoque</title>
-    
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Validades | Controle de Estoque</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
         :root {
-            --bg-primary: #f3f4f6; --bg-secondary: #ffffff; --text-primary: #111827; --text-secondary: #6b7280;
-            --accent: #4f46e5; --accent-hover: #4338ca; --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
-            --danger-dark: #dc2626; --border: #e5e7eb; --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --bg-primary: #f3f4f6;
+            --bg-secondary: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --border: #e5e7eb;
+            --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --expired: #450a0a;
+            --critical: #dc2626;
+            --attention: #d97706;
+            --sem-mov-30: #fbbf24;
+            --sem-mov-60: #f59e0b;
+            --sem-mov-90: #ef4444;
+            --endereco-ok: #10b981;
+            --endereco-missing: #ef4444;
+            --health-excellent: #10b981;
+            --health-good: #34d399;
+            --health-fair: #fbbf24;
+            --health-poor: #f97316;
+            --health-critical: #ef4444;
         }
+
         .dark-mode {
-            --bg-primary: #111827; --bg-secondary: #1f2937; --text-primary: #f9fafb; --text-secondary: #9ca3af;
-            --accent: #6366f1; --accent-hover: #4f46e5; --border: #374151; --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --border: #374151;
+            --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
         }
-        body { background: var(--bg-primary); color: var(--text-primary); padding: 20px; transition: all 0.3s ease; }
-        .container { max-width: 600px; margin: 0 auto; }
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-        .toast { background: var(--bg-secondary); border-radius: 12px; padding: 16px 20px; box-shadow: var(--card-shadow); display: flex; align-items: center; gap: 12px; min-width: 300px; max-width: 400px; animation: slideIn 0.3s ease forwards; border-left: 4px solid; pointer-events: auto; color: var(--text-primary); }
-        .toast.success { border-left-color: var(--success); } .toast.error { border-left-color: var(--danger); } .toast.warning { border-left-color: var(--warning); } .toast.info { border-left-color: var(--accent); }
-        .toast-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-        .toast.success .toast-icon { background: var(--success); color: white; } .toast.error .toast-icon { background: var(--danger); color: white; } .toast.warning .toast-icon { background: var(--warning); color: white; } .toast.info .toast-icon { background: var(--accent); color: white; }
-        .toast-content { flex: 1; font-size: 0.95rem; font-weight: 500; word-break: break-word; }
-        .toast-close { color: var(--text-secondary); cursor: pointer; font-size: 18px; flex-shrink: 0; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
-        .toast.fade-out { animation: slideOut 0.3s ease forwards; }
-        .header { background: var(--bg-secondary); border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: var(--card-shadow); display: flex; justify-content: space-between; align-items: center; }
-        .header h1 { font-size: 1.4rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .header-actions { display: flex; gap: 10px; }
-        .theme-toggle, .export-btn { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 12px; padding: 10px; cursor: pointer; color: var(--text-primary); transition: all 0.2s; }
-        .theme-toggle:hover, .export-btn:hover { background: var(--accent); color: white; }
-        .upload-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-        .upload-tab { flex: 1; padding: 14px; text-align: center; background: var(--bg-secondary); border-radius: 16px; font-weight: 700; font-size: 0.9rem; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; border: 1px solid var(--border); }
-        .upload-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
-        .upload-card { background: var(--bg-secondary); border-radius: 24px; padding: 25px; margin-bottom: 25px; box-shadow: var(--card-shadow); }
-        .upload-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .btn-undo-xml { background: var(--danger); color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
-        .btn-undo-xml:hover { background: var(--danger-dark); }
-        .upload-area { border: 2px dashed var(--border); border-radius: 20px; padding: 30px 20px; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 20px; }
-        .upload-area:hover { border-color: var(--accent); background: rgba(79, 70, 229, 0.05); }
-        .upload-area i { font-size: 2.5rem; display: block; margin-bottom: 10px; color: var(--accent); }
-        .upload-area span { font-weight: 600; color: var(--accent); }
-        .upload-area small { display: block; color: var(--text-secondary); font-size: 0.8rem; margin-top: 8px; }
-        .search-box { background: var(--bg-secondary); border-radius: 20px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--border); }
-        .search-label { font-weight: 600; margin-bottom: 10px; }
-        .input-group { display: flex; gap: 10px; flex-wrap: wrap; }
-        .input-group input { flex: 1; min-width: 200px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; font-size: 1rem; outline: none; background: var(--bg-primary); color: var(--text-primary); }
-        .input-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-        .btn-search, .btn-scanner, .btn-compare { background: var(--text-primary); color: white; border: none; padding: 0 20px; border-radius: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; height: 50px; min-width: 50px; }
-        .btn-search:hover, .btn-scanner:hover, .btn-compare:hover { background: var(--accent); }
-        .btn-scanner { background: var(--accent); }
-        .btn-compare { background: var(--warning); }
-        #reader { width: 100%; border-radius: 20px; overflow: hidden; margin-bottom: 20px; display: none; background: var(--bg-secondary); padding: 10px; }
-        .status-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
-        .status-card { background: var(--bg-secondary); border-radius: 16px; padding: 15px; text-align: center; border: 1px solid var(--border); transition: transform 0.2s; }
-        .status-card:hover { transform: translateY(-2px); }
-        .status-card b { display: block; font-size: 1.8rem; font-weight: 800; line-height: 1.2; }
-        .status-card small { color: var(--text-secondary); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
-        .filter-section { background: var(--bg-secondary); border-radius: 16px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--border); }
-        .filter-info { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
-        .filter-info span { font-weight: 600; color: var(--accent); }
-        .filtros-rapidos { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
-        .filtro-btn { padding: 8px 12px; border: 1px solid var(--border); background: var(--bg-primary); border-radius: 30px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--text-primary); }
-        .filtro-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-        .filtro-btn:hover { background: var(--accent); color: white; }
-        .ordenar-select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-primary); color: var(--text-primary); font-weight: 500; cursor: pointer; }
-        .produtos-list { margin-bottom: 20px; }
-        .list-title { font-weight: 700; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .list-title span { color: var(--text-secondary); font-size: 0.9rem; }
-        .produto-item { background: var(--bg-secondary); border-radius: 16px; padding: 16px; margin-bottom: 10px; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; border-left: 4px solid; position: relative; }
-        .produto-item:hover { transform: translateY(-2px); box-shadow: var(--card-shadow); }
-        .produto-item.pendente { border-left-color: var(--warning); }
-        .produto-item.concluido { border-left-color: var(--success); opacity: 0.8; }
-        .produto-item.sem-movimento-30 { border-left-color: #fbbf24; }
-        .produto-item.sem-movimento-60 { border-left-color: var(--warning); }
-        .produto-item.sem-movimento-90 { border-left-color: var(--danger); }
-        .produto-item.sem-movimento-120 { border-left-color: var(--danger-dark); }
-        .produto-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
-        .produto-codigo { font-weight: 800; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
-        .performance-icon { font-size: 1.2rem; }
-        .produto-status { font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 30px; white-space: nowrap; }
-        .status-pendente { background: #fef3c7; color: var(--warning); }
-        .status-concluido { background: #d1fae5; color: var(--success); }
-        .status-parado-30 { background: #fef3c7; color: #d97706; }
-        .status-parado-60 { background: #fde68a; color: #b45309; }
-        .status-parado-90 { background: #fecaca; color: #b91c1c; }
-        .status-parado-120 { background: #fecaca; color: #7f1d1d; font-weight: 800; }
-        .produto-desc { font-size: 0.9rem; margin-bottom: 12px; word-break: break-word; }
-        .produto-detalhes { display: flex; gap: 15px; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px; flex-wrap: wrap; }
-        .produto-endereco { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: var(--accent); font-weight: 600; }
-        .produto-movimento { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); flex-wrap: wrap; }
-        .produto-movimento.alerta { color: var(--danger); font-weight: 600; }
-        .badge-dias { padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; }
-        .badge-30 { background: #fef3c7; color: #d97706; } .badge-60 { background: #fde68a; color: #b45309; } .badge-90 { background: #fecaca; color: #b91c1c; } .badge-120 { background: #fecaca; color: #7f1d1d; }
-        .estoque-minimo { color: var(--danger); font-size: 0.7rem; font-weight: 600; margin-top: 5px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(4px); padding: 20px; }
-        .modal-content { background: var(--bg-secondary); border-radius: 32px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 30px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
-        .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; gap: 20px; }
-        .modal-header h2 { font-size: 1.3rem; font-weight: 800; word-break: break-word; flex: 1; }
-        .modal-close { width: 36px; height: 36px; border-radius: 50%; background: var(--bg-primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
-        .modal-close:hover { background: var(--danger); color: white; }
-        .modal-info { background: var(--bg-primary); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
-        .modal-info p { margin: 10px 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-        .modal-info .highlight { font-weight: 700; color: var(--accent); }
-        .chart-container { margin: 20px 0; padding: 20px; background: var(--bg-primary); border-radius: 16px; height: 200px; position: relative; }
-        #graficoVendas { width: 100%; height: 100%; }
-        .grafico-legend { display: flex; justify-content: center; gap: 20px; margin-top: 15px; font-size: 0.8rem; flex-wrap: wrap; }
-        .legend-item { display: flex; align-items: center; gap: 5px; }
-        .legend-color { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
-        .lotes-list { margin: 20px 0; max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 12px; }
-        .lote-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); gap: 10px; }
-        .lote-item:last-child { border-bottom: none; }
-        .lote-info { display: flex; flex-direction: column; flex: 1; }
-        .lote-validade { font-weight: 700; color: var(--success); }
-        .lote-qtd { font-size: 0.8rem; color: var(--text-secondary); }
-        .btn-remover { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.7rem; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
-        .btn-remover:hover { background: var(--danger-dark); }
-        .historico-list { max-height: 200px; overflow-y: auto; background: var(--bg-primary); border-radius: 12px; padding: 10px; }
-        .historico-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; gap: 10px; flex-wrap: wrap; }
-        .historico-item:last-child { border-bottom: none; }
-        .historico-data { color: var(--text-secondary); }
-        .historico-qtd { font-weight: 700; }
-        .historico-qtd.positivo { color: var(--success); } .historico-qtd.negativo { color: var(--danger); }
-        .modal-input { width: 100%; padding: 16px; border: 2px solid var(--border); border-radius: 16px; font-size: 1.5rem; text-align: center; font-weight: 600; margin: 10px 0; outline: none; background: var(--bg-primary); color: var(--text-primary); }
-        .modal-input:focus { border-color: var(--accent); }
-        .btn-salvar, .btn-cancelar { width: 100%; padding: 16px; border: none; border-radius: 16px; font-weight: 700; font-size: 1rem; cursor: pointer; margin: 10px 0; transition: all 0.2s; }
-        .btn-salvar { background: var(--success); color: white; }
-        .btn-salvar:hover { background: #059669; }
-        .btn-cancelar { background: var(--danger); color: white; }
-        .btn-cancelar:hover { background: var(--danger-dark); }
-        .quick-date-selector { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-primary); color: var(--text-primary); font-weight: 500; margin: 10px 0; cursor: pointer; }
-        .quick-date-row { display: flex; gap: 8px; margin: 10px 0; }
-        .quick-date-btn { flex: 1; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 12px; font-size: 0.8rem; font-weight: 600; color: var(--text-primary); cursor: pointer; transition: all 0.2s; }
-        .quick-date-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
-        .btn-sem-vencimento { background: var(--warning); color: white; border: none; }
-        .btn-sem-vencimento:hover { background: #d97706; }
-        .atalho-info { font-size: 0.7rem; color: var(--text-secondary); text-align: center; margin-top: 5px; }
-        .atalho-info kbd { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 2px 6px; font-family: monospace; }
-        .dica-enter { font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; text-align: center; }
-        .comparacao-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); gap: 10px; flex-wrap: wrap; }
-        .comparacao-diferenca { font-weight: 700; }
-        .diferenca-positiva { color: var(--success); } .diferenca-negativa { color: var(--danger); }
-        .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid var(--border); border-radius: 50%; border-top-color: var(--accent); animation: spin 1s ease-in-out infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @media (max-width: 640px) {
-            .container { padding: 10px; }
-            .input-group { flex-direction: column; }
-            .input-group input { width: 100%; }
-            .btn-search, .btn-scanner, .btn-compare { width: 100%; height: 50px; }
-            .toast { min-width: 250px; max-width: 300px; }
-            .status-bar { grid-template-columns: repeat(2, 1fr); }
-            .filtros-rapidos { justify-content: center; }
-            .produto-header { flex-direction: column; align-items: flex-start; }
-            .modal-content { padding: 20px; }
-            .chart-container { height: 180px; padding: 15px; }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 24px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
         }
-        @media (max-width: 380px) {
-            .status-bar { grid-template-columns: 1fr; }
-            .produto-detalhes { flex-direction: column; gap: 5px; }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+            background: var(--bg-secondary);
+            padding: 20px 30px;
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, var(--accent), #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-top: 5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .live-status {
+            background: var(--bg-primary);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .theme-toggle, .export-btn, .refresh-btn, .pdf-btn {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 15px;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-toggle:hover, .export-btn:hover, .refresh-btn:hover, .pdf-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        .health-section {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
+        }
+
+        .health-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .health-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .health-title h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .health-score-container {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+            background: var(--bg-primary);
+            padding: 10px 20px;
+            border-radius: 20px;
+        }
+
+        .health-score {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .health-score-label {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .health-bar-container {
+            height: 30px;
+            background: var(--bg-primary);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: flex;
+        }
+
+        .health-segment {
+            height: 100%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .health-segment.excellent { background: var(--health-excellent); }
+        .health-segment.good { background: var(--health-good); }
+        .health-segment.fair { background: var(--health-fair); }
+        .health-segment.poor { background: var(--health-poor); }
+        .health-segment.critical { background: var(--health-critical); }
+
+        .health-legend {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+        }
+
+        .legend-color.excellent { background: var(--health-excellent); }
+        .legend-color.good { background: var(--health-good); }
+        .legend-color.fair { background: var(--health-fair); }
+        .legend-color.poor { background: var(--health-poor); }
+        .legend-color.critical { background: var(--health-critical); }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+
+        .metric-card.clickable {
+            cursor: pointer;
+        }
+
+        .metric-card.clickable:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -8px rgba(0,0,0,0.2);
+        }
+
+        .metric-card .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .metric-card .value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 5px;
+        }
+
+        .metric-card .sub {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .endereco-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .endereco-percent {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent);
+            background: var(--bg-primary);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .endereco-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            gap: 10px;
+        }
+
+        .endereco-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .endereco-item:hover {
+            background: var(--bg-primary);
+            transform: scale(1.02);
+        }
+
+        .endereco-item.ok {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--endereco-ok);
+        }
+
+        .endereco-item.missing {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--endereco-missing);
+        }
+
+        .endereco-item .numero {
+            font-size: 1.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .endereco-item .rotulo {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .metric-card.vencido .value { color: var(--expired); }
+        .metric-card.critico .value { color: var(--critical); }
+        .metric-card.pendente .value { color: var(--warning); }
+        .metric-card.parado30 .value { color: var(--sem-mov-30); }
+        .metric-card.parado90 .value { color: var(--sem-mov-90); }
+
+        .top-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .top-card {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--card-shadow);
+        }
+
+        .top-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .top-card.criticos h3 { color: var(--danger); }
+
+        .top-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .top-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .top-item:hover {
+            transform: translateX(5px);
+            background: var(--accent);
+            color: white;
+        }
+
+        .top-position {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .top-card.criticos .top-position {
+            background: var(--danger);
+            color: white;
+        }
+
+        .top-item:hover .top-position {
+            background: white;
+            color: var(--accent);
+        }
+
+        .top-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .top-info h4 {
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .top-info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .top-item:hover .top-info p {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .top-value {
+            font-weight: 800;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 30px;
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .modal-close:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .produto-lista-modal {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .produto-item-modal {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid;
+        }
+
+        .produto-item-modal:hover {
+            transform: translateX(5px);
+            background: var(--accent);
+            color: white;
+        }
+
+        .produto-item-modal.vencido { border-left-color: var(--expired); }
+        .produto-item-modal.critico { border-left-color: var(--critical); }
+        .produto-item-modal.pendente { border-left-color: var(--warning); }
+        .produto-item-modal.parado30 { border-left-color: var(--sem-mov-30); }
+        .produto-item-modal.parado90 { border-left-color: var(--sem-mov-90); }
+        .produto-item-modal.sem-endereco { border-left-color: var(--endereco-missing); }
+
+        .produto-item-modal h4 {
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .produto-item-modal p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .produto-item-modal:hover p {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .lote-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .historico-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--border);
+            font-size: 0.8rem;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-close {
+            width: 100%;
+            padding: 16px;
+            margin-top: 24px;
+            border: none;
+            background: var(--text-primary);
+            color: white;
+            border-radius: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-close:hover {
+            background: var(--accent);
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast-notification {
+            background: var(--bg-secondary);
+            border-left: 4px solid;
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            animation: slideIn 0.3s ease;
+            color: var(--text-primary);
+        }
+
+        .toast-notification.success { border-left-color: var(--success); }
+        .toast-notification.warning { border-left-color: var(--warning); }
+        .toast-notification.danger { border-left-color: var(--danger); }
+        .toast-notification.info { border-left-color: var(--accent); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 1200px) {
+            .metrics-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 16px; }
+            header { flex-direction: column; align-items: flex-start; }
+            .header-actions { width: 100%; justify-content: space-between; }
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .top-container { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -177,178 +663,158 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <div class="container">
-    <div class="header">
-        <h1>📦 Coletor Cloud</h1>
+    <header>
+        <div class="logo">
+            <h1>Dashboard<span style="color: var(--accent);">Validades</span></h1>
+            <p id="display-date"></p>
+        </div>
         <div class="header-actions">
-            <button class="export-btn" onclick="exportarRelatorioParados()" title="Exportar relatório de produtos parados">
+            <button class="refresh-btn" onclick="carregarDados()" title="Atualizar dados">
+                <i class="fas fa-sync-alt"></i>
+                <span class="hide-mobile">Atualizar</span>
+            </button>
+            <button class="pdf-btn" onclick="exportarPDF()" title="Exportar PDF">
+                <i class="fas fa-file-pdf"></i>
+                <span class="hide-mobile">PDF</span>
+            </button>
+            <button class="export-btn" onclick="exportarRelatorioCompleto()" title="Exportar CSV">
                 <i class="fas fa-download"></i>
+                <span class="hide-mobile">CSV</span>
             </button>
             <button class="theme-toggle" onclick="toggleDarkMode()" title="Alternar tema">
                 <i class="fas fa-moon"></i>
             </button>
-        </div>
-    </div>
-
-    <div class="upload-tabs">
-        <div class="upload-tab active" onclick="mudarAba('xml')">📄 XML</div>
-        <div class="upload-tab" onclick="mudarAba('estoque')">📦 PLANILHA</div>
-    </div>
-
-    <div id="aba-xml">
-        <div class="upload-card">
-            <div class="upload-title">
-                <span>📄 Importar XML</span>
-                <button class="btn-undo-xml" onclick="desfazerUltimaImportacaoXML()" title="Remove todos os itens importados no último lote de XML">
-                    <i class="fas fa-undo-alt"></i> Desfazer última
-                </button>
+            <div class="live-status">
+                <div class="dot"></div>
+                <span>DADOS REAIS</span>
             </div>
-            <label class="upload-area">
-                <i class="fas fa-file-upload"></i>
-                <span>SELECIONAR MÚLTIPLOS XMLs</span>
-                <small>Clique para escolher os arquivos</small>
-                <input type="file" id="xmlInput" multiple accept=".xml" style="display:none">
-            </label>
+        </div>
+    </header>
+
+    <div class="health-section">
+        <div class="health-header">
+            <div class="health-title">
+                <i class="fas fa-heartbeat" style="color: var(--accent); font-size: 2rem;"></i>
+                <h2>Saúde do Estoque</h2>
+            </div>
+            <div class="health-score-container">
+                <span class="health-score" id="healthScore">0</span>
+                <span class="health-score-label">%</span>
+            </div>
+        </div>
+        
+        <div class="health-bar-container" id="healthBar">
+            <div class="health-segment excellent" id="healthExcellent" style="width: 0%">0%</div>
+            <div class="health-segment good" id="healthGood" style="width: 0%">0%</div>
+            <div class="health-segment fair" id="healthFair" style="width: 0%">0%</div>
+            <div class="health-segment poor" id="healthPoor" style="width: 0%">0%</div>
+            <div class="health-segment critical" id="healthCritical" style="width: 0%">0%</div>
+        </div>
+        
+        <div class="health-legend">
+            <div class="legend-item"><span class="legend-color excellent"></span> Excelente (>365d)</div>
+            <div class="legend-item"><span class="legend-color good"></span> Bom (180-365d)</div>
+            <div class="legend-item"><span class="legend-color fair"></span> Regular (90-180d)</div>
+            <div class="legend-item"><span class="legend-color poor"></span> Ruim (30-90d)</div>
+            <div class="legend-item"><span class="legend-color critical"></span> Crítico (0-30d / Vencido)</div>
         </div>
     </div>
 
-    <div id="aba-estoque" style="display: none;">
-        <div class="upload-card">
-            <div class="upload-title">📊 Importar Planilha</div>
-            <label class="upload-area">
-                <i class="fas fa-table"></i>
-                <span>CARREGAR PLANILHA DE ESTOQUE</span>
-                <small>Clique para escolher o arquivo</small>
-                <input type="file" id="estoqueInput" accept=".xlsx,.xls,.csv" style="display:none">
-            </label>
-            <div id="estoque-status" style="font-size:0.85rem; color:var(--success); text-align:center;"></div>
-            <div id="estoque-detalhes" style="font-size:0.8rem; color:var(--text-secondary); text-align:center; margin-top:10px;"></div>
-        </div>
-    </div>
-
-    <div id="reader"></div>
-
-    <div class="search-box">
-        <div class="search-label">🔍 Buscar produto</div>
-        <div class="input-group">
-            <input type="tel" id="manualCode" placeholder="Código ou EAN..." inputmode="numeric">
-            <button class="btn-search" onclick="buscarManual()"><i class="fas fa-search"></i></button>
-            <button class="btn-scanner" onclick="alternarScanner()"><i class="fas fa-camera"></i></button>
-            <button class="btn-compare" onclick="compararImportacoes()" title="Comparar com última importação">
-                <i class="fas fa-balance-scale"></i>
-            </button>
-        </div>
-        <div class="dica-enter">Digite o código e pressione ENTER</div>
-    </div>
-
-    <div class="status-bar">
-        <div class="status-card">
-            <b><span id="stat-lotes">0</span></b>
-            <small>LOTES</small>
-        </div>
-        <div class="status-card">
-            <b><span id="stat-pendentes">0</span></b>
-            <small>PENDENTES</small>
-        </div>
-        <div class="status-card">
-            <b><span id="stat-parados">0</span></b>
-            <small>PARADOS</small>
-        </div>
-        <div class="status-card">
-            <b><span id="stat-parados-90">0</span></b>
-            <small>+90d</small>
-        </div>
-    </div>
-
-    <div class="filter-section">
-        <div class="filter-info">
-            <i class="fas fa-filter" style="color: var(--accent);"></i>
-            <span id="filterText">Mostrando: TODOS OS PRODUTOS</span>
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="label"><i class="fas fa-boxes"></i> Total em estoque</div>
+            <div class="value" id="total-estoque">0</div>
+            <div class="sub">unidades</div>
         </div>
 
-        <div class="filtros-rapidos">
-            <button class="filtro-btn active" data-filtro="todos" onclick="aplicarFiltro('todos')">📋 Todos</button>
-            <button class="filtro-btn" data-filtro="pendente" onclick="aplicarFiltro('pendente')">⏳ Pendentes</button>
-            <button class="filtro-btn" data-filtro="concluido" onclick="aplicarFiltro('concluido')">✅ Concluídos</button>
-            <button class="filtro-btn" data-filtro="parado30" onclick="aplicarFiltro('parado30')">🟡 +30d</button>
-            <button class="filtro-btn" data-filtro="parado60" onclick="aplicarFiltro('parado60')">🟠 +60d</button>
-            <button class="filtro-btn" data-filtro="parado90" onclick="aplicarFiltro('parado90')">🔴 +90d</button>
+        <div class="metric-card">
+            <div class="label"><i class="fas fa-tags"></i> Produtos distintos</div>
+            <div class="value" id="total-produtos">0</div>
+            <div class="sub">SKUs</div>
         </div>
 
-        <select id="ordenarPor" class="ordenar-select" onchange="renderizarLista()">
-            <option value="dias">⏰ Dias sem venda (maior)</option>
-            <option value="dias-menor">⏰ Dias sem venda (menor)</option>
-            <option value="quantidade">📦 Quantidade (maior)</option>
-            <option value="quantidade-menor">📦 Quantidade (menor)</option>
-            <option value="codigo">🔢 Código</option>
-            <option value="nome">📝 Nome</option>
-        </select>
-    </div>
-
-    <div class="produtos-list">
-        <div class="list-title">
-            <span>📋 Produtos</span>
-            <span id="result-count">0 itens</span>
-        </div>
-        <div id="lista-estoque"></div>
-    </div>
-</div>
-
-<!-- Modal Principal -->
-<div class="modal" id="modalData" onclick="if(event.target === this) fecharModal()">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="prodNome">Carregando...</h2>
-            <div class="modal-close" onclick="fecharModal()">×</div>
-        </div>
-
-        <div class="modal-info" id="modalInfo"></div>
-
-        <div class="chart-container">
-            <canvas id="graficoVendas"></canvas>
-            <div class="grafico-legend">
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #ef4444;"></div>
-                    <span>Vendas</span>
+        <div class="metric-card">
+            <div class="endereco-header">
+                <div class="label"><i class="fas fa-map-marker-alt"></i> Endereçamento</div>
+                <div class="endereco-percent" id="total-endereco-percent">0%</div>
+            </div>
+            <div class="endereco-stats">
+                <div class="endereco-item ok" onclick="mostrarListaProdutos('com-endereco')">
+                    <div class="numero" id="total-com-endereco">0</div>
+                    <div class="rotulo">Com endereço</div>
                 </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #10b981;"></div>
-                    <span>Reposições</span>
+                <div class="endereco-item missing" onclick="mostrarListaProdutos('sem-endereco')">
+                    <div class="numero" id="total-sem-endereco">0</div>
+                    <div class="rotulo">Sem endereço</div>
                 </div>
             </div>
         </div>
 
-        <div id="lotesContainer">
-            <div style="font-weight:600; margin-bottom:10px;">📦 Lotes com validade:</div>
-            <div id="lotesList" class="lotes-list"></div>
+        <div class="metric-card clickable pendente" onclick="mostrarListaProdutos('pendente')">
+            <div class="label"><i class="fas fa-hourglass-half"></i> Pendentes</div>
+            <div class="value" id="total-pendentes">0</div>
+            <div class="sub">SKUs (sem validade)</div>
         </div>
 
-        <div id="historicoContainer" style="margin-top: 20px;">
-            <div style="font-weight:600; margin-bottom:10px;">📊 Histórico de movimentação:</div>
-            <div id="historicoList" class="historico-list"></div>
+        <div class="metric-card clickable parado30" onclick="mostrarListaProdutos('parado30')">
+            <div class="label"><i class="fas fa-hourglass-half"></i> Parados 30d+</div>
+            <div class="value" id="total-parados30">0</div>
+            <div class="sub">SKUs</div>
         </div>
 
-        <div id="inputContainer"></div>
+        <div class="metric-card clickable parado90" onclick="mostrarListaProdutos('parado90')">
+            <div class="label"><i class="fas fa-fire"></i> Parados 90d+</div>
+            <div class="value" id="total-parados90">0</div>
+            <div class="sub">SKUs</div>
+        </div>
 
-        <button class="btn-cancelar" onclick="fecharModal()">FECHAR</button>
+        <div class="metric-card clickable vencido" onclick="mostrarListaProdutos('vencido')">
+            <div class="label"><i class="fas fa-skull-crossbones"></i> Vencidos</div>
+            <div class="value" id="total-vencidos">0</div>
+            <div class="sub">SKUs</div>
+        </div>
+
+        <div class="metric-card clickable critico" onclick="mostrarListaProdutos('critico')">
+            <div class="label"><i class="fas fa-exclamation-triangle"></i> Críticos (≤30d)</div>
+            <div class="value" id="total-criticos">0</div>
+            <div class="sub">SKUs</div>
+        </div>
+    </div>
+
+    <div class="top-container">
+        <div class="top-card criticos">
+            <h3><i class="fas fa-fire" style="color: var(--danger);"></i> Top 10 - Mais Críticos (validade próxima)</h3>
+            <div id="topCriticos" class="top-list"></div>
+        </div>
     </div>
 </div>
 
-<!-- Modal de Comparação -->
-<div class="modal" id="modalComparacao" onclick="if(event.target === this) fecharModalComparacao()">
+<div id="modalLista" class="modal" onclick="if(event.target === this) fecharModalLista()">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>📊 Comparação de Estoques</h2>
-            <div class="modal-close" onclick="fecharModalComparacao()">×</div>
+            <h2 id="modalListaTitulo">Carregando...</h2>
+            <div class="modal-close" onclick="fecharModalLista()">×</div>
         </div>
-
-        <div id="comparacaoConteudo" style="max-height: 400px; overflow-y: auto;"></div>
-
-        <button class="btn-cancelar" onclick="fecharModalComparacao()">FECHAR</button>
+        <div id="modalListaBody" class="produto-lista-modal"></div>
+        <button class="btn-close" onclick="fecharModalLista()">Fechar</button>
     </div>
 </div>
 
-<script>
-    // Configuração do Firebase
+<div id="modalProduto" class="modal" onclick="if(event.target === this) fecharModalProduto()">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalProdutoTitulo">Carregando...</h2>
+            <div class="modal-close" onclick="fecharModalProduto()">×</div>
+        </div>
+        <div id="modalProdutoBody"></div>
+        <button class="btn-close" onclick="fecharModalProduto()">Fechar Detalhes</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
     const firebaseConfig = {
         apiKey: "AIzaSyDr8Q2oJJ46ZANAjnV0_iSokdHnZ-YqGP4",
         authDomain: "controle-validade-de623.firebaseapp.com",
@@ -358,663 +824,593 @@
         appId: "1:788364390731:web:6c92c01576a3c64ed7b8ce"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    const estoqueRef = database.ref('estoque');
-    const historicoRef = database.ref('historico');
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
     
-    let inventario = {};
-    let scanner = null;
-    let refCodigoGlobal = null;
-    let abaAtual = 'xml';
-    let estoqueAnterior = null;
-    let filtroAtual = 'todos';
-    let grafico = null;
-    let totalPendenteGlobal = 0;
+    let produtosComValidade = [];
+    let produtosPendentes = [];
+    let todosProdutos = [];
     
-    // Recupera último timestamp do localStorage
-    let ultimoTimestampXML = parseInt(localStorage.getItem('ultimoTimestampXML')) || null;
-
-    // ===== FUNÇÃO AUXILIAR: ESTOQUE REAL =====
-    function isEstoqueReal(item) {
-        return item.origem === 'estoque' || (item.origem === 'xml' && item.done === true);
-    }
-
-    // Carregar tema
-    if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark-mode');
-        document.querySelector('.theme-toggle i').classList.replace('fa-moon', 'fa-sun');
-    }
-
-    // Listener principal
-    estoqueRef.on('value', (snapshot) => {
-        inventario = snapshot.val() || {};
-        console.log(`📦 Dados carregados: ${Object.keys(inventario).length} itens`);
-        atualizarStatus();
-        renderizarLista();
-        verificarProdutosParados();
+    document.getElementById('display-date').innerText = new Date().toLocaleDateString('pt-BR', { 
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
 
-    // Toast
-    window.mostrarToast = (mensagem, tipo = 'success') => {
-        const container = document.getElementById('toastContainer');
-        const toastId = 'toast_' + Date.now() + '_' + Math.random();
-        const icons = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
-        const toast = document.createElement('div');
-        toast.className = `toast ${tipo}`;
-        toast.id = toastId;
-        toast.innerHTML = `<div class="toast-icon">${icons[tipo]}</div><div class="toast-content">${mensagem}</div><div class="toast-close" onclick="fecharToast('${toastId}')">×</div>`;
-        container.appendChild(toast);
-        setTimeout(() => {
-            const el = document.getElementById(toastId);
-            if (el) { el.classList.add('fade-out'); setTimeout(() => el.remove(), 300); }
-        }, 5000);
-    };
-    window.fecharToast = (id) => document.getElementById(id)?.remove();
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+        const icon = document.querySelector('.theme-toggle i');
+        if (icon) icon.classList.replace('fa-moon', 'fa-sun');
+    }
 
     window.toggleDarkMode = () => {
         document.body.classList.toggle('dark-mode');
         const isDark = document.body.classList.contains('dark-mode');
         localStorage.setItem('darkMode', isDark);
         const icon = document.querySelector('.theme-toggle i');
-        icon.classList.toggle('fa-moon');
-        icon.classList.toggle('fa-sun');
-        mostrarToast('Tema alterado!', 'info');
-    };
-
-    // Abas
-    window.mudarAba = (aba) => {
-        abaAtual = aba;
-        document.querySelectorAll('.upload-tab').forEach(t => t.classList.remove('active'));
-        document.getElementById('aba-xml').style.display = 'none';
-        document.getElementById('aba-estoque').style.display = 'none';
-        if (aba === 'xml') {
-            document.querySelectorAll('.upload-tab')[0].classList.add('active');
-            document.getElementById('aba-xml').style.display = 'block';
-            document.getElementById('filterText').innerText = 'Mostrando: APENAS PRODUTOS DE XML';
-        } else {
-            document.querySelectorAll('.upload-tab')[1].classList.add('active');
-            document.getElementById('aba-estoque').style.display = 'block';
-            document.getElementById('filterText').innerText = 'Mostrando: APENAS PRODUTOS DA PLANILHA';
-        }
-        renderizarLista();
-    };
-
-    // Upload XML (com timestamp e localStorage)
-    document.getElementById('xmlInput').addEventListener('change', async (e) => {
-        const files = Array.from(e.target.files);
-        let total = 0;
-        let updates = {};
-        const timestampImportacao = Date.now();
-        ultimoTimestampXML = timestampImportacao;
-        localStorage.setItem('ultimoTimestampXML', timestampImportacao);
-
-        for (let file of files) {
-            try {
-                const text = await file.text();
-                const parser = new DOMParser();
-                const xml = parser.parseFromString(text, "text/xml");
-                const nNF = xml.querySelector('nNF')?.textContent || 'S/N';
-                const itens = xml.querySelectorAll('det');
-
-                for (let item of itens) {
-                    const prod = item.querySelector('prod');
-                    if (!prod) continue;
-                    const codigo = prod.querySelector('cProd')?.textContent?.trim() || '';
-                    const desc = prod.querySelector('xProd')?.textContent?.trim() || '';
-                    let qtde = 0;
-                    const qCom = prod.querySelector('qCom')?.textContent;
-                    if (qCom) qtde = parseFloat(qCom.replace(',', '.'));
-                    if (!qtde) {
-                        const qTrib = prod.querySelector('qTrib')?.textContent;
-                        if (qTrib) qtde = parseFloat(qTrib.replace(',', '.'));
-                    }
-                    if (qtde <= 0) continue;
-
-                    const id = `XML_${nNF}_${codigo}_${timestampImportacao}_${total}`.replace(/[.#$\[\]\/]/g, "_");
-                    updates[id] = {
-                        nf: nNF, codigo, desc, qtde, validade: '', done: false, origem: 'xml',
-                        ultimaVenda: null, diasSemVenda: 0, importadoEm: timestampImportacao,
-                        historico: [{ data: timestampImportacao, tipo: 'importacao', quantidade: qtde, origem: 'xml' }]
-                    };
-                    total++;
-                }
-            } catch (err) {
-                console.error(err);
-                mostrarToast(`Erro no arquivo ${file.name}`, 'error');
-            }
-        }
-        if (total > 0) {
-            await estoqueRef.update(updates);
-            mostrarToast(`${total} itens importados dos XMLs!`, 'success');
-        }
-        e.target.value = '';
-    });
-
-    // Desfazer última importação XML (CORRIGIDO)
-    window.desfazerUltimaImportacaoXML = async () => {
-        // Buscar todos os itens XML
-        const xmlItems = Object.entries(inventario).filter(([_, item]) => item.origem === 'xml');
-        if (xmlItems.length === 0) {
-            mostrarToast('Nenhum item XML encontrado', 'warning');
-            return;
-        }
-        
-        // Encontrar o timestamp mais recente (campo importadoEm ou extraído do ID)
-        let maxTimestamp = 0;
-        for (let [id, item] of xmlItems) {
-            let ts = item.importadoEm;
-            if (!ts) {
-                // Tentar extrair do ID (formato: XML_..._timestamp_...)
-                const parts = id.split('_');
-                for (let part of parts) {
-                    const num = parseInt(part);
-                    if (!isNaN(num) && num > 1000000000000) { // timestamp em ms > 1e12
-                        ts = num;
-                        break;
-                    }
-                }
-            }
-            if (ts && ts > maxTimestamp) maxTimestamp = ts;
-        }
-        
-        if (maxTimestamp === 0) {
-            mostrarToast('Não foi possível identificar o último lote', 'error');
-            return;
-        }
-        
-        if (!confirm(`Remover todos os itens XML importados em ${new Date(maxTimestamp).toLocaleString()}?`)) return;
-        
-        const updates = {};
-        let removidos = 0;
-        for (let [id, item] of xmlItems) {
-            let ts = item.importadoEm;
-            if (!ts) {
-                const parts = id.split('_');
-                for (let part of parts) {
-                    const num = parseInt(part);
-                    if (!isNaN(num) && num > 1000000000000) {
-                        ts = num;
-                        break;
-                    }
-                }
-            }
-            if (ts === maxTimestamp) {
-                updates[id] = null;
-                removidos++;
-            }
-        }
-        
-        if (removidos > 0) {
-            await estoqueRef.update(updates);
-            mostrarToast(`${removidos} itens XML removidos!`, 'success');
-            // Atualiza localStorage se o timestamp removido for o mesmo armazenado
-            if (ultimoTimestampXML === maxTimestamp) {
-                localStorage.removeItem('ultimoTimestampXML');
-                ultimoTimestampXML = null;
-            }
-        } else {
-            mostrarToast('Nenhum item encontrado para desfazer', 'warning');
+        if (icon) {
+            if (isDark) icon.classList.replace('fa-moon', 'fa-sun');
+            else icon.classList.replace('fa-sun', 'fa-moon');
         }
     };
 
-    // Upload Planilha
-    document.getElementById('estoqueInput').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const statusDiv = document.getElementById('estoque-status');
-        const detalhesDiv = document.getElementById('estoque-detalhes');
-        statusDiv.innerHTML = '<span class="loading"></span> Processando...';
-        detalhesDiv.innerHTML = '';
+    function mostrarToast(mensagem, tipo = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${tipo}`;
+        toast.innerHTML = `<i class="fas fa-${tipo === 'success' ? 'check-circle' : (tipo === 'warning' ? 'exclamation-triangle' : 'info-circle')}"></i><div>${mensagem}</div>`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    }
+
+    function calcularDiasRestantes(validade) {
+        if (!validade || validade === '') return null;
+        const partes = validade.split('/');
+        if (partes.length !== 3) return null;
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const dataValidade = new Date(partes[2], partes[1] - 1, partes[0]);
+        return Math.ceil((dataValidade - hoje) / (1000 * 60 * 60 * 24));
+    }
+
+    function carregarDadosFirebase() {
+        const estoqueRef = ref(db, 'estoque/');
+        onValue(estoqueRef, (snapshot) => {
+            const dados = snapshot.val() || {};
+            processarDados(dados);
+            mostrarToast('Dashboard atualizado!', 'success');
+        });
+    }
+
+    function processarDados(dados) {
+        const produtosPorCodigo = new Map();
         
-        try {
-            const data = await file.arrayBuffer();
-            const workbook = XLSX.read(data);
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-            const novosProdutos = new Map();
-            
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                if (!row || row.length < 11) continue;
-                const codigo = String(row[0] || '').trim();
-                const desc = String(row[1] || '').trim();
-                const qtde = parseFloat(String(row[8] || '0').replace(',', '.')) || 0;
-                const estoqueMinimo = parseFloat(String(row[11] || '0').replace(',', '.')) || 0;
-                const endereco = [row[4], row[5], row[6], row[7]].filter(c => c).map(String).join(' • ');
-                if (codigo && desc) {
-                    if (novosProdutos.has(codigo)) {
-                        novosProdutos.get(codigo).qtde += qtde;
-                    } else {
-                        novosProdutos.set(codigo, { codigo, desc, qtde, endereco, estoqueMinimo, origem: 'estoque' });
-                    }
-                }
+        // CORREÇÃO: Processar TODOS os itens com quantidade > 0, independente de done
+        const itensValidos = Object.entries(dados).filter(([_, item]) => item && item.qtde && item.qtde > 0);
+        
+        console.log(`Total de itens válidos (qtde > 0): ${itensValidos.length}`);
+        
+        for (const [id, item] of itensValidos) {
+            const codigo = item.codigo;
+            if (!codigo) {
+                console.warn(`Item sem código ignorado: ${id}`);
+                continue;
             }
             
-            // Salvar snapshot do estoque real
-            const estoqueReal = {};
-            for (let [id, item] of Object.entries(inventario)) {
-                if (isEstoqueReal(item)) estoqueReal[id] = item;
-            }
-            estoqueAnterior = JSON.parse(JSON.stringify(estoqueReal));
-            
-            let atualizacoes = {};
-            let produtosVendidos = 0, produtosRepostos = 0, produtosNovos = 0, produtosAbaixoMinimo = 0;
-            
-            for (let [codigo, novoProduto] of novosProdutos) {
-                const existentes = Object.entries(inventario).filter(([_, item]) => 
-                    item.codigo === codigo && isEstoqueReal(item)
-                );
-                
-                if (existentes.length === 0) {
-                    const id = `ESTOQUE_${codigo}_${Date.now()}_${produtosNovos}`.replace(/[.#$\[\]\/]/g, "_");
-                    atualizacoes[id] = {
-                        ...novoProduto, validade: '', done: false, ultimaVenda: null, diasSemVenda: 0,
-                        alertaEstoque: novoProduto.qtde <= novoProduto.estoqueMinimo,
-                        historico: [{ data: Date.now(), tipo: 'importacao', quantidade: novoProduto.qtde, origem: 'planilha' }]
-                    };
-                    produtosNovos++;
-                    if (novoProduto.qtde <= novoProduto.estoqueMinimo) produtosAbaixoMinimo++;
-                } else {
-                    const quantidadeAntiga = existentes.reduce((acc, [_, item]) => acc + (item.qtde || 0), 0);
-                    const diferenca = novoProduto.qtde - quantidadeAntiga;
-                    if (diferenca !== 0) {
-                        const tipoMovimento = diferenca < 0 ? 'venda' : 'reposicao';
-                        const dataMovimento = Date.now();
-                        if (tipoMovimento === 'venda') {
-                            produtosVendidos += Math.abs(diferenca);
-                            for (let [id, item] of existentes) {
-                                const historico = item.historico || [];
-                                historico.push({ data: dataMovimento, tipo: 'venda', quantidade: -Math.abs(diferenca) / existentes.length, origem: 'planilha' });
-                                atualizacoes[id] = {
-                                    ...item, qtde: Math.max(0, item.qtde - (Math.abs(diferenca) / existentes.length)),
-                                    ultimaVenda: dataMovimento, historico
-                                };
-                            }
-                        } else {
-                            produtosRepostos += diferenca;
-                            const id = `ESTOQUE_${codigo}_${Date.now()}_${produtosRepostos}`.replace(/[.#$\[\]\/]/g, "_");
-                            atualizacoes[id] = {
-                                ...novoProduto, validade: '', done: false, ultimaVenda: null,
-                                alertaEstoque: novoProduto.qtde <= novoProduto.estoqueMinimo,
-                                historico: [{ data: dataMovimento, tipo: 'reposicao', quantidade: diferenca, origem: 'planilha' }]
-                            };
-                        }
-                    }
-                    if (novoProduto.qtde <= novoProduto.estoqueMinimo) produtosAbaixoMinimo++;
-                }
+            if (!produtosPorCodigo.has(codigo)) {
+                produtosPorCodigo.set(codigo, {
+                    codigo: codigo,
+                    desc: item.desc || 'Sem descrição',
+                    endereco: item.endereco || 'S/E',
+                    temEndereco: item.endereco && item.endereco !== 'S/E' && item.endereco.trim() !== '',
+                    total: 0,
+                    lotes: [],
+                    temPendente: false,
+                    temValidade: false,
+                    menorDias: null,
+                    diasSemVenda: 999,
+                    ultimaVenda: null,
+                    historicoCompleto: []
+                });
             }
             
-            // Itens que sumiram
-            for (let [id, item] of Object.entries(inventario)) {
-                if (isEstoqueReal(item) && !novosProdutos.has(item.codigo) && item.qtde > 0) {
-                    produtosVendidos += item.qtde;
-                    const historico = item.historico || [];
-                    historico.push({ data: Date.now(), tipo: 'venda', quantidade: -item.qtde, origem: 'planilha' });
-                    atualizacoes[id] = { ...item, qtde: 0, ultimaVenda: Date.now(), historico, done: true };
-                }
-            }
+            const prod = produtosPorCodigo.get(codigo);
+            const qtde = Math.round(item.qtde);
+            prod.total += qtde;
             
-            if (Object.keys(atualizacoes).length > 0) {
-                await estoqueRef.update(atualizacoes);
-                await historicoRef.push({ data: Date.now(), tipo: 'importacao_planilha', produtosVendidos, produtosRepostos, produtosNovos, produtosAbaixoMinimo });
-                statusDiv.innerHTML = `✅ ${Object.keys(atualizacoes).length} produtos atualizados!`;
-                detalhesDiv.innerHTML = `📉 Vendidos: ${produtosVendidos} un | 📈 Repostos: ${produtosRepostos} un | 🆕 Novos: ${produtosNovos} | ⚠️ Abaixo mín: ${produtosAbaixoMinimo}`;
-                mostrarToast(`Planilha processada! ${produtosVendidos} un vendidas`, 'success');
-            } else {
-                statusDiv.innerHTML = '⚠️ Nenhuma alteração detectada';
-                mostrarToast('Estoque está igual', 'info');
-            }
-        } catch (err) {
-            console.error(err);
-            statusDiv.innerHTML = '❌ Erro';
-            mostrarToast('Erro: ' + err.message, 'error');
-        }
-        e.target.value = '';
-    });
-
-    // Busca / Scanner / Comparação
-    window.buscarManual = () => {
-        const termo = document.getElementById('manualCode').value.trim();
-        termo ? abrirModal(termo) : mostrarToast('Digite um código', 'warning');
-    };
-    window.alternarScanner = () => {
-        const r = document.getElementById('reader');
-        if (r.style.display === 'none' || r.style.display === '') {
-            r.style.display = 'block';
-            if (!scanner) {
-                scanner = new Html5Qrcode("reader");
-                scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
-                    (text) => {
-                        let clean = text.replace(/^\]d2/, "").trim();
-                        scanner.stop().then(() => { r.style.display = 'none'; scanner = null; abrirModal(clean); });
-                    },
-                    (error) => console.warn(error)
-                );
-            }
-        } else {
-            r.style.display = 'none';
-            if (scanner) scanner.stop().then(() => scanner = null);
-        }
-    };
-    document.getElementById('manualCode').addEventListener('keypress', (e) => { if (e.key === 'Enter') buscarManual(); });
-
-    window.compararImportacoes = () => {
-        if (!estoqueAnterior || Object.keys(estoqueAnterior).length === 0) {
-            const estoqueReal = {};
-            for (let [id, item] of Object.entries(inventario)) if (isEstoqueReal(item)) estoqueReal[id] = item;
-            estoqueAnterior = estoqueReal;
-            mostrarToast('📸 Snapshot salvo!', 'info');
-        } else {
-            const diferencas = [];
-            const atualMap = new Map();
-            Object.values(inventario).forEach(p => { if (isEstoqueReal(p)) { const c = p.codigo; if (!atualMap.has(c)) atualMap.set(c, { codigo: c, desc: p.desc, quantidade: 0 }); atualMap.get(c).quantidade += p.qtde || 0; } });
-            const anteriorMap = new Map();
-            Object.values(estoqueAnterior).forEach(p => { const c = p.codigo; if (!anteriorMap.has(c)) anteriorMap.set(c, { codigo: c, desc: p.desc, quantidade: 0 }); anteriorMap.get(c).quantidade += p.qtde || 0; });
-            const todosCodigos = new Set([...atualMap.keys(), ...anteriorMap.keys()]);
-            todosCodigos.forEach(codigo => {
-                const atual = atualMap.get(codigo)?.quantidade || 0;
-                const anterior = anteriorMap.get(codigo)?.quantidade || 0;
-                if (atual !== anterior) diferencas.push({ codigo, desc: atualMap.get(codigo)?.desc || anteriorMap.get(codigo)?.desc, anterior, atual, diferenca: atual - anterior });
+            // Verificar se é um lote com validade (done = true E validade preenchida)
+            const temValidade = item.done === true && item.validade && item.validade !== '';
+            const diasRestantes = temValidade ? calcularDiasRestantes(item.validade) : null;
+            
+            prod.lotes.push({ 
+                id, 
+                qtde, 
+                validade: item.validade, 
+                done: item.done === true, 
+                diasRestantes,
+                historico: item.historico || []
             });
-            diferencas.sort((a,b) => Math.abs(b.diferenca) - Math.abs(a.diferenca));
-            const modal = document.getElementById('modalComparacao');
-            const conteudo = document.getElementById('comparacaoConteudo');
-            if (diferencas.length) {
-                const vendas = diferencas.filter(d => d.diferenca < 0).reduce((acc,d) => acc + Math.abs(d.diferenca),0);
-                const repos = diferencas.filter(d => d.diferenca > 0).reduce((acc,d) => acc + d.diferenca,0);
-                conteudo.innerHTML = `<div>📉 Vendas: ${vendas} un | 📈 Reposições: ${repos} un</div>` + diferencas.map(d => `<div>${d.codigo}: ${d.anterior} → ${d.atual} (${d.diferenca>0?'+':''}${d.diferenca})</div>`).join('');
+            
+            if (temValidade && diasRestantes !== null) {
+                prod.temValidade = true;
+                if (prod.menorDias === null || diasRestantes < prod.menorDias) {
+                    prod.menorDias = diasRestantes;
+                }
             } else {
-                conteudo.innerHTML = '<div>Nenhuma diferença</div>';
+                prod.temPendente = true;
             }
-            modal.style.display = 'flex';
-            estoqueAnterior = null;
+            
+            if (item.historico && Array.isArray(item.historico)) {
+                prod.historicoCompleto.push(...item.historico);
+            }
         }
-    };
-    window.fecharModalComparacao = () => document.getElementById('modalComparacao').style.display = 'none';
-
-    // Filtros
-    window.aplicarFiltro = (filtro) => {
-        filtroAtual = filtro;
-        document.querySelectorAll('.filtro-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.filtro === filtro);
-        });
-        renderizarLista();
-    };
-
-    // Funções auxiliares
-    function getPerformanceIcon(dias, vendasMes) {
-        if (dias >= 90) return '🐌'; if (dias >= 60) return '⏳'; if (dias >= 30) return '🔄';
-        if (vendasMes > 20) return '⚡'; if (vendasMes > 10) return '📈'; if (vendasMes > 5) return '📊';
-        return '🆕';
-    }
-    function calcularDiasEstoque(historico, qtd) {
-        if (!historico?.length) return '∞';
-        const vendas30 = historico.filter(h => h.tipo==='venda' && (Date.now()-h.data)<2592000000).reduce((a,h)=>a+Math.abs(h.quantidade),0);
-        const media = vendas30/30;
-        return media===0?'∞':Math.floor(qtd/media);
-    }
-
-    // Gerar opções de data rápida (próximos 12 meses)
-    function gerarOpcoesDataRapida() {
-        const hoje = new Date();
-        let opcoes = '';
-        for (let i = 0; i < 12; i++) {
-            const data = new Date(hoje.getFullYear(), hoje.getMonth() + i, 1);
-            const mes = String(data.getMonth() + 1).padStart(2, '0');
-            const ano = data.getFullYear();
-            const valor = `${mes}/${ano}`;
-            const label = data.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-            opcoes += `<option value="${valor}">${label}</option>`;
+        
+        console.log(`Total de produtos distintos: ${produtosPorCodigo.size}`);
+        
+        // Calcular dias sem venda para cada produto baseado no histórico
+        for (const prod of produtosPorCodigo.values()) {
+            // Buscar todas as vendas no histórico completo
+            const vendas = prod.historicoCompleto.filter(h => h && h.tipo === 'venda');
+            
+            if (vendas.length > 0) {
+                // Pega a data da última venda
+                const ultimaVenda = Math.max(...vendas.map(v => v.data));
+                prod.ultimaVenda = ultimaVenda;
+                prod.diasSemVenda = Math.floor((Date.now() - ultimaVenda) / 86400000);
+                if (prod.diasSemVenda < 0) prod.diasSemVenda = 0;
+            } else {
+                // Se nunca teve venda, verifica a data da primeira importacao
+                const importacoes = prod.historicoCompleto.filter(h => h && h.tipo === 'importacao');
+                if (importacoes.length > 0) {
+                    const primeiraImportacao = Math.min(...importacoes.map(i => i.data));
+                    prod.diasSemVenda = Math.floor((Date.now() - primeiraImportacao) / 86400000);
+                } else {
+                    prod.diasSemVenda = 999; // Indica "nunca vendeu"
+                }
+                prod.ultimaVenda = null;
+            }
         }
-        return opcoes;
+        
+        produtosComValidade = Array.from(produtosPorCodigo.values())
+            .filter(p => p.temValidade)
+            .sort((a, b) => {
+                if (a.menorDias === null) return 1;
+                if (b.menorDias === null) return -1;
+                return a.menorDias - b.menorDias;
+            });
+        
+        produtosPendentes = Array.from(produtosPorCodigo.values())
+            .filter(p => p.temPendente && !p.temValidade);
+        
+        todosProdutos = Array.from(produtosPorCodigo.values());
+        
+        console.log(`Produtos com validade: ${produtosComValidade.length}`);
+        console.log(`Produtos pendentes: ${produtosPendentes.length}`);
+        console.log(`Total produtos: ${todosProdutos.length}`);
+        
+        atualizarMetricas();
+        renderizarTopCriticos();
+        calcularSaudeEstoque();
     }
-
-    // Modal principal
-    window.abrirModal = (codigo) => {
-        const lotes = Object.values(inventario).filter(i => i.codigo === codigo);
-        if (!lotes.length) return mostrarToast('Produto não encontrado', 'error');
-        refCodigoGlobal = codigo;
-        const comValidade = lotes.filter(l => l.done && l.validade);
-        const pendentes = lotes.filter(l => !l.done);
-        totalPendenteGlobal = pendentes.reduce((a,l) => a + (l.qtde||0), 0);
-        const primeiro = lotes[0];
-        const historicoTotal = lotes.flatMap(l => l.historico||[]);
-        const vendas = historicoTotal.filter(h => h.tipo==='venda').sort((a,b)=>b.data-a.data);
-        const ultimaVenda = vendas[0]?.data;
-        const diasSemVenda = ultimaVenda ? Math.floor((Date.now()-ultimaVenda)/86400000) : 0;
-        const vendasMes = vendas.filter(v=>Date.now()-v.data<2592000000).reduce((a,v)=>a+Math.abs(v.quantidade),0);
-        
-        document.getElementById('prodNome').innerHTML = `${primeiro.desc||'Sem descrição'} <span>${getPerformanceIcon(diasSemVenda, vendasMes)}</span>`;
-        document.getElementById('modalInfo').innerHTML = `
-            <p><strong>Código:</strong> ${codigo}</p>
-            <p><strong>Origem:</strong> ${primeiro.origem==='xml'?'📄 XML':'📦 Planilha'}</p>
-            ${primeiro.endereco?`<p><strong>Endereço:</strong> ${primeiro.endereco}</p>`:''}
-            <p><strong>Total estoque:</strong> ${lotes.reduce((a,l)=>a+(l.qtde||0),0)} un</p>
-            <p><strong>Última venda:</strong> ${ultimaVenda?new Date(ultimaVenda).toLocaleDateString('pt-BR'):'Nunca'}</p>
-            <p><strong>Dias sem vender:</strong> ${diasSemVenda} dias</p>
-        `;
-        
-        setTimeout(() => renderizarGrafico(historicoTotal), 100);
-        
-        // Lotes
-        const lotesMap = new Map();
-        comValidade.forEach(l => { const k=l.validade; if(!lotesMap.has(k)) lotesMap.set(k,{validade:k,qtde:0,ids:[]}); const g=lotesMap.get(k); g.qtde+=l.qtde||0; g.ids.push(Object.keys(inventario).find(id=>inventario[id]===l)); });
-        document.getElementById('lotesList').innerHTML = comValidade.length ? 
-            Array.from(lotesMap.values()).map(g => `<div class="lote-item"><div>📅 ${g.validade} (${g.qtde} un)</div><button class="btn-remover" onclick="removerLotes('${g.ids.join(',')}')">✕</button></div>`).join('') :
-            '<div style="text-align:center;padding:15px;">Nenhum lote</div>';
-        
-        // Histórico
-        const hist = lotes.flatMap(l=>(l.historico||[]).map(h=>({...h,desc:l.desc}))).sort((a,b)=>b.data-a.data).slice(0,20);
-        document.getElementById('historicoList').innerHTML = hist.length ? hist.map(h => {
-            const data = new Date(h.data).toLocaleDateString('pt-BR');
-            const sinal = h.tipo==='venda'?'▼':(h.tipo==='reposicao'?'▲':'•');
-            const cor = h.tipo==='venda'?'negativo':(h.tipo==='reposicao'?'positivo':'');
-            return `<div class="historico-item"><span>${data}</span><span>${h.tipo}</span><span class="historico-qtd ${cor}">${sinal} ${Math.abs(h.quantidade)} un</span></div>`;
-        }).join('') : '<div>Sem histórico</div>';
-        
-        // Input com seletor de data
-        document.getElementById('inputContainer').innerHTML = `
-            <div><label>Quantidade (disp: ${totalPendenteGlobal})</label><input type="number" id="inputQuantidade" class="modal-input" value="${totalPendenteGlobal}" min="1" max="${totalPendenteGlobal}"></div>
-            <div><label>Validade (MM/AAAA)</label><input type="text" id="inputMesAno" class="modal-input" placeholder="MM/AAAA" maxlength="7"></div>
-            <select id="quickDateSelect" class="quick-date-selector" onchange="aplicarDataSelecionada()"><option value="">📆 Selecionar mês/ano rápido...</option>${gerarOpcoesDataRapida()}</select>
-            <div class="quick-date-row">
-                <button class="quick-date-btn" onclick="preencherDataRapida(30)">+30d</button>
-                <button class="quick-date-btn" onclick="preencherDataRapida(60)">+60d</button>
-                <button class="quick-date-btn" onclick="preencherDataRapida(90)">+90d</button>
-                <button class="quick-date-btn" onclick="preencherDataRapida(365)">+1a</button>
-            </div>
-            <button class="btn-salvar btn-sem-vencimento" onclick="marcarSemVencimento()">🚫 SEM VENCIMENTO</button>
-            <div class="atalho-info"><kbd>Enter</kbd> salvar | <kbd>Ctrl+Enter</kbd> sem venc. | <kbd>Esc</kbd> fechar</div>
-            <button class="btn-salvar" onclick="salvarData()">💾 ADICIONAR VALIDADE</button>
-        `;
-        
-        document.getElementById('modalData').style.display = 'flex';
-        document.getElementById('inputQuantidade').focus();
-        document.getElementById('inputQuantidade').select();
-        
-        const inpData = document.getElementById('inputMesAno');
-        inpData.addEventListener('keydown', (e) => { if(e.key==='Enter') { e.preventDefault(); e.ctrlKey?marcarSemVencimento():salvarData(); } });
-        inpData.addEventListener('input', (e) => { let v=e.target.value.replace(/\D/g,''); if(v.length>=2) v=v.substring(0,2)+'/'+v.substring(2,6); e.target.value=v; });
-        document.addEventListener('keydown', function escHandler(e) { if(e.key==='Escape') { fecharModal(); document.removeEventListener('keydown', escHandler); } });
-    };
-
-    window.aplicarDataSelecionada = () => { const s=document.getElementById('quickDateSelect'); if(s.value) { document.getElementById('inputMesAno').value=s.value; s.value=''; } };
-    window.preencherDataRapida = (dias) => { const d=new Date(); d.setDate(d.getDate()+dias); document.getElementById('inputMesAno').value = `${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; };
     
-    window.marcarSemVencimento = async () => {
-        const qtd = parseInt(document.getElementById('inputQuantidade')?.value);
-        if(!qtd||qtd<=0) return mostrarToast('Quantidade inválida','warning');
-        if(qtd>totalPendenteGlobal) return mostrarToast(`Máximo ${totalPendenteGlobal}`,'warning');
-        const pendentes = Object.entries(inventario).filter(([_,i])=>i.codigo===refCodigoGlobal&&!i.done);
-        if(!pendentes.length) { fecharModal(); return; }
-        let updates={}, restante=qtd;
-        for(let [id,item] of pendentes) {
-            if(restante<=0) break;
-            const disp=item.qtde||0;
-            if(disp<=restante) {
-                const nId=`${id}_NOVENC_${Date.now()}`;
-                updates[nId]={...item, validade:'31/12/2099', done:true, qtde:disp, historico:[...(item.historico||[]),{data:Date.now(),tipo:'validade',quantidade:disp,validade:'N/A'}]};
-                updates[id]=null; restante-=disp;
-            } else {
-                const nId=`${id}_NOVENC_${Date.now()}`;
-                updates[nId]={...item, validade:'31/12/2099', done:true, qtde:restante, historico:[...(item.historico||[]),{data:Date.now(),tipo:'validade',quantidade:restante,validade:'N/A'}]};
-                updates[id]={...item, qtde:disp-restante}; restante=0;
-            }
-        }
-        await estoqueRef.update(updates);
-        mostrarToast(`${qtd} un sem vencimento!`,'success');
-        fecharModal();
-    };
-
-    window.salvarData = async () => {
-        const qtd = parseInt(document.getElementById('inputQuantidade')?.value);
-        const data = document.getElementById('inputMesAno').value;
-        if(!qtd||qtd<=0) return mostrarToast('Quantidade inválida','warning');
-        if(!/^\d{2}\/\d{4}$/.test(data)) return mostrarToast('Formato MM/AAAA inválido','warning');
-        if(qtd>totalPendenteGlobal) return mostrarToast(`Máximo ${totalPendenteGlobal}`,'warning');
-        const dataSalvar = "01/"+data;
-        const pendentes = Object.entries(inventario).filter(([_,i])=>i.codigo===refCodigoGlobal&&!i.done);
-        if(!pendentes.length) { fecharModal(); return; }
-        let updates={}, restante=qtd;
-        for(let [id,item] of pendentes) {
-            if(restante<=0) break;
-            const disp=item.qtde||0;
-            if(disp<=restante) {
-                const nId=`${id}_VAL_${Date.now()}`;
-                updates[nId]={...item, validade:dataSalvar, done:true, qtde:disp, historico:[...(item.historico||[]),{data:Date.now(),tipo:'validade',quantidade:disp,validade:data}]};
-                updates[id]=null; restante-=disp;
-            } else {
-                const nId=`${id}_VAL_${Date.now()}`;
-                updates[nId]={...item, validade:dataSalvar, done:true, qtde:restante, historico:[...(item.historico||[]),{data:Date.now(),tipo:'validade',quantidade:restante,validade:data}]};
-                updates[id]={...item, qtde:disp-restante}; restante=0;
-            }
-        }
-        await estoqueRef.update(updates);
-        mostrarToast(`${qtd} un com validade ${data}!`,'success');
-        fecharModal();
-    };
-
-    window.removerLotes = async (ids) => {
-        if(!confirm('Remover estes lotes?')) return;
-        const updates = {};
-        ids.split(',').forEach(id => updates[id]=null);
-        await estoqueRef.update(updates);
-        mostrarToast('Lotes removidos','success');
-        fecharModal();
-    };
-
-    window.fecharModal = () => {
-        document.getElementById('modalData').style.display='none';
-        if(grafico) grafico.destroy();
-    };
-
-    // Gráfico
-    function renderizarGrafico(historico) {
-        const canvas = document.getElementById('graficoVendas');
-        if(!canvas) return;
-        const ctx = canvas.getContext('2d');
-        const ultimos6meses = [];
-        const hoje = new Date();
-        for(let i=5; i>=0; i--) {
-            const d = new Date(hoje.getFullYear(), hoje.getMonth()-i, 1);
-            ultimos6meses.push({ mes: d.toLocaleDateString('pt-BR',{month:'short'}).replace('.',''), vendas:0, reposicoes:0 });
-        }
-        historico.forEach(h => {
-            const dh = new Date(h.data);
-            const diff = (hoje.getFullYear()-dh.getFullYear())*12 + (hoje.getMonth()-dh.getMonth());
-            if(diff>=0 && diff<6) {
-                const idx = 5-diff;
-                if(h.tipo==='venda') ultimos6meses[idx].vendas += Math.abs(h.quantidade);
-                else if(h.tipo==='reposicao') ultimos6meses[idx].reposicoes += h.quantidade;
-            }
-        });
-        if(grafico) grafico.destroy();
-        grafico = new Chart(ctx, {
-            type:'bar', data:{ labels:ultimos6meses.map(m=>m.mes), datasets:[
-                { label:'Vendas', data:ultimos6meses.map(m=>m.vendas), backgroundColor:'#ef4444' },
-                { label:'Reposições', data:ultimos6meses.map(m=>m.reposicoes), backgroundColor:'#10b981' }
-            ]},
-            options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } } }
-        });
+    function atualizarMetricas() {
+        const totalUnidades = todosProdutos.reduce((acc, p) => acc + p.total, 0);
+        const totalProdutos = todosProdutos.length;
+        const produtosComEndereco = todosProdutos.filter(p => p.temEndereco).length;
+        const produtosSemEndereco = totalProdutos - produtosComEndereco;
+        const percentEndereco = totalProdutos > 0 ? Math.round((produtosComEndereco / totalProdutos) * 100) : 0;
+        const pendentes = produtosPendentes.length;
+        const parados30 = todosProdutos.filter(p => p.diasSemVenda >= 30 && p.diasSemVenda < 999).length;
+        const parados90 = todosProdutos.filter(p => p.diasSemVenda >= 90 && p.diasSemVenda < 999).length;
+        const vencidos = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias < 0).length;
+        const criticos = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 30).length;
+        
+        document.getElementById('total-estoque').innerText = Math.round(totalUnidades);
+        document.getElementById('total-produtos').innerText = totalProdutos;
+        document.getElementById('total-com-endereco').innerText = produtosComEndereco;
+        document.getElementById('total-sem-endereco').innerText = produtosSemEndereco;
+        document.getElementById('total-endereco-percent').innerText = percentEndereco + '%';
+        document.getElementById('total-pendentes').innerText = pendentes;
+        document.getElementById('total-parados30').innerText = parados30;
+        document.getElementById('total-parados90').innerText = parados90;
+        document.getElementById('total-vencidos').innerText = vencidos;
+        document.getElementById('total-criticos').innerText = criticos;
     }
-
-    // Renderizar lista e status
-    function renderizarLista() {
-        const container = document.getElementById('lista-estoque');
-        let itens = Object.values(inventario).filter(i => abaAtual==='xml'? i.origem==='xml' : i.origem==='estoque');
-        const agrupados = new Map();
-        itens.forEach(i => {
-            if(!agrupados.has(i.codigo)) agrupados.set(i.codigo, {...i, lotes:[i], qtde:i.qtde||0});
-            else { const e=agrupados.get(i.codigo); e.lotes.push(i); e.qtde=(e.qtde||0)+(i.qtde||0); }
-        });
-        let produtos = Array.from(agrupados.values());
-        produtos.forEach(p => {
-            const vendas = p.lotes.flatMap(l=>l.historico||[]).filter(h=>h.tipo==='venda').sort((a,b)=>b.data-a.data);
-            p.diasSemVenda = vendas.length ? Math.floor((Date.now()-vendas[0].data)/86400000) : 0;
-        });
-        if(filtroAtual!=='todos') produtos = produtos.filter(p => {
-            if(filtroAtual==='pendente') return !p.done;
-            if(filtroAtual==='concluido') return p.done;
-            if(filtroAtual==='parado30') return p.diasSemVenda>=30;
-            if(filtroAtual==='parado60') return p.diasSemVenda>=60;
-            if(filtroAtual==='parado90') return p.diasSemVenda>=90;
-        });
-        produtos.sort((a,b) => (b.diasSemVenda||0) - (a.diasSemVenda||0));
-        document.getElementById('result-count').innerText = `${produtos.length} itens`;
-        container.innerHTML = produtos.map(p => `
-            <div class="produto-item ${p.done?'concluido':'pendente'}" onclick="abrirModal('${p.codigo}')">
-                <div class="produto-header"><span class="produto-codigo">${p.codigo}</span><span class="produto-status">${p.done?'✅':'⏳'}</span></div>
-                <div class="produto-desc">${p.desc||''}</div>
-                <div class="produto-detalhes"><span>${p.qtde} un</span><span>${p.diasSemVenda}d</span></div>
+    
+    function calcularSaudeEstoque() {
+        const healthExcellent = document.getElementById('healthExcellent');
+        const healthGood = document.getElementById('healthGood');
+        const healthFair = document.getElementById('healthFair');
+        const healthPoor = document.getElementById('healthPoor');
+        const healthCritical = document.getElementById('healthCritical');
+        const healthScore = document.getElementById('healthScore');
+        
+        const categorias = { excellent: 0, good: 0, fair: 0, poor: 0, critical: 0 };
+        
+        for (const produto of produtosComValidade) {
+            const dias = produto.menorDias;
+            if (dias !== null) {
+                if (dias < 0) {
+                    categorias.critical += produto.total;
+                } else if (dias <= 30) {
+                    categorias.critical += produto.total;
+                } else if (dias <= 90) {
+                    categorias.poor += produto.total;
+                } else if (dias <= 180) {
+                    categorias.fair += produto.total;
+                } else if (dias <= 365) {
+                    categorias.good += produto.total;
+                } else {
+                    categorias.excellent += produto.total;
+                }
+            }
+        }
+        
+        const total = categorias.excellent + categorias.good + categorias.fair + categorias.poor + categorias.critical;
+        
+        if (total > 0) {
+            const pctExc = (categorias.excellent / total * 100).toFixed(1);
+            const pctGood = (categorias.good / total * 100).toFixed(1);
+            const pctFair = (categorias.fair / total * 100).toFixed(1);
+            const pctPoor = (categorias.poor / total * 100).toFixed(1);
+            const pctCrit = (categorias.critical / total * 100).toFixed(1);
+            
+            healthExcellent.style.width = pctExc + '%'; 
+            healthExcellent.innerText = pctExc + '%';
+            healthGood.style.width = pctGood + '%'; 
+            healthGood.innerText = pctGood + '%';
+            healthFair.style.width = pctFair + '%'; 
+            healthFair.innerText = pctFair + '%';
+            healthPoor.style.width = pctPoor + '%'; 
+            healthPoor.innerText = pctPoor + '%';
+            healthCritical.style.width = pctCrit + '%'; 
+            healthCritical.innerText = pctCrit + '%';
+            
+            const score = (categorias.excellent * 100 + categorias.good * 80 + categorias.fair * 60 + categorias.poor * 30 + categorias.critical * 10) / total;
+            healthScore.innerText = Math.round(score);
+        } else {
+            healthExcellent.style.width = '0%'; healthExcellent.innerText = '0%';
+            healthGood.style.width = '0%'; healthGood.innerText = '0%';
+            healthFair.style.width = '0%'; healthFair.innerText = '0%';
+            healthPoor.style.width = '0%'; healthPoor.innerText = '0%';
+            healthCritical.style.width = '0%'; healthCritical.innerText = '0%';
+            healthScore.innerText = '0';
+        }
+    }
+    
+    function renderizarTopCriticos() {
+        const topList = document.getElementById('topCriticos');
+        const criticos = produtosComValidade
+            .filter(p => p.menorDias !== null)
+            .sort((a, b) => a.menorDias - b.menorDias)
+            .slice(0, 10);
+        
+        if (criticos.length > 0) {
+            topList.innerHTML = criticos.map((p, index) => {
+                const statusText = p.menorDias < 0 ? 'VENCIDO' : p.menorDias + ' dias';
+                return `<div class="top-item" onclick="abrirModalProduto('${p.codigo}')">
+                    <div class="top-position">${index + 1}</div>
+                    <div class="top-info">
+                        <h4>${p.desc.substring(0, 40)}${p.desc.length > 40 ? '...' : ''}</h4>
+                        <p>Cód: ${p.codigo} • ${Math.round(p.total)} un • ${p.endereco}</p>
+                    </div>
+                    <div class="top-value">${statusText}</div>
+                </div>`;
+            }).join('');
+        } else {
+            topList.innerHTML = '<div class="empty">Nenhum produto com validade crítica</div>';
+        }
+    }
+    
+    window.mostrarListaProdutos = (tipo) => {
+        let titulo = '', lista = [], classe = '';
+        switch(tipo) {
+            case 'vencido': 
+                titulo = 'Produtos Vencidos'; 
+                lista = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias < 0); 
+                classe = 'vencido'; 
+                break;
+            case 'critico': 
+                titulo = 'Produtos Críticos (≤30 dias para vencer)'; 
+                lista = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 30); 
+                classe = 'critico'; 
+                break;
+            case 'pendente': 
+                titulo = 'Produtos Pendentes (sem validade)'; 
+                lista = produtosPendentes; 
+                classe = 'pendente'; 
+                break;
+            case 'parado30': 
+                titulo = 'Produtos Parados 30d+'; 
+                lista = todosProdutos.filter(p => p.diasSemVenda >= 30 && p.diasSemVenda < 999); 
+                classe = 'parado30'; 
+                break;
+            case 'parado90': 
+                titulo = 'Produtos Parados 90d+'; 
+                lista = todosProdutos.filter(p => p.diasSemVenda >= 90 && p.diasSemVenda < 999); 
+                classe = 'parado90'; 
+                break;
+            case 'com-endereco': 
+                titulo = 'Produtos com Endereço'; 
+                lista = todosProdutos.filter(p => p.temEndereco); 
+                classe = 'normal'; 
+                break;
+            case 'sem-endereco': 
+                titulo = 'Produtos sem Endereço'; 
+                lista = todosProdutos.filter(p => !p.temEndereco); 
+                classe = 'sem-endereco'; 
+                break;
+            default: return;
+        }
+        
+        document.getElementById('modalListaTitulo').innerText = titulo;
+        if (lista.length > 0) {
+            document.getElementById('modalListaBody').innerHTML = lista.map(p => {
+                let infoExtra = '';
+                if (p.menorDias !== null) {
+                    infoExtra = p.menorDias < 0 ? ' • VENCIDO' : ' • ' + p.menorDias + ' dias';
+                } else if (p.diasSemVenda < 999) {
+                    infoExtra = ' • ' + p.diasSemVenda + ' dias parado';
+                }
+                let classeItem = '';
+                if (p.menorDias !== null) {
+                    classeItem = p.menorDias < 0 ? 'vencido' : (p.menorDias <= 30 ? 'critico' : '');
+                } else {
+                    classeItem = classe;
+                }
+                return `<div class="produto-item-modal ${classeItem}" onclick="abrirModalProduto('${p.codigo}')">
+                    <h4>${p.desc.substring(0, 50)}${p.desc.length > 50 ? '...' : ''}</h4>
+                    <p>Cód: ${p.codigo} • ${Math.round(p.total)} un • ${p.endereco}${infoExtra}</p>
+                </div>`;
+            }).join('');
+        } else {
+            document.getElementById('modalListaBody').innerHTML = '<div class="empty">Nenhum produto encontrado</div>';
+        }
+        document.getElementById('modalLista').style.display = 'flex';
+    };
+    
+    window.fecharModalLista = () => { 
+        document.getElementById('modalLista').style.display = 'none'; 
+    };
+    
+    window.abrirModalProduto = (codigo) => {
+        let produto = todosProdutos.find(p => p.codigo === codigo);
+        if (!produto) produto = produtosComValidade.find(p => p.codigo === codigo);
+        if (!produto) produto = produtosPendentes.find(p => p.codigo === codigo);
+        if (!produto) { 
+            mostrarToast('Produto não encontrado', 'error'); 
+            return; 
+        }
+        
+        document.getElementById('modalProdutoTitulo').innerText = produto.desc;
+        
+        const hoje = new Date(); 
+        hoje.setHours(0, 0, 0, 0);
+        
+        const lotesComValidade = produto.lotes.filter(l => l.done && l.validade);
+        const lotesAgrupados = new Map();
+        for (const lote of lotesComValidade) {
+            if (!lotesAgrupados.has(lote.validade)) lotesAgrupados.set(lote.validade, 0);
+            lotesAgrupados.set(lote.validade, lotesAgrupados.get(lote.validade) + lote.qtde);
+        }
+        
+        const historicoOrdenado = [...produto.historicoCompleto]
+            .sort((a, b) => b.data - a.data)
+            .slice(0, 20);
+        
+        let statusText = '', statusColor = '';
+        if (produto.menorDias !== null) {
+            if (produto.menorDias < 0) { 
+                statusText = 'VENCIDO'; 
+                statusColor = 'var(--expired)'; 
+            } else if (produto.menorDias <= 30) { 
+                statusText = `${produto.menorDias} dias restantes (CRÍTICO)`; 
+                statusColor = 'var(--critical)'; 
+            } else if (produto.menorDias <= 90) { 
+                statusText = `${produto.menorDias} dias restantes`; 
+                statusColor = 'var(--attention)'; 
+            } else { 
+                statusText = `${produto.menorDias} dias restantes`; 
+                statusColor = 'var(--success)'; 
+            }
+        } else if (produto.temPendente) { 
+            statusText = 'PENDENTE (sem validade)'; 
+            statusColor = 'var(--warning)'; 
+        }
+        
+        const diasSemVendaText = produto.diasSemVenda >= 999 ? 'Nunca' : produto.diasSemVenda + ' dias';
+        
+        document.getElementById('modalProdutoBody').innerHTML = `
+            <div style="background: var(--bg-primary); border-radius: 16px; padding: 15px; margin-bottom: 20px;">
+                <p style="display: flex; justify-content: space-between; margin: 8px 0;">
+                    <span>Código:</span>
+                    <span style="font-weight: 700;">${produto.codigo}</span>
+                </p>
+                <p style="display: flex; justify-content: space-between; margin: 8px 0;">
+                    <span>Localização:</span>
+                    <span style="font-weight: 700;">${produto.endereco}</span>
+                </p>
+                <p style="display: flex; justify-content: space-between; margin: 8px 0;">
+                    <span>Total em estoque:</span>
+                    <span style="font-weight: 700;">${Math.round(produto.total)} unidades</span>
+                </p>
+                <p style="display: flex; justify-content: space-between; margin: 8px 0;">
+                    <span>Status:</span>
+                    <span style="font-weight: 700; color: ${statusColor};">${statusText}</span>
+                </p>
+                <p style="display: flex; justify-content: space-between; margin: 8px 0;">
+                    <span>Dias sem venda:</span>
+                    <span style="font-weight: 700; color: ${produto.diasSemVenda >= 90 ? 'var(--danger)' : (produto.diasSemVenda >= 60 ? 'var(--warning)' : 'var(--attention)')}">
+                        ${diasSemVendaText}
+                    </span>
+                </p>
+                ${produto.ultimaVenda ? `<p style="display: flex; justify-content: space-between; margin: 8px 0;">
+                    <span>Última venda:</span>
+                    <span style="font-weight: 700;">${new Date(produto.ultimaVenda).toLocaleDateString('pt-BR')}</span>
+                </p>` : ''}
             </div>
-        `).join('') || '<div style="text-align:center;padding:40px;">Nenhum produto</div>';
-    }
-
-    function atualizarStatus() {
-        const lotes = Object.values(inventario);
-        const real = lotes.filter(isEstoqueReal);
-        const parados = real.filter(i => {
-            const v=i.historico?.filter(h=>h.tipo==='venda');
-            return v?.length && (Date.now()-Math.max(...v.map(x=>x.data)))/86400000 >= 30;
-        });
-        document.getElementById('stat-lotes').innerText = lotes.length;
-        document.getElementById('stat-pendentes').innerText = lotes.filter(l=>!l.done).length;
-        document.getElementById('stat-parados').innerText = parados.length;
-        document.getElementById('stat-parados-90').innerText = parados.filter(p=> (Date.now()-Math.max(...p.historico.filter(h=>h.tipo==='venda').map(x=>x.data)))/86400000 >= 90).length;
-    }
-
-    function verificarProdutosParados() {
-        const real = Object.values(inventario).filter(isEstoqueReal);
-        const parados90 = real.filter(i => {
-            const v=i.historico?.filter(h=>h.tipo==='venda');
-            return v?.length && (Date.now()-Math.max(...v.map(x=>x.data)))/86400000 >= 90;
-        });
-        if(parados90.length) mostrarToast(`🔴 ${parados90.length} produtos com 90+ dias parados!`, 'warning');
-    }
-
-    window.exportarRelatorioParados = () => {
-        const real = Object.values(inventario).filter(isEstoqueReal);
-        const grupos = new Map();
-        real.forEach(p => {
-            if(!grupos.has(p.codigo)) grupos.set(p.codigo, { codigo:p.codigo, desc:p.desc, endereco:p.endereco||'N/I', quantidade:0, diasSemVenda:0 });
-            const g = grupos.get(p.codigo);
-            g.quantidade += p.qtde||0;
-            const vendas = p.historico?.filter(h=>h.tipo==='venda') || [];
-            if(vendas.length) {
-                const ultima = Math.max(...vendas.map(v=>v.data));
-                g.diasSemVenda = Math.floor((Date.now()-ultima)/86400000);
-            }
-        });
-        const parados = Array.from(grupos.values()).filter(g=>g.diasSemVenda>=30).sort((a,b)=>b.diasSemVenda-a.diasSemVenda);
-        let csv = "Código;Descrição;Endereço;Quantidade;Dias sem venda\n";
-        parados.forEach(p => csv += `${p.codigo};${p.desc};${p.endereco};${p.quantidade};${p.diasSemVenda}\n`);
-        const blob = new Blob(["\uFEFF"+csv], {type:'text/csv'});
-        const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`parados_${new Date().toISOString().split('T')[0]}.csv`; a.click();
-        mostrarToast(`Relatório com ${parados.length} produtos gerado!`, 'success');
+            
+            ${lotesAgrupados.size > 0 ? `
+                <div style="font-weight: 600; margin-bottom: 10px;">📅 Lotes por validade:</div>
+                ${Array.from(lotesAgrupados.entries())
+                    .sort((a, b) => {
+                        const dataA = new Date(a[0].split('/').reverse().join('-'));
+                        const dataB = new Date(b[0].split('/').reverse().join('-'));
+                        return dataA - dataB;
+                    })
+                    .map(([validade, qtde]) => {
+                        const diff = calcularDiasRestantes(validade);
+                        let cor = '';
+                        if (diff !== null) { 
+                            if (diff < 0) cor = 'var(--expired)'; 
+                            else if (diff <= 30) cor = 'var(--critical)'; 
+                            else if (diff <= 90) cor = 'var(--attention)'; 
+                            else cor = 'var(--success)'; 
+                        }
+                        return `<div class="lote-row">
+                            <span style="font-weight: 700;">📅 ${validade}</span>
+                            <span>${Math.round(qtde)} un</span>
+                            ${diff !== null ? `<span style="color: ${cor};">${diff < 0 ? 'VENCIDO' : diff + ' dias'}</span>` : ''}
+                        </div>`;
+                    }).join('')}
+            ` : (produto.temPendente ? `
+                <div style="background: var(--bg-primary); border-radius: 16px; padding: 15px; text-align: center; margin: 10px 0;">
+                    <i class="fas fa-hourglass-half" style="color: var(--warning); font-size: 1.5rem;"></i>
+                    <p style="margin-top: 8px;">Este produto está pendente de validade.</p>
+                </div>
+            ` : '<div style="text-align:center; padding:15px;">Nenhum lote com validade</div>')}
+            
+            ${historicoOrdenado.length > 0 ? `
+                <div style="font-weight: 600; margin: 15px 0 10px;">📊 Histórico recente:</div>
+                ${historicoOrdenado.map(h => {
+                    const data = new Date(h.data).toLocaleDateString('pt-BR');
+                    const tipo = h.tipo === 'venda' ? 'Venda' : (h.tipo === 'reposicao' ? 'Reposição' : (h.tipo === 'validade_atribuida' ? 'Validade atribuída' : 'Importação'));
+                    const sinal = h.tipo === 'venda' ? '▼' : (h.tipo === 'reposicao' ? '▲' : '•');
+                    const classe = h.tipo === 'venda' ? 'negativo' : (h.tipo === 'reposicao' ? 'positivo' : '');
+                    return `<div class="historico-row">
+                        <span>${data}</span>
+                        <span>${tipo}</span>
+                        <span class="${classe}">${sinal} ${Math.abs(Math.round(h.quantidade || 0))} un</span>
+                    </div>`;
+                }).join('')}
+            ` : '<div style="text-align:center; padding:15px;">Sem histórico disponível</div>'}
+        `;
+        
+        document.getElementById('modalProduto').style.display = 'flex';
     };
-
-    console.log('✅ Sistema pronto! Use "Desfazer última" para remover XMLs importados por engano.');
+    
+    window.fecharModalProduto = () => { 
+        document.getElementById('modalProduto').style.display = 'none'; 
+    };
+    
+    window.carregarDados = () => { 
+        mostrarToast('Recarregando dados...', 'info'); 
+        carregarDadosFirebase(); 
+    };
+    
+    window.exportarPDF = async () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18); 
+        doc.text('Relatório de Estoque - Dashboard', 20, 20);
+        doc.setFontSize(10); 
+        doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}`, 20, 30);
+        doc.setFontSize(12); 
+        doc.text('Resumo do Estoque:', 20, 45); 
+        doc.setFontSize(10);
+        
+        const totalEstoque = document.getElementById('total-estoque')?.innerText || 0;
+        const totalProdutos = document.getElementById('total-produtos')?.innerText || 0;
+        const totalEndereco = document.getElementById('total-endereco-percent')?.innerText || '0%';
+        const totalComEndereco = document.getElementById('total-com-endereco')?.innerText || 0;
+        const totalSemEndereco = document.getElementById('total-sem-endereco')?.innerText || 0;
+        const totalPendentes = document.getElementById('total-pendentes')?.innerText || 0;
+        const totalVencidos = document.getElementById('total-vencidos')?.innerText || 0;
+        const totalCriticos = document.getElementById('total-criticos')?.innerText || 0;
+        const totalParados30 = document.getElementById('total-parados30')?.innerText || 0;
+        const totalParados90 = document.getElementById('total-parados90')?.innerText || 0;
+        
+        doc.text(`Total em estoque: ${totalEstoque} unidades`, 25, 55);
+        doc.text(`Produtos distintos: ${totalProdutos} SKUs`, 25, 62);
+        doc.text(`Endereçamento: ${totalEndereco}`, 25, 69);
+        doc.text(`Com endereço: ${totalComEndereco} | Sem endereço: ${totalSemEndereco}`, 25, 76);
+        doc.text(`Pendentes (sem validade): ${totalPendentes}`, 25, 83);
+        doc.text(`Vencidos: ${totalVencidos}`, 25, 90);
+        doc.text(`Críticos (≤30d): ${totalCriticos}`, 25, 97);
+        doc.text(`Parados 30d+: ${totalParados30}`, 25, 104);
+        doc.text(`Parados 90d+: ${totalParados90}`, 25, 111);
+        
+        let y = 130;
+        if (produtosComValidade.length > 0) {
+            doc.setFontSize(12); 
+            doc.text('Top 10 Produtos Críticos:', 20, y); 
+            y += 10;
+            const criticos = produtosComValidade
+                .filter(p => p.menorDias !== null)
+                .sort((a, b) => a.menorDias - b.menorDias)
+                .slice(0, 10);
+            criticos.forEach((p, i) => { 
+                if (y > 270) { doc.addPage(); y = 20; } 
+                doc.setFontSize(9); 
+                doc.text(`${i+1}. ${p.desc.substring(0, 35)} - ${p.menorDias < 0 ? 'VENCIDO' : p.menorDias + ' dias'}`, 25, y); 
+                y += 7; 
+            });
+        }
+        doc.save('dashboard_estoque.pdf');
+        mostrarToast('PDF gerado com sucesso!', 'success');
+    };
+    
+    window.exportarRelatorioCompleto = () => {
+        let csv = "Tipo;Código;Descrição;Endereço;Quantidade;DiasRestantes;DiasSemVenda;UltimaVenda;Status\n";
+        for (const produto of todosProdutos) {
+            let tipo = '', status = '', diasRestantes = '';
+            if (produto.menorDias !== null) {
+                if (produto.menorDias < 0) { 
+                    tipo = 'Vencido'; 
+                    status = 'VENCIDO'; 
+                } else if (produto.menorDias <= 30) { 
+                    tipo = 'Crítico'; 
+                    status = 'CRÍTICO'; 
+                } else if (produto.menorDias <= 90) { 
+                    tipo = 'Atenção'; 
+                    status = 'ATENÇÃO'; 
+                } else { 
+                    tipo = 'Normal'; 
+                    status = 'NORMAL'; 
+                }
+                diasRestantes = produto.menorDias.toString();
+            } else if (produto.temPendente) { 
+                tipo = 'Pendente'; 
+                status = 'PENDENTE'; 
+                diasRestantes = 'N/A'; 
+            } else { 
+                tipo = 'Normal'; 
+                status = 'NORMAL'; 
+                diasRestantes = 'N/A'; 
+            }
+            const diasSemVenda = produto.diasSemVenda >= 999 ? 'Nunca' : produto.diasSemVenda;
+            const ultimaVenda = produto.ultimaVenda ? new Date(produto.ultimaVenda).toLocaleDateString('pt-BR') : 'Nunca';
+            csv += `${tipo};${produto.codigo};${produto.desc};${produto.endereco};${Math.round(produto.total)};${diasRestantes};${diasSemVenda};${ultimaVenda};${status}\n`;
+        }
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `dashboard_completo_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        mostrarToast('CSV exportado!', 'success');
+    };
+    
+    // Iniciar
+    carregarDadosFirebase();
 </script>
+
+<style>
+    .hide-mobile { display: inline; }
+    @media (max-width: 768px) { 
+        .hide-mobile { display: none; } 
+        .header-actions button { padding: 10px; } 
+    }
+    .negativo { color: var(--danger); font-weight: 600; }
+    .positivo { color: var(--success); font-weight: 600; }
+</style>
 </body>
 </html>
