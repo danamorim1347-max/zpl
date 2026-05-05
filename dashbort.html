@@ -3,1523 +3,722 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>OPERA X LOGÍSTICA-PHO - v13.48 | MONITOR DE VALIDADES</title>
+    <title>OPERA X LOGÍSTICA | MONITOR DE PERFORMANCE</title>
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
-        * { 
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            box-sizing: border-box;
-        }
-
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-            background: #030712;
-            color: #f1f5f9;
-            font-size: 14px;
-        }
-
-        body {
-            padding: 12px;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .glass { 
-            background: rgba(17, 24, 39, 0.9);
-            backdrop-filter: blur(12px); 
-            border: 1px solid rgba(255, 255, 255, 0.15); 
-            border-radius: 20px; 
-            box-shadow: 0 20px 30px -10px rgba(0,0,0,0.5);
-        }
-
-        .timeline-bar { 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            height: 4px; 
-            background: #3b82f6; 
-            width: 0%; 
-            transition: width 0.1s linear; 
-            z-index: 9999; 
-            box-shadow: 0 0 20px #3b82f6;
-        }
-
-        .gold-border { 
-            border: 3px solid #FFD700; 
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); 
-        }
-
-        .silver-border { 
-            border: 2px solid #C0C0C0; 
-            box-shadow: 0 0 20px rgba(192, 192, 192, 0.3);
-        }
-
-        .bronze-border { 
-            border: 2px solid #CD7F32; 
-            box-shadow: 0 0 20px rgba(205, 127, 50, 0.3);
-        }
-
-        .avatar { 
-            width: 36px; 
-            height: 36px; 
-            border-radius: 50%; 
-            overflow: hidden; 
-            background: #1e293b; 
-            border: 2px solid rgba(255,255,255,0.2); 
-            cursor: pointer; 
-            transition: transform 0.2s;
-        }
-
-        .avatar:hover {
-            transform: scale(1.1);
-        }
-
-        .avatar img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-        }
-
-        .avatar-large { 
-            width: 80px; 
-            height: 80px; 
-            border-radius: 50%; 
-            overflow: hidden; 
-            border: 2px solid rgba(255,255,255,0.2);
-        }
-
-        .avatar-xl { 
-            width: 100px; 
-            height: 100px; 
-            border-radius: 50%; 
-            overflow: hidden; 
-            border: 3px solid #FFD700;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.6); }
-            50% { box-shadow: 0 0 50px rgba(255, 215, 0, 0.9); }
-            100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.6); }
-        }
-
-        .er-table { 
-            width: 100%; 
-            border-collapse: separate; 
-            border-spacing: 0; 
-            font-size: 12px; 
-        }
-
-        .er-table th { 
-            position: sticky; 
-            top: 0; 
-            background: #1e293b; 
-            padding: 8px 10px; 
-            text-align: left; 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            color: #94a3b8; 
-            border-bottom: 2px solid rgba(255,255,255,0.15); 
-            z-index: 20; 
-            font-size: 11px;
-            letter-spacing: 0.5px;
-        }
-
-        .er-table td { 
-            padding: 6px 10px; 
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 12px;
-        }
-
-        .er-table tbody tr {
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-
-        .er-table tbody tr:hover {
-            background: rgba(59, 130, 246, 0.15);
-        }
-
-        .custom-scroll::-webkit-scrollbar { 
-            width: 4px; 
-            height: 4px; 
-        }
-
-        .custom-scroll::-webkit-scrollbar-thumb { 
-            background: rgba(59, 130, 246, 0.6); 
-            border-radius: 10px; 
-        }
-
-        .custom-scroll::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
-        }
-
-        .filter-btn { 
-            padding: 4px 16px; 
-            border-radius: 8px; 
-            font-weight: 800; 
-            font-size: 11px; 
-            transition: all 0.3s; 
-            background: rgba(255, 255, 255, 0.05); 
-            color: #94a3b8; 
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .filter-btn.active { 
-            background: #3b82f6; 
-            color: white; 
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-        }
-
-        .filter-btn:hover {
-            background: rgba(59, 130, 246, 0.3);
-            color: white;
-        }
-
-        .metric-card {
-            padding: 12px;
-            border-left-width: 4px;
-            border-left-style: solid;
-            transition: transform 0.2s;
-        }
-
-        .metric-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .podium-container {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            gap: 20px;
-            height: 100%;
-            min-height: 180px;
-            padding-bottom: 10px;
-        }
-
-        .expandable-section {
-            transition: all 0.3s ease;
-        }
-
-        .expandable-header {
-            cursor: pointer;
-            user-select: none;
-            padding: 10px 16px !important;
-        }
-
-        .expandable-header:hover {
-            background: rgba(255,255,255,0.1);
-        }
-
-        .expandable-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease-out;
-        }
-
-        .expandable-content.expanded {
-            max-height: 300px;
-        }
-
-        .rank-1 {
-            background: linear-gradient(90deg, rgba(255,215,0,0.15) 0%, rgba(255,215,0,0) 100%);
-            border-left: 3px solid #FFD700;
-        }
-
-        .rank-2 {
-            background: linear-gradient(90deg, rgba(192,192,192,0.1) 0%, rgba(192,192,192,0) 100%);
-            border-left: 3px solid #C0C0C0;
-        }
-
-        .rank-3 {
-            background: linear-gradient(90deg, rgba(205,127,50,0.1) 0%, rgba(205,127,50,0) 100%);
-            border-left: 3px solid #CD7F32;
-        }
-
-        .stat-value {
-            font-size: 16px;
-            font-weight: 800;
-        }
-
-        .stat-label {
-            font-size: 10px;
-            color: #94a3b8;
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        /* Estilos da Reposição ER - Tema escuro */
-        .reposicao-er-card {
-            background: rgba(17, 24, 39, 0.9) !important;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #f1f5f9 !important;
-        }
-
-        .reposicao-er-card .er-table th {
-            background: #1e293b;
-            color: #94a3b8;
-            border-bottom: 2px solid rgba(255,255,255,0.15);
-        }
-
-        .reposicao-er-card .er-table td {
-            color: #f1f5f9;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .reposicao-er-card .expandable-header {
-            background: rgba(255,255,255,0.05) !important;
-            border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-        }
-
-        .reposicao-er-card .expandable-header:hover {
-            background: rgba(59, 130, 246, 0.15) !important;
-        }
-
-        .reposicao-er-card h3 {
-            color: #f1f5f9 !important;
-        }
-
-        .reposicao-er-card #reposicaoSummary {
-            color: #94a3b8 !important;
-        }
-
-        .col-date-er { font-weight: 700; color: #3b82f6; }
-        .col-solic-er { color: #94a3b8; font-weight: 500; }
-        .col-cod-er { font-weight: 800; color: #3b82f6; }
-        .col-desc-er { min-width: 200px; line-height: 1.5; color: #f1f5f9; }
-        .col-qtd-er { text-align: center; font-weight: 900; color: #ef4444; }
-
-        .badge-open-er {
-            display: inline-flex; align-items: center;
-            padding: 4px 10px; border-radius: 8px;
-            font-size: 0.7rem; font-weight: 700;
-            background: rgba(59, 130, 246, 0.2); 
-            color: #3b82f6; 
-            border: 1px solid rgba(59, 130, 246, 0.3);
-        }
-
-        .dot-er {
-            height: 8px; width: 8px; background: #3b82f6;
-            border-radius: 50%; margin-right: 6px; position: relative;
-        }
-        .dot-er::after {
-            content: ''; position: absolute; inset: 0;
-            background: #3b82f6; border-radius: 50%;
-            animation: pulse-er 2s infinite;
-        }
-        @keyframes pulse-er { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
-
-        .btn-copy-er {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-        .btn-copy-er:hover { background: #2563eb; transform: translateY(-2px); }
-        .btn-copy-er.success { background: #10b981; }
-
-        .loader-er { 
-            text-align: center; 
-            padding: 20px; 
-            color: #94a3b8; 
-            font-size: 0.9rem; 
-        }
-
-        /* ANIMAÇÃO PARA ITENS PENDENTES */
-        @keyframes alert-pulse {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
-
-        .pending-alert {
-            animation: alert-pulse 1.5s infinite;
-            background: #ef4444 !important;
-            color: white !important;
-            padding: 2px 10px !important;
-            border-radius: 999px !important;
-            font-weight: 800 !important;
-        }
-
-        .pending-glow {
-            position: relative;
-        }
-        .pending-glow::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 12px;
-            height: 12px;
-            background: #ef4444;
-            border-radius: 50%;
-            animation: pulse-er 1.5s infinite;
-        }
-
-        /* Animação de entrada das linhas */
-        @keyframes rowAppear {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .reposicao-er-card tbody tr {
-            animation: rowAppear 0.3s forwards;
-            opacity: 0;
-        }
-
-        /* Estilos do Monitor de Validades */
-        .validade-section-compact {
-            margin-top: 8px;
-        }
-
-        .validade-container {
-            display: none;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-top: 6px;
-        }
-
-        .validade-container.active {
-            display: grid;
-        }
-
-        .validade-card {
-            background: rgba(17, 24, 39, 0.7);
-            border-radius: 12px;
-            padding: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            max-height: 180px;
-        }
-
-        .validade-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            flex-shrink: 0;
-        }
-
-        .validade-title {
-            font-size: 0.65rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .validade-count {
-            font-size: 0.55rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .vencido .validade-title { color: #ff6b6b; }
-        .critico .validade-title { color: #ff8787; }
-        .atencao .validade-title { color: #ffd43b; }
-
-        .product-list-compact {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            overflow-y: auto;
-            flex: 1;
-        }
-
-        .product-list-compact.custom-scroll::-webkit-scrollbar {
-            width: 2px;
-        }
-
-        .product-item {
-            background: rgba(0,0,0,0.2);
-            border-radius: 4px;
-            padding: 4px 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid rgba(255,255,255,0.03);
-            transition: all 0.2s;
-            cursor: pointer;
-            font-size: 0.6rem;
-        }
-
-        .product-item:hover {
-            background: rgba(59, 130, 246, 0.15);
-            border-color: #3b82f6;
-        }
-
-        .product-item-info {
-            flex: 1;
-            min-width: 0;
-            padding-right: 4px;
-        }
-
-        .product-item-info h4 {
-            font-weight: 700;
-            font-size: 0.6rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-bottom: 1px;
-        }
-
-        .product-item-details {
-            font-size: 0.5rem;
-            color: #94a3b8;
-            display: flex;
-            gap: 3px;
-            flex-wrap: wrap;
-        }
-
-        .product-item-days {
-            text-align: right;
-            min-width: 28px;
-            font-weight: 900;
-            font-size: 0.6rem;
-        }
-
-        .vencido .product-item-days { color: #ff6b6b; }
-        .critico .product-item-days { color: #ff8787; }
-        .atencao .product-item-days { color: #ffd43b; }
-
-        .empty-state-small {
-            text-align: center;
-            padding: 6px;
-            color: #64748b;
-            font-size: 0.55rem;
-            background: rgba(0,0,0,0.1);
-            border-radius: 4px;
-        }
-
-        /* Alturas fixas para cada seção */
-        .main-container {
-            height: calc(100vh - 24px);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .header-section { flex-shrink: 0; }
-        .metrics-section { flex-shrink: 0; }
-        .charts-section { height: 160px; flex-shrink: 0; }
-        .performance-section { height: 220px; flex-shrink: 0; }
-        .reposicao-section { flex-shrink: 0; margin-bottom: 4px; }
-        .validade-section { flex-shrink: 0; }
-        .footer-section { flex-shrink: 0; margin-top: auto; }
-
-        .charts-section canvas {
-            max-height: 130px !important;
-        }
-
-        .compact-table td, .compact-table th {
-            padding: 4px 8px !important;
-        }
-
-        @media (min-width: 1921px) {
-            body { font-size: 16px; }
-            .charts-section { height: 200px; }
-            .performance-section { height: 280px; }
-            .validade-card { max-height: 220px; }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui; background: #0a0c15; color: #fff; padding: 16px; min-height: 100vh; }
+        .dashboard { max-width: 1600px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+        .card { background: rgba(18, 22, 35, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; }
+        .card-header { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); font-weight: 800; font-size: 12px; text-transform: uppercase; color: #8b9dc3; }
+        .grid-metrics { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+        .grid-charts { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 12px; }
+        .grid-performance { display: grid; grid-template-columns: 1.8fr 1fr; gap: 12px; }
+        .grid-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 1000px) { .grid-metrics { grid-template-columns: repeat(3,1fr); } .grid-charts { grid-template-columns: 1fr; } .grid-performance { grid-template-columns: 1fr; } }
+        @media (max-width: 640px) { .grid-metrics { grid-template-columns: repeat(2,1fr); } .grid-compare { grid-template-columns: 1fr; } }
+        .metric-card { padding: 14px; background: rgba(0,0,0,0.3); border-radius: 16px; border-left: 4px solid; transition: transform 0.2s; }
+        .metric-card:hover { transform: translateY(-2px); }
+        .metric-label { font-size: 10px; color: #8b9dc3; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .metric-value { font-size: 24px; font-weight: 900; margin-top: 4px; }
+        .podium { display: flex; justify-content: center; align-items: flex-end; gap: 24px; padding: 16px; min-height: 200px; }
+        .podium-item { text-align: center; }
+        .avatar-xl { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #ffd700; overflow: hidden; margin: 0 auto 8px; }
+        .avatar-lg { width: 65px; height: 65px; border-radius: 50%; border: 2px solid #c0c0c0; overflow: hidden; margin: 0 auto 8px; }
+        .avatar-md { width: 55px; height: 55px; border-radius: 50%; border: 2px solid #cd7f32; overflow: hidden; margin: 0 auto 8px; }
+        .avatar-xl img, .avatar-lg img, .avatar-md img, .avatar-small img { width: 100%; height: 100%; object-fit: cover; }
+        .ranking-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .ranking-table th { text-align: left; padding: 10px 8px; background: rgba(0,0,0,0.3); color: #8b9dc3; font-size: 10px; text-transform: uppercase; position: sticky; top: 0; }
+        .ranking-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .ranking-table tr:hover { background: rgba(59,130,246,0.1); }
+        .rank-1 { background: linear-gradient(90deg, rgba(255,215,0,0.1), transparent); border-left: 3px solid #ffd700; }
+        .rank-2 { background: linear-gradient(90deg, rgba(192,192,192,0.08), transparent); border-left: 3px solid #c0c0c0; }
+        .rank-3 { background: linear-gradient(90deg, rgba(205,127,50,0.08), transparent); border-left: 3px solid #cd7f32; }
+        .compare-card { background: rgba(0,0,0,0.3); border-radius: 16px; padding: 16px; }
+        .compare-title { font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+        .compare-stats { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+        .compare-stat-value { font-size: 22px; font-weight: 900; }
+        .compare-stat-label { font-size: 9px; color: #8b9dc3; text-transform: uppercase; }
+        .stock-card { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 14px; text-align: center; }
+        .progress-bar { height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; border-radius: 10px; transition: width 0.5s; }
+        .btn-upload { background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.3); padding: 6px 12px; border-radius: 10px; font-size: 10px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .btn-upload:hover { background: rgba(16,185,129,0.4); }
+        .avatar-small { width: 28px; height: 28px; border-radius: 50%; overflow: hidden; display: inline-block; vertical-align: middle; }
+        .scroll-area { overflow-y: auto; max-height: 350px; }
+        .timeline-bar { position: fixed; top: 0; left: 0; height: 3px; background: #3b82f6; width: 0%; transition: width 0.1s linear; z-index: 9999; }
+        .toast { position: fixed; bottom: 20px; right: 20px; z-index: 10000; background: #1e293b; border: 1px solid #3b82f6; border-radius: 12px; padding: 12px 20px; }
+        .loading { position: absolute; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; border-radius: 20px; z-index: 10; }
+        .spinner { width: 40px; height: 40px; border: 3px solid rgba(59,130,246,0.3); border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .select-unidade { background: #1e293b; border: 1px solid #3b82f6; border-radius: 12px; padding: 8px 16px; color: white; font-weight: 600; min-width: 220px; cursor: pointer; }
+        .filter-btn { padding: 6px 16px; border-radius: 10px; font-weight: 700; font-size: 11px; background: rgba(255,255,255,0.05); color: #8b9dc3; border: none; cursor: pointer; transition: all 0.2s; }
+        .filter-btn.active { background: #3b82f6; color: white; }
+        .filter-btn:hover { background: rgba(59,130,246,0.4); color: white; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 16px; }
+        .filters { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .stat-number { font-size: 28px; font-weight: 900; }
+        .stat-label { font-size: 10px; color: #8b9dc3; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-group { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 8px; }
+        .stat-group > div { flex: 1; text-align: center; }
+        .text-emerald { color: #10b981; }
+        .text-rose { color: #ef4444; }
+        .text-blue { color: #3b82f6; }
+        .text-yellow { color: #f59e0b; }
     </style>
 </head>
 <body>
 
 <div class="timeline-bar" id="timelineBar"></div>
+<div id="toast" class="toast hidden"><i class="fas fa-circle-info mr-2 text-blue-500"></i><span id="toastMsg"></span></div>
 
-<!-- TOAST -->
-<div id="toast" class="fixed bottom-4 right-4 z-[10000] hidden">
-    <div class="glass px-4 py-3 border border-blue-500/50 shadow-2xl flex items-center gap-3 min-w-[280px]">
-        <div class="bg-blue-500/20 p-2 rounded-lg"><i class="fas fa-rocket text-blue-500 text-sm"></i></div>
-        <span id="toast-msg" class="text-xs font-black uppercase tracking-widest text-white"></span>
+<div class="dashboard">
+    <div class="card">
+        <div class="header-content">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600/20 p-2 rounded-xl"><i class="fas fa-chart-line text-blue-500 text-xl"></i></div>
+                <div><h1 class="text-xl font-bold">OPERA X <span class="text-blue-500">LOGÍSTICA</span></h1><p class="text-[10px] text-slate-400">MONITOR DE PERFORMANCE</p></div>
+            </div>
+            <div class="filters">
+                <select id="unidadeSelect" class="select-unidade">
+                    <option value="COMPARE">📊 COMPARATIVO (VITÓRIA x PINHEIRO)</option>
+                    <option value="VITORIA">🏪 VD VITÓRIA</option>
+                    <option value="PINHEIRO">🏪 VD PINHEIRO</option>
+                </select>
+                <div class="flex gap-1">
+                    <button onclick="setFilter('hoje')" id="btnHoje" class="filter-btn">HOJE</button>
+                    <button onclick="setFilter('semana')" id="btnSemana" class="filter-btn">SEMANA</button>
+                    <button onclick="setFilter('mes')" id="btnMes" class="filter-btn active">MÊS</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="individualMetrics" class="grid-metrics"></div>
+    <div id="compareMetrics" class="grid-compare" style="display: none;"></div>
+
+    <div class="grid-charts">
+        <div class="card"><div class="card-header"><i class="fas fa-chart-pie mr-2"></i> PARTICIPAÇÃO</div><div class="p-4 flex justify-center"><canvas id="chartPizza" style="max-height: 160px;"></canvas></div></div>
+        <div class="card"><div class="card-header"><i class="fas fa-trophy mr-2"></i> PÓDIO</div><div id="podiumContainer" class="podium"></div></div>
+        <div class="card"><div class="card-header"><i class="fas fa-gauge-high mr-2"></i> EFICIÊNCIA (min/ped)</div><div class="p-4"><canvas id="chartTempo" style="max-height: 160px;"></canvas></div></div>
+    </div>
+
+    <div class="grid-performance">
+        <div class="card" style="position: relative;">
+            <div class="card-header"><i class="fas fa-medal mr-2"></i> RANKING</div>
+            <div class="scroll-area"><table class="ranking-table"><thead><tr><th>#</th><th>COLABORADOR</th><th class="text-center">PED</th><th class="text-center">ITENS</th><th class="text-center">MÉDIA</th><th class="text-center">MIN/PED</th><th class="text-center">PROD</th><th class="text-center">STATUS</th></tr></thead><tbody id="rankingBody"></tbody></table></div>
+            <div id="loadingRanking" class="loading" style="display: none;"><div class="spinner"></div></div>
+        </div>
+        <div id="stockCard" class="card"></div>
+    </div>
+
+    <footer class="text-center text-[9px] text-slate-500 py-2">© 2025 OPERA X LOGÍSTICA | DESENVOLVIDO POR BENILSON AMORIM</footer>
+</div>
+
+<div id="modalEndereco" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/80 p-4" onclick="if(event.target===this) closeModal()">
+    <div class="card w-full max-w-3xl max-h-[80vh] overflow-hidden">
+        <div class="card-header flex justify-between"><span><i class="fas fa-map-marker-alt text-rose-500 mr-2"></i> PRODUTOS SEM LOCALIZAÇÃO</span><button onclick="closeModal()" class="text-slate-400 hover:text-white">✕</button></div>
+        <div class="p-4 overflow-auto max-h-[60vh]"><table class="ranking-table w-full"><thead><tr><th>CÓDIGO</th><th>DESCRIÇÃO</th><th class="text-right">QTD</th></tr></thead><tbody id="modalTableBody"></tbody></table></div>
+        <div class="p-3 border-t border-white/10"><button onclick="closeModal()" class="w-full py-2 bg-slate-700 rounded-lg text-sm font-bold">FECHAR</button></div>
     </div>
 </div>
 
-<div class="main-container max-w-[1920px] mx-auto w-full">
-    <!-- HEADER -->
-    <header class="header-section flex justify-between items-center glass p-4 shadow-2xl">
-        <div class="flex items-center gap-4">
-            <div class="bg-blue-600/20 p-2 rounded-xl border border-blue-500/30">
-                <i class="fas fa-rocket text-blue-500 text-xl"></i>
-            </div>
-            <div>
-                <h1 class="text-2xl font-black uppercase tracking-tighter italic leading-none">
-                    <span class="text-blue-500">OPERA X</span><br>
-                    <span class="text-white text-base tracking-normal">LOGÍSTICA-PHO</span>
-                </h1>
-                <p id="statusText" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 animate-pulse italic">Iniciando...</p>
-            </div>
-        </div>
-
-        <div class="flex gap-4 items-center">
-            <div class="flex gap-2 bg-black/40 p-1 rounded-lg border border-white/5">
-                <button onclick="aplicarFiltroTempo('hoje')" id="btnHoje" class="filter-btn">HOJE</button>
-                <button onclick="aplicarFiltroTempo('semana')" id="btnSemana" class="filter-btn">SEMANA</button>
-                <button onclick="aplicarFiltroTempo('mes')" id="btnMes" class="filter-btn active">MÊS</button>
-            </div>
-
-            <div class="h-6 w-[1px] bg-white/10"></div>
-
-            <div class="flex gap-2 items-center bg-black/20 p-1 rounded-lg">
-                <input type="date" id="dataInicio" class="bg-white/5 border border-white/10 rounded-lg p-1 text-xs text-white outline-none w-28">
-                <span class="text-slate-500 text-xs font-bold uppercase italic">ATÉ</span>
-                <input type="date" id="dataFim" class="bg-white/5 border border-white/10 rounded-lg p-1 text-xs text-white outline-none w-28">
-                <button onclick="aplicarPeriodoPersonalizado()" class="bg-blue-600 px-3 py-1 rounded-lg text-xs font-bold uppercase hover:bg-blue-500 transition-all shadow-lg italic">FILTRAR</button>
-            </div>
-        </div>
-    </header>
-
-    <!-- MÉTRICAS -->
-    <div class="metrics-section grid grid-cols-6 gap-2">
-        <div class="glass metric-card border-l-4 border-blue-500 shadow-xl">
-            <p class="text-slate-400 text-[10px] uppercase font-black">TOTAL PEDIDOS</p>
-            <h2 id="totalPedidos" class="text-xl font-black text-white">0</h2>
-        </div>
-        <div class="glass metric-card border-l-4 border-orange-500 shadow-xl">
-            <p class="text-slate-400 text-[10px] uppercase font-black">TOTAL ITENS</p>
-            <h2 id="totalItens" class="text-xl font-black text-white">0</h2>
-        </div>
-        <div class="glass metric-card border-l-4 border-emerald-500 shadow-xl">
-            <p class="text-slate-400 text-[10px] uppercase font-black">MÉDIA EQUIPE</p>
-            <h2 id="mediaEquipe" class="text-xl font-black text-white">0</h2>
-        </div>
-        <div class="glass metric-card border-l-4 border-purple-500 shadow-xl">
-            <p class="text-slate-400 text-[10px] uppercase font-black">MIN/PEDIDO</p>
-            <h2 id="tempoMedioGeral" class="text-xl font-black text-white">0m</h2>
-        </div>
-        <div class="glass metric-card border-l-4 border-yellow-500 shadow-xl">
-            <p class="text-slate-400 text-[10px] uppercase font-black text-yellow-500 italic">MELHOR ATUAL</p>
-            <h2 id="melhorColaborador" class="text-sm font-black truncate text-white">-</h2>
-        </div>
-        <div class="glass metric-card border-l-4 border-rose-500 shadow-xl">
-            <p class="text-slate-400 text-[10px] uppercase font-black text-rose-500 italic">PIOR ATUAL</p>
-            <h2 id="piorColaborador" class="text-sm font-black truncate text-white">-</h2>
-        </div>
-    </div>
-
-    <!-- GRÁFICOS -->
-    <div class="charts-section grid grid-cols-12 gap-2">
-        <div class="col-span-3 glass p-2 flex flex-col justify-between overflow-hidden shadow-2xl">
-            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-1 tracking-widest text-center italic">PARTICIPAÇÃO</h3>
-            <div class="flex-1"><canvas id="graficoPizza"></canvas></div>
-        </div>
-
-        <div class="col-span-6 glass p-2 shadow-2xl">
-            <div id="podiumContainer" class="podium-container"></div>
-        </div>
-
-        <div class="col-span-3 glass p-2 flex flex-col overflow-hidden shadow-2xl">
-            <h3 class="text-[10px] font-black uppercase text-slate-500 mb-1 tracking-widest text-center italic">EFICIÊNCIA</h3>
-            <div class="flex-1"><canvas id="graficoTempo"></canvas></div>
-        </div>
-    </div>
-
-    <!-- PERFORMANCE -->
-    <div class="performance-section grid grid-cols-12 gap-2">
-        <div class="col-span-9 glass flex flex-col overflow-hidden">
-            <div class="p-2 bg-white/5 border-b border-white/5 text-[10px] font-black uppercase tracking-widest flex justify-between items-center italic">
-                <span><i class="fas fa-medal text-blue-500 mr-2"></i>RANKING</span>
-            </div>
-            <div class="flex-1 overflow-auto custom-scroll">
-                <table class="w-full er-table compact-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>COLABORADOR</th>
-                            <th class="text-center">PED</th>
-                            <th class="text-center">ITENS</th>
-                            <th class="text-center">MÉDIA</th>
-                            <th class="text-center">MIN/PED</th>
-                            <th class="text-center">TEMPO</th>
-                            <th class="text-center">PROD</th>
-                            <th class="text-center">STATUS</th>
-                        </tr>
-                    </thead>
-                    <tbody id="rankingBody"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="col-span-3 glass p-3 flex flex-col justify-between shadow-2xl">
-            <div>
-                <div class="flex justify-between items-center mb-3 border-b border-white/5 pb-2">
-                    <h3 class="text-sm font-black uppercase text-emerald-500 italic">STOCK</h3>
-                    <label for="fileInput" class="text-[10px] font-black bg-emerald-600 px-2 py-1 rounded cursor-pointer uppercase hover:bg-emerald-500 transition-all">UPLOAD</label>
-                    <input type="file" id="fileInput" accept=".xlsx,.xls" class="hidden">
-                </div>
-
-                <div class="space-y-3">
-                    <div class="grid grid-cols-3 gap-1 text-center">
-                        <div class="bg-black/20 p-2 rounded-lg border border-white/5 shadow-inner">
-                            <small class="text-[8px] text-slate-500 block mb-1 font-black uppercase">TOTAL</small>
-                            <strong id="statExcelTotal" class="text-blue-400 text-lg font-black">0</strong>
-                        </div>
-                        <div class="bg-black/20 p-2 rounded-lg border border-white/5 shadow-inner">
-                            <small class="text-[8px] text-slate-500 block mb-1 font-black uppercase italic">END</small>
-                            <strong id="statExcelCom" class="text-emerald-500 text-lg font-black">0</strong>
-                        </div>
-                        <button onclick="showSemEnderecamento()" class="bg-black/20 p-2 rounded-lg border border-rose-500/30 hover:bg-rose-500/10 transition-all group shadow-lg">
-                            <small class="text-[8px] text-slate-500 block mb-1 font-black uppercase">SEM</small>
-                            <strong id="statExcelSem" class="text-rose-500 text-lg font-black">0</strong>
-                        </button>
-                    </div>
-
-                    <div class="pt-2 border-t border-white/5">
-                        <div class="flex justify-between items-center mb-2 px-1">
-                            <span class="text-[9px] font-black uppercase text-slate-400 italic tracking-widest">OCUPAÇÃO</span>
-                            <span id="statExcelPerc2" class="text-xs font-black text-emerald-500">0%</span>
-                        </div>
-                        <div class="w-full bg-white/5 h-2 rounded-full overflow-hidden shadow-inner">
-                            <div id="progress-fill" class="h-full bg-gradient-to-r from-blue-600 to-emerald-500 transition-all duration-1000" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="text-[9px] font-bold text-slate-600 text-center uppercase tracking-widest mt-2">
-                SYNC: <span id="db-status" class="text-emerald-500 animate-pulse italic">ATIVO</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- REPOSIÇÃO ER - ATUALIZADO PARA ABRIL/2026 -->
-    <div class="reposicao-section reposicao-er-card glass flex flex-col overflow-hidden shadow-2xl">
-        <div class="p-3 border-b border-white/10 flex justify-between items-center bg-white/5 expandable-header" onclick="toggleReposicaoER()">
-            <div class="flex items-center gap-2">
-                <i class="fas fa-boxes text-blue-500 text-sm"></i>
-                <h3 class="text-sm font-black uppercase tracking-widest">REPOSIÇÃO ER / ABRIL 2026</h3>
-            </div>
-            <div class="flex gap-3 items-center">
-                <div class="text-xs font-bold uppercase relative" id="reposicaoSummary">Conectando...</div>
-                <i id="expandIconER" class="fas fa-chevron-down text-blue-500 text-sm transition-transform duration-300"></i>
-            </div>
-        </div>
-
-        <div id="reposicaoContentER" class="expandable-content expanded">
-            <div class="p-2">
-                <div class="flex justify-end mb-2">
-                    <button id="copyRepBtn" class="btn-copy-er">COPIAR LISTA</button>
-                </div>
-                <div id="reposicaoLoader" class="loader-er">Carregando dados de Abril/2026...</div>
-                <div id="reposicaoTableWrapper" class="overflow-auto custom-scroll" style="max-height: 200px;">
-                    <table class="er-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 70px;">Data</th>
-                                <th style="width: 100px;">Solicitante</th>
-                                <th style="width: 90px;">Código</th>
-                                <th>Descrição</th>
-                                <th style="width: 50px; text-align: center;">Qtd</th>
-                                <th style="width: 90px;">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="reposicaoTbody"></tbody>
-                    </table>
-                </div>
-                <div id="reposicaoEmptyArea" class="loader-er" style="display: none;">✅ Tudo pronto! Nenhuma pendência em Abril/2026.</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MONITOR DE VALIDADES -->
-    <div id="validadeSection" class="validade-section glass p-2 shadow-2xl" style="display: none;">
-        <div class="flex items-center gap-1 mb-1 border-b border-white/5 pb-1">
-            <i class="fas fa-calendar-alt text-blue-500 text-xs"></i>
-            <h3 class="text-xs font-black uppercase tracking-widest italic">VALIDADES</h3>
-        </div>
-        
-        <div id="validadeContainer" class="validade-container">
-            <!-- VENCIDOS -->
-            <div class="validade-card vencido">
-                <div class="validade-header">
-                    <h4 class="validade-title">💀 VENCIDOS</h4>
-                    <span class="validade-count" id="count-vencido">0</span>
-                </div>
-                <div id="list-vencido" class="product-list-compact custom-scroll"></div>
-            </div>
-
-            <!-- CRÍTICOS -->
-            <div class="validade-card critico">
-                <div class="validade-header">
-                    <h4 class="validade-title">🔴 CRÍTICOS</h4>
-                    <span class="validade-count" id="count-critico">0</span>
-                </div>
-                <div id="list-critico" class="product-list-compact custom-scroll"></div>
-            </div>
-
-            <!-- ATENÇÃO -->
-            <div class="validade-card atencao">
-                <div class="validade-header">
-                    <h4 class="validade-title">🟡 ATENÇÃO</h4>
-                    <span class="validade-count" id="count-atencao">0</span>
-                </div>
-                <div id="list-atencao" class="product-list-compact custom-scroll"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- FOOTER -->
-    <footer class="footer-section flex justify-between items-center px-3 py-2 glass text-[9px] font-bold text-slate-500 uppercase tracking-[2px]">
-        <div>© 2026</div>
-        <div>BENILSON AMORIM</div>
-        <div>V13.48</div>
-    </footer>
-</div>
-
-<!-- MODAL SEM ENDEREÇO -->
-<div id="modal-sem-rua" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/90 backdrop-blur-sm p-4">
-    <div class="glass p-4 rounded-2xl w-full max-w-4xl border border-white/10 flex flex-col max-h-[80vh] shadow-2xl">
-        <div class="flex justify-between items-center mb-3">
-            <div class="flex items-center gap-2 italic">
-                <i class="fas fa-exclamation-triangle text-rose-500"></i>
-                <h2 class="text-sm font-black uppercase text-white tracking-widest">SEM LOCALIZAÇÃO</h2>
-            </div>
-            <button onclick="closeSemEnd()" class="text-slate-400 hover:text-white">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <div class="flex-1 overflow-auto custom-scroll border border-white/5 rounded-lg bg-black/20">
-            <table class="er-table">
-                <thead>
-                    <tr>
-                        <th class="bg-slate-900/50">CÓDIGO</th>
-                        <th class="bg-slate-900/50">DESCRIÇÃO</th>
-                        <th class="bg-slate-900/50 text-right">QTD</th>
-                    </tr>
-                </thead>
-                <tbody id="modal-table-body"></tbody>
-            </table>
-        </div>
-
-        <button onclick="closeSemEnd()" class="mt-3 w-full py-2 bg-slate-800 hover:bg-slate-700 text-xs font-black rounded-lg uppercase border border-white/5 transition-all tracking-widest">
-            FECHAR
-        </button>
-    </div>
-</div>
-
-<!-- MODAL DETALHES VALIDADE -->
-<div id="modal-validade" class="fixed inset-0 z-[10000] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4" onclick="if(event.target == this) fecharModalValidade()">
-    <div class="glass p-4 rounded-xl w-full max-w-sm border border-white/10">
-        <div id="modal-body-validade"></div>
-        <button class="w-full mt-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-black rounded-lg uppercase border border-white/5 transition-all" onclick="fecharModalValidade()">
-            FECHAR
-        </button>
-    </div>
-</div>
-
-<input type="file" id="uploadInput" class="hidden" accept="image/*">
+<input type="file" id="fileInput" accept=".xlsx,.xls" class="hidden">
 
 <script>
-    // Firebase Config Principal
-    const firebaseConfig = { 
-        apiKey: "AIzaSyDlp5p7c3xpc42cRa1un_-zd3HNwqnGuQU", 
-        authDomain: "petisco-a5880.firebaseapp.com", 
-        databaseURL: "https://petisco-a5880-default-rtdb.firebaseio.com", 
-        projectId: "petisco-a5880", 
-        storageBucket: "petisco-a5880.firebasestorage.app", 
-        messagingSenderId: "211799950005", 
-        appId: "1:211799950005:web:836bb02c084bc906bdf4fc" 
-    };
+    // ============================================================
+    // CONFIGURAÇÃO
+    // ============================================================
     
-    firebase.initializeApp(firebaseConfig);
+    const SHEET_VITORIA = "1NDBWaQrauw3V-dg6Qk9ZQ6ysCpYEedtz2HtYTydOBhw";
+    const SHEET_PINHEIRO = "1yVyIxhLpjUv0RmEgAgo7GrE0ax0azFG28nFW7pKupLw";
+    
+    const ABA_VITORIA = "SEPARAÇÃO MAIO/26";
+    const ABA_PINHEIRO = "SEPARAÇÃO ABR/26";
+    
+    const FIREBASE_CONFIG = {
+        apiKey: "AIzaSyDlp5p7c3xpc42cRa1un_-zd3HNwqnGuQU",
+        authDomain: "petisco-a5880.firebaseapp.com",
+        databaseURL: "https://petisco-a5880-default-rtdb.firebaseio.com",
+        projectId: "petisco-a5880",
+        storageBucket: "petisco-a5880.firebasestorage.app",
+        messagingSenderId: "211799950005",
+        appId: "1:211799950005:web:836bb02c084bc906bdf4fc"
+    };
+    firebase.initializeApp(FIREBASE_CONFIG);
     const db = firebase.database();
-    
-    const CONFIG = { 
-        SEP_ID: '1yVyIxhLpjUv0RmEgAgo7GrE0ax0azFG28nFW7pKupLw', 
-        REPO_ID: '1pQD4qViThkVjxsbFj8yrG7p2wdW0vuo_197hKVtvTRY',
-        REPO_ABA: 'REPOSIÇÃO ABRIL26'  // ATUALIZADO: ABA CORRETA PARA ABRIL/2026
-    };
 
-    let dadosBrutosSep = [], estoqueExcelData = [], fotoCache = {}, currentFilter = 'mes', tempoProgresso = 0, dataInicioFiltro = null, dataFimFiltro = null;
+    let dadosVitoria = [], dadosPinheiro = [];
+    let estoqueVitoria = [], estoquePinheiro = [];
+    let fotos = {};
+    let filtroAtual = 'mes';
+    let modoAtual = 'COMPARE';
+    let tempoProgresso = 0;
     let chartPizza = null, chartTempo = null;
-    
-    // Dados do Monitor de Validades
-    let produtosValidade = [];
-    let reposicaoData = []; // Dados da reposição ER
-    
-    Chart.register(ChartDataLabels);
 
-    function notify(msg) {
+    function notificar(msg, erro = false) {
         const toast = document.getElementById('toast');
-        document.getElementById('toast-msg').innerText = msg;
+        document.getElementById('toastMsg').innerHTML = msg;
         toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('hidden'), 2000);
+        toast.style.borderColor = erro ? '#ef4444' : '#3b82f6';
+        setTimeout(() => toast.classList.add('hidden'), 3000);
     }
 
-    function toggleReposicaoER() {
-        const content = document.getElementById('reposicaoContentER');
-        const icon = document.getElementById('expandIconER');
-        content.classList.toggle('expanded');
-        icon.style.transform = content.classList.contains('expanded') ? 'rotate(180deg)' : 'rotate(0)';
+    function mostrarLoading(show) {
+        const div = document.getElementById('loadingRanking');
+        if(div) div.style.display = show ? 'flex' : 'none';
     }
 
-    // CORREÇÃO: Listener do estoque_base para endereçamento
-    db.ref('estoque_base').on('value', snap => { 
-        estoqueExcelData = snap.val() || []; 
-        console.log("Estoque base carregado:", estoqueExcelData.length);
-        atualizarEnderecamento(); // Atualiza os contadores de endereçamento
-    });
-    
-    db.ref('fotos_separadores').on('value', snap => { 
-        fotoCache = snap.val() || {}; 
-        renderizarSeparacao(); 
-    });
-
-    // Firebase do Monitor de Validades (segunda instância)
-    const firebaseConfig2 = {
-        apiKey: "AIzaSyDr8Q2oJJ46ZANAjnV0_iSokdHnZ-YqGP4",
-        authDomain: "controle-validade-de623.firebaseapp.com",
-        databaseURL: "https://controle-validade-de623-default-rtdb.firebaseio.com/",
-        projectId: "controle-validade-de623",
-        storageBucket: "controle-validade-de623.firebasestorage.app",
-        messagingSenderId: "788364390731",
-        appId: "1:788364390731:web:6c92c01576a3c64ed7b8ce"
-    };
-    
-    const app2 = firebase.initializeApp(firebaseConfig2, "validadeApp");
-    const db2 = firebase.database(app2);
-
-    // CORREÇÃO: Função para atualizar os contadores de endereçamento
-    function atualizarEnderecamento() {
-        const totalExcel = estoqueExcelData.length;
-        const comEnd = estoqueExcelData.filter(i => i.endereco && !["", "null", "0"].includes(String(i.endereco).trim())).length;
-        const perc = totalExcel > 0 ? Math.round((comEnd / totalExcel) * 100) : 0;
+    // FUNÇÃO CORRIGIDA PARA PARSE DE HORA - SUPORTA MÚLTIPLOS FORMATOS
+    function parseHoraCompleta(valor) {
+        if (!valor || valor === 'null' || valor === '') return null;
         
-        document.getElementById('statExcelTotal').innerText = totalExcel;
-        document.getElementById('statExcelCom').innerText = comEnd;
-        document.getElementById('statExcelSem').innerText = totalExcel - comEnd;
-        document.getElementById('statExcelPerc2').innerText = perc + "%";
-        document.getElementById('progress-fill').style.width = perc + "%";
+        // Se for número (minutos desde meia-noite)
+        if (typeof valor === 'number') {
+            if (valor > 0 && valor < 1440) return valor;
+            return null;
+        }
         
-        console.log("Endereçamento atualizado:", {total: totalExcel, comEnd: comEnd, perc: perc});
+        const str = String(valor).trim();
+        
+        // Formato: "08:30" ou "8:30"
+        const matchSimples = str.match(/^(\d{1,2}):(\d{2})$/);
+        if (matchSimples) {
+            return parseInt(matchSimples[1]) * 60 + parseInt(matchSimples[2]);
+        }
+        
+        // Formato: "08:30:00"
+        const matchCompleto = str.match(/^(\d{1,2}):(\d{2}):(\d{2})$/);
+        if (matchCompleto) {
+            return parseInt(matchCompleto[1]) * 60 + parseInt(matchCompleto[2]);
+        }
+        
+        // Formato: "8:30 AM" ou "08:30 AM"
+        const matchAmPm = str.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+        if (matchAmPm) {
+            let hora = parseInt(matchAmPm[1]);
+            const minuto = parseInt(matchAmPm[2]);
+            const ampm = matchAmPm[3].toUpperCase();
+            if (ampm === 'PM' && hora !== 12) hora += 12;
+            if (ampm === 'AM' && hora === 12) hora = 0;
+            return hora * 60 + minuto;
+        }
+        
+        // Tentar converter data completa
+        const dataTeste = new Date(str);
+        if (!isNaN(dataTeste.getTime()) && dataTeste.getHours() > 0) {
+            return dataTeste.getHours() * 60 + dataTeste.getMinutes();
+        }
+        
+        return null;
     }
 
-    // Monitor Validades - Listener
-    db2.ref('estoque/').on('value', (snap) => {
-        const dados = snap.val() || {};
-        const map = new Map();
-        const hoje = new Date();
-        hoje.setHours(0,0,0,0);
-
-        Object.values(dados).forEach(item => {
-            if (!item.codigo || !item.validade || !item.done) return;
-            
-            const partes = item.validade.split('/');
-            const vDate = new Date(partes[2], partes[1]-1, partes[0]);
-            const diff = Math.ceil((vDate - hoje) / 86400000);
-            
-            if (diff > 365) return;
-
-            if (!map.has(item.codigo)) {
-                map.set(item.codigo, {
-                    codigo: item.codigo,
-                    desc: item.desc,
-                    endereco: item.endereco || 'S/E',
-                    lotes: [],
-                    menorDias: diff
-                });
+    function carregarPlanilha(sheetId, abaNome, callbackNome, resolve) {
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:${callbackNome}&sheet=${encodeURIComponent(abaNome)}`;
+        
+        window[callbackNome] = function(resposta) {
+            delete window[callbackNome];
+            if (!resposta || !resposta.table || !resposta.table.rows) {
+                resolve([]);
+                return;
             }
-
-            const p = map.get(item.codigo);
-            p.lotes.push({ v: item.validade, d: diff });
             
-            if (diff < p.menorDias) p.menorDias = diff;
-        });
-
-        produtosValidade = Array.from(map.values())
-            .map(p => {
-                if (p.menorDias < 0) p.status = 'vencido';
-                else if (p.menorDias <= 150) p.status = 'critico';
-                else p.status = 'atencao';
-                return p;
-            })
-            .sort((a,b) => a.menorDias - b.menorDias);
+            const dados = [];
+            console.log(`Processando ${abaNome}...`);
             
-        renderValidades();
-    });
-
-    function renderValidades() {
-        const lists = {
-            vencido: document.getElementById('list-vencido'),
-            critico: document.getElementById('list-critico'),
-            atencao: document.getElementById('list-atencao')
+            for (const row of resposta.table.rows) {
+                if (!row.c || row.c.length < 4) continue;
+                
+                const nome = row.c[2]?.v;
+                if (!nome || String(nome).toUpperCase().includes('TOTAL')) continue;
+                
+                // Data
+                let data = null;
+                const dataRaw = row.c[0]?.v || row.c[0]?.f;
+                if (dataRaw && dataRaw.toString().includes('Date')) {
+                    const m = dataRaw.toString().match(/Date\((\d+),(\d+),(\d+)\)/);
+                    if (m) data = new Date(parseInt(m[1]), parseInt(m[2]), parseInt(m[3]));
+                } else if (row.c[0]?.f) {
+                    const parts = row.c[0].f.split('/');
+                    if (parts.length === 3) data = new Date(parts[2], parts[1]-1, parts[0]);
+                } else if (typeof dataRaw === 'string') {
+                    const parts = dataRaw.split('/');
+                    if (parts.length === 3) data = new Date(parts[2], parts[1]-1, parts[0]);
+                }
+                
+                const qtd = parseInt(row.c[3]?.v) || 0;
+                const itens = parseInt(row.c[4]?.v) || 0;
+                
+                // Horários - CORRIGIDO
+                const inicioRaw = row.c[5]?.v || row.c[5]?.f || '';
+                const fimRaw = row.c[6]?.v || row.c[6]?.f || '';
+                
+                const inicio = parseHoraCompleta(inicioRaw);
+                const fim = parseHoraCompleta(fimRaw);
+                
+                let tempo = 0;
+                if (inicio !== null && fim !== null && inicio > 0 && fim > 0) {
+                    tempo = fim - inicio;
+                    if (tempo < 0) tempo += 1440;
+                    if (tempo > 480) tempo = 0;
+                }
+                
+                if (data && qtd > 0) {
+                    dados.push({
+                        data: data,
+                        nome: String(nome).trim().toUpperCase(),
+                        qtd: qtd,
+                        itens: itens,
+                        tempo: tempo
+                    });
+                }
+            }
+            
+            console.log(`📊 ${abaNome}: ${dados.length} registros processados`);
+            resolve(dados);
         };
         
-        const counts = { vencido: 0, critico: 0, atencao: 0 };
+        const script = document.createElement('script');
+        script.src = url;
+        document.body.appendChild(script);
+        
+        setTimeout(() => {
+            if (window[callbackNome]) {
+                delete window[callbackNome];
+                resolve([]);
+            }
+        }, 15000);
+    }
 
-        Object.values(lists).forEach(l => l.innerHTML = '');
+    async function carregarTudo() {
+        mostrarLoading(true);
+        notificar("Carregando dados...");
+        
+        const vitoriaPromise = new Promise((resolve) => {
+            carregarPlanilha(SHEET_VITORIA, ABA_VITORIA, "callback_vitoria_" + Date.now(), resolve);
+        });
+        
+        const pinheiroPromise = new Promise((resolve) => {
+            carregarPlanilha(SHEET_PINHEIRO, ABA_PINHEIRO, "callback_pinheiro_" + Date.now(), resolve);
+        });
+        
+        const [vitoria, pinheiro] = await Promise.all([vitoriaPromise, pinheiroPromise]);
+        
+        dadosVitoria = vitoria;
+        dadosPinheiro = pinheiro;
+        
+        console.log(`✅ VITÓRIA: ${dadosVitoria.length} registros`);
+        console.log(`✅ PINHEIRO: ${dadosPinheiro.length} registros`);
+        
+        if (dadosVitoria.length === 0) {
+            notificar(`❌ VD VITÓRIA: Nenhum dado na aba "${ABA_VITORIA}"`, true);
+        } else {
+            notificar(`✅ VD VITÓRIA: ${dadosVitoria.length} pedidos`);
+        }
+        
+        if (dadosPinheiro.length === 0) {
+            notificar(`❌ VD PINHEIRO: Nenhum dado na aba "${ABA_PINHEIRO}"`, true);
+        } else {
+            notificar(`✅ VD PINHEIRO: ${dadosPinheiro.length} pedidos`);
+        }
+        
+        db.ref('estoque_vitoria').on('value', snap => { estoqueVitoria = snap.val() || []; atualizarUI(); });
+        db.ref('estoque_pinheiro').on('value', snap => { estoquePinheiro = snap.val() || []; atualizarUI(); });
+        db.ref('fotos_separadores').on('value', snap => { fotos = snap.val() || {}; atualizarUI(); });
+        
+        mostrarLoading(false);
+        atualizarUI();
+    }
 
-        produtosValidade.forEach(p => {
-            counts[p.status]++;
-            
-            const item = document.createElement('div');
-            item.className = 'product-item';
-            item.onclick = () => abrirModalValidade(p.codigo);
-            
-            item.innerHTML = `
-                <div class="product-item-info">
-                    <h4>${p.desc.substring(0, 20)}${p.desc.length > 20 ? '...' : ''}</h4>
-                    <div class="product-item-details">
-                        <span>#${p.codigo}</span>
-                        <span>📍 ${p.endereco}</span>
+    function filtrarPeriodo(dados) {
+        const hoje = new Date(); 
+        hoje.setHours(0,0,0,0);
+        return dados.filter(item => {
+            if(!item.data) return false;
+            const diff = (hoje - item.data) / 86400000;
+            if(filtroAtual === 'hoje') return item.data.toDateString() === hoje.toDateString();
+            if(filtroAtual === 'semana') return diff >= 0 && diff <= 7;
+            return item.data.getMonth() === hoje.getMonth() && item.data.getFullYear() === hoje.getFullYear();
+        });
+    }
+
+    function processarDados(dados) {
+        const grupo = {};
+        let totalTempo = 0, totalPedidos = 0, totalItens = 0;
+        
+        dados.forEach(d => {
+            if(!grupo[d.nome]) grupo[d.nome] = { qtd:0, tempo:0, itens:0 };
+            grupo[d.nome].qtd += d.qtd;
+            grupo[d.nome].tempo += d.tempo;
+            grupo[d.nome].itens += d.itens;
+            totalTempo += d.tempo;
+            totalPedidos += d.qtd;
+            totalItens += d.itens;
+        });
+        
+        const ranking = Object.entries(grupo).map(([nome, v]) => ({
+            nome, 
+            qtd: v.qtd, 
+            itens: v.itens, 
+            tempoTotal: v.tempo,
+            tempoMedio: v.qtd > 0 && v.tempo > 0 ? (v.tempo / v.qtd).toFixed(1) : 0,
+            mediaItens: v.qtd > 0 ? (v.itens / v.qtd).toFixed(1) : 0,
+            produtividade: (v.qtd > 0 && v.tempo > 0) ? (v.itens / (v.tempo / 60)).toFixed(1) : 0
+        })).sort((a,b) => b.qtd - a.qtd);
+        
+        const mediaEquipe = ranking.length ? Math.round(totalPedidos / ranking.length) : 0;
+        const tempoMedioGeral = totalPedidos > 0 ? (totalTempo / totalPedidos).toFixed(1) : 0;
+        
+        return { ranking, totalPedidos, totalItens, totalTempo, mediaEquipe, tempoMedioGeral };
+    }
+
+    function atualizarUI() {
+        if(modoAtual === 'COMPARE') {
+            renderizarComparativo();
+        } else {
+            const dados = modoAtual === 'VITORIA' ? dadosVitoria : dadosPinheiro;
+            const nome = modoAtual === 'VITORIA' ? 'VD VITÓRIA' : 'VD PINHEIRO';
+            renderizarIndividual(dados, nome);
+        }
+        renderizarPodiumGlobal();
+        renderizarStock();
+    }
+
+    function renderizarComparativo() {
+        document.getElementById('individualMetrics').style.display = 'none';
+        document.getElementById('compareMetrics').style.display = 'grid';
+        
+        const filtV = filtrarPeriodo(dadosVitoria);
+        const filtP = filtrarPeriodo(dadosPinheiro);
+        const procV = processarDados(filtV);
+        const procP = processarDados(filtP);
+        
+        document.getElementById('compareMetrics').innerHTML = `
+            <div class="compare-card">
+                <div class="compare-title"><i class="fas fa-store text-blue-500"></i> VD VITÓRIA</div>
+                <div class="compare-stats">
+                    <div class="compare-stat"><div class="compare-stat-value text-blue-500">${procV.totalPedidos}</div><div class="compare-stat-label">PEDIDOS</div></div>
+                    <div class="compare-stat"><div class="compare-stat-value text-orange-500">${procV.totalItens}</div><div class="compare-stat-label">ITENS</div></div>
+                    <div class="compare-stat"><div class="compare-stat-value text-emerald-500">${procV.mediaEquipe}</div><div class="compare-stat-label">MÉDIA EQUIPE</div></div>
+                    <div class="compare-stat"><div class="compare-stat-value text-purple-500">${procV.tempoMedioGeral}m</div><div class="compare-stat-label">MIN/PEDIDO</div></div>
+                </div>
+            </div>
+            <div class="compare-card">
+                <div class="compare-title"><i class="fas fa-store text-yellow-500"></i> VD PINHEIRO</div>
+                <div class="compare-stats">
+                    <div class="compare-stat"><div class="compare-stat-value text-yellow-500">${procP.totalPedidos}</div><div class="compare-stat-label">PEDIDOS</div></div>
+                    <div class="compare-stat"><div class="compare-stat-value text-orange-500">${procP.totalItens}</div><div class="compare-stat-label">ITENS</div></div>
+                    <div class="compare-stat"><div class="compare-stat-value text-emerald-500">${procP.mediaEquipe}</div><div class="compare-stat-label">MÉDIA EQUIPE</div></div>
+                    <div class="compare-stat"><div class="compare-stat-value text-purple-500">${procP.tempoMedioGeral}m</div><div class="compare-stat-label">MIN/PEDIDO</div></div>
+                </div>
+            </div>
+        `;
+        
+        const topV = procV.ranking.slice(0,5);
+        const topP = procP.ranking.slice(0,5);
+        const labels = [...new Set([...topV.map(r=>r.nome.split(' ')[0]), ...topP.map(r=>r.nome.split(' ')[0])])].slice(0,6);
+        
+        if(chartPizza) chartPizza.destroy();
+        chartPizza = new Chart(document.getElementById('chartPizza'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    { label: 'VD VITÓRIA', data: labels.map(l => topV.find(r=>r.nome.split(' ')[0]===l)?.qtd || 0), backgroundColor: '#3b82f6', borderRadius: 6 },
+                    { label: 'VD PINHEIRO', data: labels.map(l => topP.find(r=>r.nome.split(' ')[0]===l)?.qtd || 0), backgroundColor: '#f59e0b', borderRadius: 6 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top', labels: { color: '#8b9dc3', font: { size: 10 } } } } }
+        });
+        
+        if(chartTempo) chartTempo.destroy();
+        chartTempo = new Chart(document.getElementById('chartTempo'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [
+                    { label: 'VD VITÓRIA', data: labels.map(l => topV.find(r=>r.nome.split(' ')[0]===l)?.tempoMedio || 0), backgroundColor: '#3b82f6', borderRadius: 6 },
+                    { label: 'VD PINHEIRO', data: labels.map(l => topP.find(r=>r.nome.split(' ')[0]===l)?.tempoMedio || 0), backgroundColor: '#f59e0b', borderRadius: 6 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top', labels: { color: '#8b9dc3', font: { size: 10 } } } } }
+        });
+        
+        const todosNomes = [...new Set([...procV.ranking.map(r=>r.nome), ...procP.ranking.map(r=>r.nome)])];
+        const combinado = todosNomes.map(nome => ({
+            nome,
+            vitoria: procV.ranking.find(r=>r.nome===nome)?.qtd || 0,
+            pinheiro: procP.ranking.find(r=>r.nome===nome)?.qtd || 0,
+            total: (procV.ranking.find(r=>r.nome===nome)?.qtd || 0) + (procP.ranking.find(r=>r.nome===nome)?.qtd || 0)
+        })).sort((a,b) => b.total - a.total).slice(0,15);
+        
+        const tbody = document.getElementById('rankingBody');
+        tbody.innerHTML = combinado.map((r,i) => {
+            const foto = fotos[r.nome.replace(/\s/g,'_')] || `https://ui-avatars.com/api/?name=${encodeURIComponent(r.nome)}&background=1e293b&color=fff&size=32&bold=true`;
+            let rowClass = i===0 ? 'rank-1' : (i===1 ? 'rank-2' : (i===2 ? 'rank-3' : ''));
+            return `<tr class="${rowClass}">
+                <td class="font-black text-slate-400">#${i+1}</td>
+                <td class="flex items-center gap-2"><div class="avatar-small"><img src="${foto}"></div><span class="font-bold text-xs">${r.nome.length > 18 ? r.nome.substring(0,18)+'...' : r.nome}</span></td>
+                <td class="text-center"><span class="text-blue-500">${r.vitoria}</span> | <span class="text-yellow-500">${r.pinheiro}</span></td>
+                <td class="text-center font-bold text-emerald-500">${r.total}</td>
+                <td class="text-center">-</td><td class="text-center">-</td><td class="text-center">-</td>
+                <td class="text-center"><span class="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-500 text-[9px] font-bold">COMPARE</span></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function renderizarIndividual(dados, nomeUnidade) {
+        document.getElementById('individualMetrics').style.display = 'grid';
+        document.getElementById('compareMetrics').style.display = 'none';
+        
+        const filtrados = filtrarPeriodo(dados);
+        const { ranking, totalPedidos, totalItens, totalTempo, mediaEquipe, tempoMedioGeral } = processarDados(filtrados);
+        const melhor = ranking[0]?.nome || '-';
+        const pior = ranking[ranking.length-1]?.nome || '-';
+        
+        document.getElementById('individualMetrics').innerHTML = `
+            <div class="metric-card border-l-blue-500"><div class="metric-label">TOTAL PEDIDOS</div><div class="metric-value">${totalPedidos}</div></div>
+            <div class="metric-card border-l-orange-500"><div class="metric-label">TOTAL ITENS</div><div class="metric-value">${totalItens}</div></div>
+            <div class="metric-card border-l-emerald-500"><div class="metric-label">MÉDIA EQUIPE</div><div class="metric-value">${mediaEquipe}</div></div>
+            <div class="metric-card border-l-purple-500"><div class="metric-label">MIN/PEDIDO</div><div class="metric-value">${tempoMedioGeral}m</div></div>
+            <div class="metric-card border-l-yellow-500"><div class="metric-label">MELHOR</div><div class="metric-value text-sm truncate">${melhor}</div></div>
+            <div class="metric-card border-l-rose-500"><div class="metric-label">PIOR</div><div class="metric-value text-sm truncate">${pior}</div></div>
+        `;
+        
+        const labels = ranking.slice(0,5).map(r=>r.nome.split(' ')[0]);
+        const valores = ranking.slice(0,5).map(r=>r.qtd);
+        const tempos = ranking.slice(0,5).map(r=>parseFloat(r.tempoMedio));
+        
+        if(chartPizza) chartPizza.destroy();
+        chartPizza = new Chart(document.getElementById('chartPizza'), {
+            type: 'doughnut',
+            data: { labels, datasets: [{ data: valores, backgroundColor: ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6'], borderWidth: 0 }] },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: '#8b9dc3', font: { size: 9 } } } } }
+        });
+        
+        if(chartTempo) chartTempo.destroy();
+        chartTempo = new Chart(document.getElementById('chartTempo'), {
+            type: 'bar',
+            data: { labels, datasets: [{ data: tempos, backgroundColor: '#a855f7', borderRadius: 6 }] },
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'minutos/pedido', color: '#8b9dc3', font: { size: 9 } } } } }
+        });
+        
+        const tbody = document.getElementById('rankingBody');
+        tbody.innerHTML = ranking.slice(0,15).map((r,i) => {
+            const foto = fotos[r.nome.replace(/\s/g,'_')] || `https://ui-avatars.com/api/?name=${encodeURIComponent(r.nome)}&background=1e293b&color=fff&size=32&bold=true`;
+            let rowClass = i===0 ? 'rank-1' : (i===1 ? 'rank-2' : (i===2 ? 'rank-3' : ''));
+            return `<tr class="${rowClass}">
+                <td class="font-black text-slate-400">#${i+1}</td>
+                <td class="flex items-center gap-2 cursor-pointer" onclick="uploadFoto('${r.nome}')"><div class="avatar-small"><img src="${foto}"></div><span class="font-bold text-xs">${r.nome.length > 18 ? r.nome.substring(0,18)+'...' : r.nome}</span></td>
+                <td class="text-center font-black text-blue-500">${r.qtd}</td>
+                <td class="text-center text-orange-500">${r.itens}</td>
+                <td class="text-center text-purple-500">${r.mediaItens}</td>
+                <td class="text-center font-black ${r.tempoMedio > 0 ? 'text-emerald-500' : 'text-slate-500'}">${r.tempoMedio > 0 ? r.tempoMedio+'m' : '-'}</td>
+                <td class="text-center font-black text-amber-500">${r.produtividade}</td>
+                <td class="text-center"><span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${r.qtd >= mediaEquipe ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'}">${r.qtd >= mediaEquipe ? 'META' : '↓'}</span></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function renderizarPodiumGlobal() {
+        const todos = modoAtual === 'COMPARE' ? [...dadosVitoria, ...dadosPinheiro] : (modoAtual === 'VITORIA' ? dadosVitoria : dadosPinheiro);
+        const filtrados = filtrarPeriodo(todos);
+        const { ranking } = processarDados(filtrados);
+        const podium = ranking.slice(0,3);
+        
+        const container = document.getElementById('podiumContainer');
+        if(!podium.length) {
+            container.innerHTML = '<div class="text-center text-slate-500 w-full">Sem dados no período</div>';
+            return;
+        }
+        
+        const items = [];
+        if(podium[1]) items.push({ ...podium[1], class: 'avatar-lg', medal: '🥈' });
+        if(podium[0]) items.push({ ...podium[0], class: 'avatar-xl', medal: '🥇' });
+        if(podium[2]) items.push({ ...podium[2], class: 'avatar-md', medal: '🥉' });
+        
+        container.innerHTML = items.map(item => {
+            const foto = fotos[item.nome.replace(/\s/g,'_')] || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.nome)}&background=1e293b&color=fff&size=100&bold=true`;
+            return `<div class="podium-item">
+                <div class="${item.class}"><img src="${foto}"></div>
+                <div class="text-xs font-bold mt-1">${item.nome.split(' ')[0]}</div>
+                <div class="text-lg font-black text-blue-500">${item.qtd}</div>
+                <div class="text-sm">${item.medal}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function renderizarStock() {
+        const container = document.getElementById('stockCard');
+        
+        const totalV = estoqueVitoria.length;
+        const comV = estoqueVitoria.filter(i => i.endereco && !["", "null", "0", "sem"].includes(String(i.endereco).trim().toLowerCase())).length;
+        const semV = totalV - comV;
+        const percV = totalV ? Math.round((comV / totalV) * 100) : 0;
+        
+        const totalP = estoquePinheiro.length;
+        const comP = estoquePinheiro.filter(i => i.endereco && !["", "null", "0", "sem"].includes(String(i.endereco).trim().toLowerCase())).length;
+        const semP = totalP - comP;
+        const percP = totalP ? Math.round((comP / totalP) * 100) : 0;
+        
+        if (modoAtual === 'COMPARE') {
+            container.innerHTML = `
+                <div class="card-header"><i class="fas fa-boxes mr-2"></i> ESTOQUE</div>
+                <div class="p-3">
+                    <div class="grid-compare" style="gap:12px">
+                        <div class="stock-card">
+                            <div class="stat-number text-blue-500">${totalV}</div>
+                            <div class="stat-label">TOTAL DE ITENS</div>
+                            <div class="progress-bar mt-2"><div class="progress-fill bg-blue-500" style="width:${percV}%"></div></div>
+                            <div class="stat-group mt-2">
+                                <div><span class="text-emerald text-lg font-black">${comV}</span><br><span class="text-[9px] text-slate-500">Endereçados</span></div>
+                                <div><span class="text-rose text-lg font-black">${semV}</span><br><span class="text-[9px] text-slate-500">Sem endereço</span></div>
+                                <div><span class="text-blue text-lg font-black">${percV}%</span><br><span class="text-[9px] text-slate-500">Ocupação</span></div>
+                            </div>
+                            <button onclick="uploadEstoque('VITORIA')" class="btn-upload w-full mt-3">📤 UPLOAD</button>
+                        </div>
+                        <div class="stock-card">
+                            <div class="stat-number text-yellow-500">${totalP}</div>
+                            <div class="stat-label">TOTAL DE ITENS</div>
+                            <div class="progress-bar mt-2"><div class="progress-fill bg-yellow-500" style="width:${percP}%"></div></div>
+                            <div class="stat-group mt-2">
+                                <div><span class="text-emerald text-lg font-black">${comP}</span><br><span class="text-[9px] text-slate-500">Endereçados</span></div>
+                                <div><span class="text-rose text-lg font-black">${semP}</span><br><span class="text-[9px] text-slate-500">Sem endereço</span></div>
+                                <div><span class="text-yellow text-lg font-black">${percP}%</span><br><span class="text-[9px] text-slate-500">Ocupação</span></div>
+                            </div>
+                            <button onclick="uploadEstoque('PINHEIRO')" class="btn-upload w-full mt-3">📤 UPLOAD</button>
+                        </div>
                     </div>
                 </div>
-                <div class="product-item-days ${p.status}">
-                    ${p.status === 'vencido' ? 'VENC' : p.menorDias}
+            `;
+        } else if (modoAtual === 'VITORIA') {
+            container.innerHTML = `
+                <div class="card-header"><i class="fas fa-boxes mr-2"></i> ESTOQUE VD VITÓRIA</div>
+                <div class="p-3">
+                    <div class="stock-card">
+                        <div class="stat-number text-blue-500">${totalV}</div>
+                        <div class="stat-label">TOTAL DE ITENS</div>
+                        <div class="progress-bar mt-2"><div class="progress-fill bg-blue-500" style="width:${percV}%"></div></div>
+                        <div class="stat-group mt-3">
+                            <div><span class="text-emerald text-xl font-black">${comV}</span><br><span class="text-[9px] text-slate-500">Endereçados</span></div>
+                            <div><span class="text-rose text-xl font-black">${semV}</span><br><span class="text-[9px] text-slate-500">Sem endereço</span></div>
+                            <div><span class="text-blue text-xl font-black">${percV}%</span><br><span class="text-[9px] text-slate-500">Ocupação</span></div>
+                        </div>
+                        <button onclick="uploadEstoque('VITORIA')" class="btn-upload w-full mt-4">📤 UPLOAD PLANILHA</button>
+                        <button onclick="verSemEndereco('VITORIA')" class="w-full mt-2 text-[10px] text-rose-400 hover:text-rose-300">🔍 Ver itens sem localização</button>
+                    </div>
                 </div>
             `;
-            
-            lists[p.status].appendChild(item);
-        });
-
-        Object.keys(counts).forEach(key => {
-            document.getElementById(`count-${key}`).innerText = counts[key];
-            if (counts[key] === 0) {
-                lists[key].innerHTML = `<div class="empty-state-small">Vazio</div>`;
-            }
-        });
-
-        const totalItens = Object.values(counts).reduce((a, b) => a + b, 0);
-        const validadeSection = document.getElementById('validadeSection');
-        const validadeContainer = document.getElementById('validadeContainer');
-        
-        if (totalItens > 0) {
-            validadeSection.style.display = 'block';
-            validadeContainer.classList.add('active');
         } else {
-            validadeSection.style.display = 'none';
-            validadeContainer.classList.remove('active');
-        }
-    }
-
-    window.abrirModalValidade = (codigo) => {
-        const p = produtosValidade.find(x => x.codigo === codigo);
-        if (!p) return;
-        
-        document.getElementById('modal-body-validade').innerHTML = `
-            <h2 style="font-size: 0.9rem; margin-bottom: 2px; font-weight: 800;">${p.desc}</h2>
-            <p style="font-size: 0.65rem; color: #94a3b8; margin-bottom: 10px;">SKU #${p.codigo} · ${p.endereco}</p>
-            ${p.lotes.sort((a,b)=>a.d - b.d).map(l => `
-                <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.7rem;">
-                    <span style="font-weight: 700;">📅 ${l.v}</span>
-                    <span style="font-weight: 900; color: ${l.d < 0 ? '#ff6b6b' : (l.d <= 150 ? '#ff8787' : '#ffd43b')}">
-                        ${l.d < 0 ? 'VENCIDO' : l.d + 'd'}
-                    </span>
+            container.innerHTML = `
+                <div class="card-header"><i class="fas fa-boxes mr-2"></i> ESTOQUE VD PINHEIRO</div>
+                <div class="p-3">
+                    <div class="stock-card">
+                        <div class="stat-number text-yellow-500">${totalP}</div>
+                        <div class="stat-label">TOTAL DE ITENS</div>
+                        <div class="progress-bar mt-2"><div class="progress-fill bg-yellow-500" style="width:${percP}%"></div></div>
+                        <div class="stat-group mt-3">
+                            <div><span class="text-emerald text-xl font-black">${comP}</span><br><span class="text-[9px] text-slate-500">Endereçados</span></div>
+                            <div><span class="text-rose text-xl font-black">${semP}</span><br><span class="text-[9px] text-slate-500">Sem endereço</span></div>
+                            <div><span class="text-yellow text-xl font-black">${percP}%</span><br><span class="text-[9px] text-slate-500">Ocupação</span></div>
+                        </div>
+                        <button onclick="uploadEstoque('PINHEIRO')" class="btn-upload w-full mt-4">📤 UPLOAD PLANILHA</button>
+                        <button onclick="verSemEndereco('PINHEIRO')" class="w-full mt-2 text-[10px] text-rose-400 hover:text-rose-300">🔍 Ver itens sem localização</button>
+                    </div>
                 </div>
-            `).join('')}
-        `;
-        document.getElementById('modal-validade').style.display = 'flex';
-    };
-
-    window.fecharModalValidade = () => {
-        document.getElementById('modal-validade').style.display = 'none';
-    };
-
-    // Função para buscar dados da Reposição ER - ATUALIZADA para ler qualquer aba
-    async function fetchReposicaoER(aba = CONFIG.REPO_ABA) {
-        const url = `https://opensheet.elk.sh/${CONFIG.REPO_ID}/${encodeURIComponent(aba)}`;
-        const loader = document.getElementById('reposicaoLoader');
-        const tableWrapper = document.getElementById('reposicaoTableWrapper');
-        const emptyArea = document.getElementById('reposicaoEmptyArea');
-        const tbody = document.getElementById('reposicaoTbody');
-        const summary = document.getElementById('reposicaoSummary');
-        const copyBtn = document.getElementById('copyRepBtn');
-        const sectionTitle = document.querySelector('.reposicao-er-card h3');
-
-        // Atualiza o título da seção baseado na aba
-        if (aba === 'REPOSIÇÃO ABRIL26') {
-            sectionTitle.innerHTML = '<i class="fas fa-boxes text-blue-500 text-sm"></i> REPOSIÇÃO ER / ABRIL 2026';
-            loader.innerText = 'Carregando dados de Abril/2026...';
-        } else if (aba === 'REPOSIÇÃO MARÇO26') {
-            sectionTitle.innerHTML = '<i class="fas fa-boxes text-blue-500 text-sm"></i> REPOSIÇÃO ER / MARÇO 2026';
-            loader.innerText = 'Carregando dados de Março/2026...';
-        } else if (aba === 'MES DE MARÇO/25') {
-            sectionTitle.innerHTML = '<i class="fas fa-boxes text-blue-500 text-sm"></i> REPOSIÇÃO ER / MARÇO 2025';
-            loader.innerText = 'Carregando dados de Março/2025...';
-        } else {
-            sectionTitle.innerHTML = `<i class="fas fa-boxes text-blue-500 text-sm"></i> REPOSIÇÃO ER / ${aba}`;
-            loader.innerText = `Carregando dados de ${aba}...`;
+            `;
         }
+    }
 
-        try {
-            console.log("Carregando dados da aba:", aba);
-            const response = await fetch(url);
-            const data = await response.json();
-            console.log("Dados recebidos:", data);
-
-            if (!Array.isArray(data)) throw new Error("Erro de dados");
-
-            // Função para normalizar texto (ignorar acentos)
-            const normalizeText = (text) => {
-                if (!text) return '';
-                return String(text).toLowerCase().trim()
-                    .normalize('NFD')
-                    .replace(/[\u0300-\u036f]/g, '');
+    window.uploadEstoque = (unidadeKey) => {
+        const input = document.getElementById('fileInput');
+        input.onchange = async e => {
+            const file = e.target.files[0];
+            if (!file) return notificar("Selecione um arquivo", true);
+            const path = unidadeKey === 'VITORIA' ? 'estoque_vitoria' : 'estoque_pinheiro';
+            const nome = unidadeKey === 'VITORIA' ? 'VD VITÓRIA' : 'VD PINHEIRO';
+            notificar(`Enviando estoque para ${nome}...`);
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const data = new Uint8Array(ev.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+                const processed = rows.slice(1).map(row => ({
+                    codigo: String(row[0] || "").trim().toUpperCase(),
+                    descricao: String(row[1] || "SEM DESCRIÇÃO").trim().toUpperCase(),
+                    endereco: String(row[4] || "").trim().toLowerCase(),
+                    disponivel: parseFloat(row[10]) || 0
+                })).filter(x => x.codigo);
+                db.ref(path).set(processed).then(() => notificar(`✅ ${nome}: ${processed.length} itens`));
             };
-
-            reposicaoData = data.filter(item => {
-                const keys = Object.keys(item);
-                
-                // Busca a coluna de status (situação) - mais flexível
-                const sitCol = keys.find(k => {
-                    const norm = normalizeText(k);
-                    return norm.includes('situa') || norm.includes('separ') || 
-                           norm.includes('status') || norm.includes('ok') ||
-                           norm.includes('situacao') || norm.includes('andamento');
-                });
-                
-                // Busca a coluna de código
-                const codCol = keys.find(k => {
-                    const norm = normalizeText(k);
-                    return norm.includes('cod') || norm.includes('part') || 
-                           norm.includes('item') || norm.includes('sku') ||
-                           norm.includes('produto');
-                });
-                
-                const status = sitCol ? String(item[sitCol] || '').trim() : "";
-                const codigo = codCol ? String(item[codCol] || '').trim() : "";
-                
-                // Filtra itens que tem código e estão em aberto (status vazio ou "aberto")
-                const isOpen = status === "" || 
-                              normalizeText(status) === "aberto" || 
-                              normalizeText(status) === "pendente" ||
-                              normalizeText(status) === "nao";
-                
-                return codigo !== "" && codigo !== "-" && codigo !== "0" && isOpen;
-            });
-
-            console.log("Dados filtrados:", reposicaoData.length);
-
-            loader.style.display = 'none';
-
-            if (reposicaoData.length > 0) {
-                // Adiciona animação no contador
-                summary.innerHTML = `<span class="pending-alert">${reposicaoData.length} ITENS PENDENTES</span>`;
-                tableWrapper.style.display = 'block';
-                copyBtn.style.display = 'block';
-                
-                // Renderiza a tabela com animação
-                tbody.innerHTML = reposicaoData.map((row, idx) => {
-                    const keys = Object.keys(row);
-                    
-                    // Data (primeira coluna)
-                    const dataOriginal = String(Object.values(row)[0] || '');
-                    const dataFormatada = dataOriginal.includes('/') ? dataOriginal.split(' ')[0].substring(0, 5) : dataOriginal.substring(0, 5);
-                    
-                    // Solicitante - tenta encontrar a coluna correta
-                    const solCol = keys.find(k => {
-                        const norm = normalizeText(k);
-                        return norm.includes('solic') || norm.includes('nome') || 
-                               norm.includes('responsavel') || k === keys[5];
-                    });
-                    const solicitante = solCol ? (row[solCol] || '---') : (row[keys[5]] || '---');
-                    
-                    // Código
-                    const codKey = keys.find(k => {
-                        const norm = normalizeText(k);
-                        return norm.includes('cod') || norm.includes('part') || 
-                               norm.includes('item') || norm.includes('sku');
-                    }) || keys[2];
-                    const cod = String(row[codKey] || '').trim();
-                    
-                    // Descrição
-                    const descKey = keys.find(k => normalizeText(k).includes('desc')) || keys[3];
-                    const desc = String(row[descKey] || '').trim() || 'N/A';
-                    
-                    // Quantidade
-                    const qtdKey = keys.find(k => {
-                        const norm = normalizeText(k);
-                        return norm.includes('qtd') || norm.includes('quant') || 
-                               norm.includes('unid') || norm.includes('quantidade');
-                    }) || keys[4];
-                    const qtd = String(row[qtdKey] || '0').trim();
-
-                    return `
-                        <tr style="animation-delay: ${idx * 0.05}s">
-                            <td class="col-date-er">${dataFormatada}</td>
-                            <td class="col-solic-er">${solicitante.substring(0, 15)}</td>
-                            <td class="col-cod-er">${cod}</td>
-                            <td class="col-desc-er">${desc.substring(0, 30)}${desc.length > 30 ? '...' : ''}</td>
-                            <td class="col-qtd-er">${qtd}</td>
-                            <td>
-                                <span class="badge-open-er"><span class="dot-er"></span>ABERTO</span>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-
-                // Botão de cópia - com ESPAÇO
-                copyBtn.onclick = function() {
-                    const text = reposicaoData.map(item => {
-                        const keys = Object.keys(item);
-                        const codKey = keys.find(k => {
-                            const norm = normalizeText(k);
-                            return norm.includes('cod') || norm.includes('part') || 
-                                   norm.includes('item') || norm.includes('sku');
-                        }) || keys[2];
-                        const qtdKey = keys.find(k => {
-                            const norm = normalizeText(k);
-                            return norm.includes('qtd') || norm.includes('quant') || 
-                                   norm.includes('unid');
-                        }) || keys[4];
-                        
-                        const cod = String(item[codKey] || '').trim();
-                        const qtd = String(item[qtdKey] || '0').trim();
-                        
-                        return `${cod} ${qtd}`; // ESPAÇO, NÃO BARRA
-                    }).join('\n');
-
-                    navigator.clipboard.writeText(text).then(() => {
-                        const btn = this;
-                        const original = btn.innerText;
-                        btn.innerText = "✅ COPIADO!";
-                        btn.classList.add('success');
-                        setTimeout(() => {
-                            btn.innerText = original;
-                            btn.classList.remove('success');
-                        }, 2000);
-                    });
-                };
-            } else {
-                summary.innerText = `TUDO EM DIA`;
-                emptyArea.style.display = 'block';
-                copyBtn.style.display = 'none';
-            }
-        } catch (e) {
-            console.error("Erro detalhado:", e);
-            loader.innerHTML = `❌ Erro ao acessar a aba "${aba}".<br><small>Verifique se a aba existe e a planilha está publicada.</small>`;
-            summary.innerText = "ERRO";
-        }
-    }
-
-    function parseHora(valor) { 
-        if (!valor || valor === 'null') return null; 
-        if (typeof valor === "number") return valor * 1440; 
-        if (typeof valor === "string") { 
-            if (valor.startsWith('Date(')) { 
-                const match = valor.match(/Date\((\d+),(\d+),(\d+),(\d+),(\d+),(\d+)\)/); 
-                if (match) return parseInt(match[4]) * 60 + parseInt(match[5]); 
-            } 
-            const p = valor.split(":"); 
-            if (p.length >= 2) return (parseInt(p[0]) || 0) * 60 + (parseInt(p[1]) || 0); 
-        } 
-        return null; 
-    }
-
-    function init() {
-        const agora = new Date();
-        const meses = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
-        const anoCurto = agora.getFullYear().toString().slice(-2);
-        const nomeAba = `SEPARAÇÃO ${meses[agora.getMonth()]}/${anoCurto}`;
-
-        dadosBrutosSep = [];
-        buscarDadosSep(nomeAba);
-        fetchReposicaoER(CONFIG.REPO_ABA); // Carregar dados da reposição com a aba correta
-    }
-
-    function buscarDadosSep(aba) {
-        document.getElementById('statusText').innerText = `SYNC: ${aba}`;
-        const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SEP_ID}/gviz/tq?tqx=responseHandler:processSep&sheet=${encodeURIComponent(aba)}`;
-        const script = document.createElement('script'); script.src = url; document.body.appendChild(script);
-    }
-
-    window.processSep = function(resposta) {
-        const rows = resposta.table.rows;
-        const novosDados = rows.map(r => {
-            const nome = r.c[2]?.v || '';
-            const qtd = parseInt(r.c[3]?.v) || 0;
-            if (!nome || String(nome).toUpperCase().includes('TOTAL')) return null;
-            const ini = parseHora(r.c[5]?.v || r.c[5]?.f);
-            const fim = parseHora(r.c[6]?.v || r.c[6]?.f);
-            let tempo = (ini !== null && fim !== null) ? (fim - ini) : 0;
-            if (tempo < 0) tempo += 1440;
-            let dObj = null;
-            if (r.c[0]?.v && r.c[0].v.toString().includes('Date')) {
-                const match = r.c[0].v.match(/Date\((\d+),(\d+),(\d+)\)/);
-                if (match) dObj = new Date(match[1], match[2], match[3]);
-            } else if (r.c[0]?.f) {
-                const p = r.c[0].f.split('/'); dObj = new Date(p[2], p[1]-1, p[0]);
-            }
-            return { data: dObj, nome: String(nome).trim().toUpperCase(), qtd, itens: parseInt(r.c[4]?.v) || 0, tempoTotal: tempo > 480 ? 0 : tempo };
-        }).filter(x => x !== null && x.data !== null);
-
-        dadosBrutosSep.push(...novosDados);
-        document.getElementById('statusText').innerText = new Date().toLocaleTimeString();
-        renderizarSeparacao();
+            reader.readAsArrayBuffer(file);
+        };
+        input.click();
     };
 
-    function aplicarFiltroTempo(tipo) {
-        currentFilter = tipo;
+    window.verSemEndereco = (unidadeKey) => {
+        const estoque = unidadeKey === 'VITORIA' ? estoqueVitoria : estoquePinheiro;
+        const sem = estoque.filter(i => ["", "null", "0", "sem"].includes(String(i.endereco).trim().toLowerCase()));
+        const tbody = document.getElementById('modalTableBody');
+        tbody.innerHTML = sem.slice(0, 50).map(i => `<tr><td class="text-blue-500 font-mono text-xs">${i.codigo}</td><td class="text-xs">${i.descricao?.substring(0, 50) || '-'}</td><td class="text-right text-rose-500 font-bold">${i.disponivel}</td></td>`).join('') || '<tr><td colspan="3" class="text-center text-emerald-500 py-4">✅ Todos os itens têm endereço!</td></tr>';
+        document.getElementById('modalEndereco').classList.remove('hidden');
+    };
+
+    window.closeModal = () => document.getElementById('modalEndereco').classList.add('hidden');
+    
+    window.uploadFoto = (nome) => {
+        const input = document.getElementById('fileInput');
+        input.onchange = async e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const fd = new FormData();
+            fd.append('image', file);
+            try {
+                const res = await fetch('https://api.imgbb.com/1/upload?key=6161a9db426f51baa788f0823269c981', { method: 'POST', body: fd });
+                const r = await res.json();
+                if (r.success) db.ref('fotos_separadores/' + nome.replace(/\s/g, '_')).set(r.data.url);
+                notificar("📸 Foto enviada!");
+            } catch (err) { notificar("Erro ao enviar foto", true); }
+        };
+        input.click();
+    };
+
+    function setFilter(tipo) {
+        filtroAtual = tipo;
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(`btn${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`).classList.add('active');
-
-        if (tipo !== 'personalizado') {
-            const agora = new Date();
-            const meses = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
-            const anoCurto = agora.getFullYear().toString().slice(-2);
-            const nomeAba = `SEPARAÇÃO ${meses[agora.getMonth()]}/${anoCurto}`;
-
-            dadosBrutosSep = [];
-            buscarDadosSep(nomeAba);
-        }
-
-        renderizarSeparacao();
+        const btnMap = { hoje: 'btnHoje', semana: 'btnSemana', mes: 'btnMes' };
+        const btn = document.getElementById(btnMap[tipo]);
+        if (btn) btn.classList.add('active');
+        atualizarUI();
         tempoProgresso = 0;
     }
 
-    function aplicarPeriodoPersonalizado() {
-        const iniStr = document.getElementById('dataInicio').value;
-        const fimStr = document.getElementById('dataFim').value;
-        if(!iniStr || !fimStr) return notify("SELECIONE O INTERVALO!");
-        notify(`CARREGANDO DADOS...`);
-    }
-
-    function renderizarSeparacao() {
-        const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
-
-        let filtrados = dadosBrutosSep.filter(item => {
-            const d = item.data;
-            const diffDias = (hoje - d) / 86400000;
-            if (currentFilter === "hoje" && d.toDateString() === hoje.toDateString()) return true;
-            if (currentFilter === "semana" && diffDias >= 0 && diffDias <= 7) return true;
-            if (currentFilter === "mes" && d.getMonth() === hoje.getMonth() && d.getFullYear() === hoje.getFullYear()) return true;
-            return false;
-        });
-
-        const agrupado = {}; 
-        let tTempo = 0, tQtd = 0, tItens = 0;
-
-        filtrados.forEach(d => {
-            if (!agrupado[d.nome]) agrupado[d.nome] = { qtd: 0, tempoTotal: 0, itens: 0 };
-            agrupado[d.nome].qtd += d.qtd; 
-            agrupado[d.nome].tempoTotal += d.tempoTotal; 
-            agrupado[d.nome].itens += d.itens;
-            tTempo += d.tempoTotal; 
-            tQtd += d.qtd; 
-            tItens += d.itens;
-        });
-
-        const ranking = Object.entries(agrupado).map(([nome, val]) => ({ 
-            nome, 
-            qtd: val.qtd, 
-            itens: val.itens, 
-            tempoTotal: val.tempoTotal, 
-            tempoMedio: (val.qtd > 0 && val.tempoTotal > 0) ? (val.tempoTotal / val.qtd).toFixed(1) : 0,
-            mediaItens: val.qtd > 0 ? (val.itens / val.qtd).toFixed(1) : 0,
-            produtividade: (val.qtd > 0 && val.tempoTotal > 0) ? (val.itens / (val.tempoTotal / 60)).toFixed(1) : 0
-        })).sort((a, b) => b.qtd - a.qtd);
-
-        const mediaEq = ranking.length ? Math.round(tQtd / ranking.length) : 0;
-        const maiorQtd = ranking.length ? ranking[0].qtd : 0;
-
-        document.getElementById('totalPedidos').innerText = tQtd;
-        document.getElementById('totalItens').innerText = tItens;
-        document.getElementById('mediaEquipe').innerText = mediaEq;
-        document.getElementById('tempoMedioGeral').innerHTML = `${(tQtd > 0 ? tTempo/tQtd : 0).toFixed(1)}m`;
-        document.getElementById('melhorColaborador').innerText = ranking[0]?.nome || '-';
-        document.getElementById('piorColaborador').innerText = ranking[ranking.length - 1]?.nome || '-';
-
-        renderPodium(ranking); 
-        renderCharts(ranking, tQtd); 
-        renderTabelaRanking(ranking, mediaEq, maiorQtd);
-    }
-
-    function renderPodium(ranking) {
-        const container = document.getElementById('podiumContainer'); 
-        if (!ranking.length) return container.innerHTML = "";
-        const top = ranking.slice(0, 3); 
-        const order = [top[1], top[0], top[2]];
-        container.innerHTML = order.map((u, i) => { 
-            if (!u) return ""; 
-            const is1 = u.nome === top[0].nome; 
-            const size = is1 ? 'avatar-xl' : (i === 0 ? 'avatar-large silver-border' : 'avatar-large bronze-border'); 
-            return `<div class="flex flex-col items-center ${is1 ? 'scale-105' : ''}">
-                <div class="${size}"><img src="${fotoCache[u.nome.replace(/\s/g, '_')] || `https://ui-avatars.com/api/?name=${u.nome}&background=1e293b&color=fff&size=100`}"></div>
-                <span class="mt-1 font-black text-[10px] uppercase text-slate-200">${u.nome.split(' ')[0]}</span>
-                <span class="text-xl font-black text-blue-500">${u.qtd}</span>
-            </div>`; 
-        }).join('');
-    }
-
-    function renderTabelaRanking(ranking, media, maiorQtd) {
-        document.getElementById('rankingBody').innerHTML = ranking.slice(0, 8).map((r, i) => {
-            const rowClass = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : ''));
-
-            return `<tr class="hover:bg-white/5 transition-all border-b border-white/5 ${rowClass}">
-                <td class="px-2 py-1 font-black text-slate-500 italic text-xs">#${i+1}</td>
-                <td class="px-2 py-1 flex items-center gap-2 cursor-pointer" onclick="triggerUpload('${r.nome}')">
-                    <div class="avatar shadow-lg shadow-black/40"><img src="${fotoCache[r.nome.replace(/\s/g, '_')] || `https://ui-avatars.com/api/?name=${r.nome}&background=1e293b&color=fff&size=36`}"></div>
-                    <span class="font-black text-xs uppercase text-slate-200">${r.nome.split(' ')[0]}</span>
-                </td>
-                <td class="px-2 py-1 text-center font-black text-blue-400 text-xs">${r.qtd}</td>
-                <td class="px-2 py-1 text-center font-black text-orange-400 text-xs">${r.itens}</td>
-                <td class="px-2 py-1 text-center font-bold text-purple-400 text-xs">${r.mediaItens}</td>
-                <td class="px-2 py-1 text-center text-purple-400 font-bold italic text-xs">${r.tempoMedio > 0 ? r.tempoMedio + 'm' : '-'}</td>
-                <td class="px-2 py-1 text-center text-emerald-400 font-black text-xs">${Math.floor(r.tempoTotal/60)}h</td>
-                <td class="px-2 py-1 text-center font-black text-amber-400 text-xs">${r.produtividade}</td>
-                <td class="px-2 py-1 text-center">
-                    <span class="px-1 py-0.5 rounded text-[9px] font-black ${r.qtd >= media ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'}">
-                        ${r.qtd >= media ? 'META' : '↓'}
-                    </span>
-                </td>
-             </tr>`;
-        }).join('');
-    }
-
-    function renderCharts(ranking, total) {
-        if (chartPizza) chartPizza.destroy(); 
-        chartPizza = new Chart(document.getElementById('graficoPizza'), { 
-            type: 'doughnut', 
-            data: { 
-                labels: ranking.slice(0, 5).map(r => r.nome.split(' ')[0]), 
-                datasets: [{ 
-                    data: ranking.slice(0, 5).map(r => r.qtd), 
-                    backgroundColor: ranking.slice(0, 5).map((_, i) => `hsl(${i * 45}, 70%, 55%)`), 
-                    borderWidth: 0 
-                }] 
-            }, 
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                plugins: { legend: { display: false } }
-            } 
-        });
-
-        if (chartTempo) chartTempo.destroy(); 
-        chartTempo = new Chart(document.getElementById('graficoTempo'), { 
-            type: 'bar', 
-            data: { 
-                labels: ranking.slice(0, 5).map(r => r.nome.split(' ')[0]), 
-                datasets: [{ 
-                    data: ranking.slice(0, 5).map(r => parseFloat(r.tempoMedio)), 
-                    backgroundColor: '#a855f7', 
-                    borderRadius: 4 
-                }] 
-            }, 
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#94a3b8', font: { size: 8 } } },
-                    x: { ticks: { color: '#94a3b8', font: { size: 8 } } }
-                }
-            } 
-        });
-    }
-
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        const file = e.target.files[0]; if(!file) return;
-        const reader = new FileReader(); reader.onload = (event) => {
-            const data = new Uint8Array(event.target.result); 
-            const workbook = XLSX.read(data, { type: 'array' }); 
-            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
-            
-            const processed = rows.slice(1).map(row => ({ 
-                codigo: String(row[0] || "").trim().toUpperCase(), 
-                descricao: String(row[1] || "SEM DESCRIÇÃO").trim().toUpperCase(), 
-                endereco: String(row[4] || "").trim().toLowerCase(), 
-                disponivel: parseFloat(row[10]) || 0 
-            })).filter(x => x.codigo !== "");
-            
-            db.ref('estoque_base').set(processed).then(() => {
-                notify("BASE SINCRONIZADA!");
-                atualizarEnderecamento(); // Atualiza após sincronizar
-            });
-        }; 
-        reader.readAsArrayBuffer(file);
-    });
-
-    function showSemEnderecamento() {
-        const tbody = document.getElementById('modal-table-body');
-        const semRua = estoqueExcelData.filter(i => ["", "null", "0"].includes(String(i.endereco).trim()));
-        tbody.innerHTML = semRua.slice(0, 50).map(i => `<tr><td class="text-blue-400 font-black text-xs">${i.codigo}</td><td class="text-slate-300 uppercase font-bold text-[10px]">${i.descricao.substring(0, 30)}...</td><td class="font-black text-right text-rose-500 text-xs">${i.disponivel}</td></tr>`).join('') || `<tr><td colspan="3" class="text-center py-4 font-bold text-emerald-500 uppercase italic text-xs">TUDO ENDEREÇADO!</td></tr>`;
-        document.getElementById('modal-sem-rua').classList.remove('hidden');
-    }
-
-    function closeSemEnd() { document.getElementById('modal-sem-rua').classList.add('hidden'); }
-    
-    function triggerUpload(nome) {
-        const input = document.getElementById('uploadInput');
-        input.onchange = async e => {
-            const file = e.target.files[0]; if (!file) return;
-            const fd = new FormData(); fd.append('image', file);
-            try {
-                const res = await fetch(`https://api.imgbb.com/1/upload?key=6161a9db426f51baa788f0823269c981`, { method: 'POST', body: fd });
-                const r = await res.json();
-                if (r.success) db.ref('fotos_separadores/' + nome.replace(/\s/g, '_')).set(r.data.url);
-                notify("FOTO ENVIADA!");
-            } catch (err) { notify("ERRO."); }
-        };
-        input.click();
-    }
-
-    setInterval(() => { 
-        if (currentFilter !== 'personalizado') { 
-            tempoProgresso += 0.5; 
-            document.getElementById('timelineBar').style.width = tempoProgresso + '%'; 
-            if (tempoProgresso >= 100) { 
-                const filtros = ['hoje', 'semana', 'mes']; 
-                aplicarFiltroTempo(filtros[(filtros.indexOf(currentFilter) + 1) % 3]); 
-            } 
-        } 
+    setInterval(() => {
+        if ((dadosVitoria.length || dadosPinheiro.length) && filtroAtual !== 'personalizado') {
+            tempoProgresso += 0.5;
+            document.getElementById('timelineBar').style.width = tempoProgresso + '%';
+            if (tempoProgresso >= 100) {
+                const ciclos = ['hoje', 'semana', 'mes'];
+                const next = ciclos[(ciclos.indexOf(filtroAtual) + 1) % 3];
+                setFilter(next);
+                tempoProgresso = 0;
+            }
+        }
     }, 150);
 
-    setInterval(() => { 
-        if (currentFilter === 'personalizado') {
-            renderizarSeparacao();
-        } else {
-            init(); 
-        }
-    }, 30000);
+    document.getElementById('unidadeSelect').addEventListener('change', (e) => {
+        modoAtual = e.target.value;
+        atualizarUI();
+    });
 
-    // Expandir reposição por padrão
-    setTimeout(() => {
-        toggleReposicaoER();
-    }, 500);
-
-    init();
+    carregarTudo();
 </script>
 </body>
 </html>
