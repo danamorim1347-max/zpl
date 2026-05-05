@@ -2,759 +2,1447 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OPERA X | Smart Logistics</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Validades | Controle de Estoque</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap');
-        
-        :root { 
-            --brand: #3b82f6; 
-            --primary: #fbbf24;
-            --bg-deep: #020617; 
-            --surface: #0f172a; 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
         }
-        
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-deep); color: #f8fafc; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
-        
-        .glass { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 1rem; }
-        
-        .nav-bar { display: flex; gap: 4px; background: #000; padding: 5px; border-radius: 1rem; border: 1px solid #1e293b; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 4px; border-radius: 0.75rem; color: #475569; cursor: pointer; transition: 0.2s; }
-        .nav-item i { font-size: 1.1rem; margin-bottom: 3px; }
-        .nav-item span { font-size: 9px; font-weight: 800; text-transform: uppercase; }
-        .nav-item.active { background: var(--brand); color: white; font-weight: 900; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
 
-        .loc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; }
-        .loc-card { background: var(--primary); padding: 15px 5px; border-radius: 0.75rem; text-align: center; box-shadow: 0 8px 20px rgba(251, 191, 36, 0.2); }
-        .loc-label { font-size: 10px; font-weight: 900; color: #000; text-transform: uppercase; margin-bottom: 4px; display: block; opacity: 0.7; }
-        .loc-value { font-size: 2.2rem; font-weight: 900; color: #000; line-height: 1; }
-
-        .input-pro { background: #000; border: 2px solid #1e293b; color: white; border-radius: 0.75rem; font-family: 'JetBrains Mono', monospace; text-align: center; }
-        .key { background: #000; border: 1px solid #1e293b; border-radius: 0.75rem; height: 60px; font-weight: 800; font-size: 1.5rem; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .key:active { background: var(--brand); }
-
-        .simple-list-item { background: var(--surface); border-radius: 0.75rem; padding: 12px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--brand); }
-        .simple-list-code { font-family: 'JetBrains Mono', monospace; font-weight: 800; color: var(--brand); font-size: 1.1rem; }
-        .simple-list-qty { background: #1e293b; padding: 4px 10px; border-radius: 20px; font-weight: 800; color: #fbbf24; }
-
-        .notification-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; max-width: 350px; width: calc(100% - 40px); pointer-events: none; }
-        .notification { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); display: flex; align-items: flex-start; gap: 12px; transform: translateX(400px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: auto; border-left: 4px solid transparent; }
-        .notification.show { transform: translateX(0); opacity: 1; }
-        .notification.success { border-left-color: #10b981; }
-
-        .dash-chip { background: #1e293b; border: 1px solid #334155; padding: 6px 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px; width: fit-content; }
-        .dash-bar { height: 6px; width: 80px; background: #0f172a; border-radius: 3px; overflow: hidden; }
-        .dash-fill { height: 100%; background: var(--brand); transition: width 0.5s ease; }
-
-        .expiry-selector {
-            background: #0f172a;
-            border-radius: 1rem;
-            padding: 1rem;
-            margin-top: 0.75rem;
-            border: 1px solid #1e293b;
+        :root {
+            --bg-primary: #f3f4f6;
+            --bg-secondary: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --info: #3b82f6;
+            --border: #e5e7eb;
+            --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --expired: #991b1b;
+            --critical: #dc2626;
+            --attention: #d97706;
+            --six-months: #3b82f6;
+            --sem-mov-30: #fbbf24;
+            --sem-mov-60: #f59e0b;
+            --sem-mov-90: #ef4444;
+            --endereco-ok: #10b981;
+            --endereco-missing: #ef4444;
+            --health-excellent: #10b981;
+            --health-good: #34d399;
+            --health-fair: #fbbf24;
+            --health-poor: #f97316;
+            --health-critical: #ef4444;
         }
-        .expiry-header {
+
+        .dark-mode {
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --border: #374151;
+            --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 24px;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #1e293b;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+            background: var(--bg-secondary);
+            padding: 20px 30px;
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
         }
-        .expiry-header span {
-            font-size: 0.7rem;
+
+        .logo h1 {
+            font-size: 1.8rem;
             font-weight: 800;
-            text-transform: uppercase;
-            color: #94a3b8;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, var(--accent), #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .expiry-badge {
-            background: #1e293b;
-            padding: 0.25rem 0.75rem;
-            border-radius: 1rem;
+
+        .logo p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-top: 5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .live-status {
+            background: var(--bg-primary);
+            padding: 10px 20px;
+            border-radius: 12px;
             font-size: 0.75rem;
             font-weight: 800;
-            color: #fbbf24;
-            font-family: monospace;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--border);
         }
-        .month-grid, .year-grid {
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .theme-toggle, .export-btn, .refresh-btn, .pdf-btn {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 15px;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-toggle:hover, .export-btn:hover, .refresh-btn:hover, .pdf-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        .health-section {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
+        }
+
+        .health-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .health-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .health-title h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .health-score-container {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+            background: var(--bg-primary);
+            padding: 10px 20px;
+            border-radius: 20px;
+        }
+
+        .health-score {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .health-score-label {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .health-bar-container {
+            height: 30px;
+            background: var(--bg-primary);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: flex;
+        }
+
+        .health-segment {
+            height: 100%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .health-segment.excellent { background: var(--health-excellent); }
+        .health-segment.good { background: var(--health-good); }
+        .health-segment.fair { background: var(--health-fair); }
+        .health-segment.poor { background: var(--health-poor); }
+        .health-segment.critical { background: var(--health-critical); }
+
+        .health-legend {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+        }
+
+        .legend-color.excellent { background: var(--health-excellent); }
+        .legend-color.good { background: var(--health-good); }
+        .legend-color.fair { background: var(--health-fair); }
+        .legend-color.poor { background: var(--health-poor); }
+        .legend-color.critical { background: var(--health-critical); }
+
+        .metrics-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 0.5rem;
-            margin-bottom: 0.75rem;
+            gap: 20px;
+            margin-bottom: 30px;
         }
-        .month-btn, .year-btn {
-            background: #000000;
-            border: 1px solid #1e293b;
-            border-radius: 0.5rem;
-            padding: 0.5rem 0.25rem;
-            text-align: center;
+
+        .metric-card {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+
+        .metric-card.clickable {
+            cursor: pointer;
+        }
+
+        .metric-card.clickable:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -8px rgba(0,0,0,0.2);
+        }
+
+        .metric-card .label {
             font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .metric-card .value {
+            font-size: 2rem;
             font-weight: 800;
-            color: #cbd5e1;
+            line-height: 1.2;
+            margin-bottom: 5px;
+        }
+
+        .metric-card .sub {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .endereco-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .endereco-percent {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent);
+            background: var(--bg-primary);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .endereco-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            gap: 10px;
+        }
+
+        .endereco-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.2s;
         }
-        .month-btn:hover, .year-btn:hover {
-            background: #1e293b;
-            border-color: #3b82f6;
-        }
-        .month-btn.active, .year-btn.active {
-            background: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-        }
-        .expiry-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.75rem;
-        }
-        .expiry-clear {
-            flex: 1;
-            background: #1e293b;
-            border: none;
-            border-radius: 0.5rem;
-            padding: 0.5rem;
-            font-size: 0.7rem;
-            font-weight: 800;
-            color: #ef4444;
-            cursor: pointer;
-            text-transform: uppercase;
+
+        .endereco-item:hover {
+            background: var(--bg-primary);
+            transform: scale(1.02);
         }
 
-        @media print { 
-            .no-print { display: none !important; }
-            body { background: white !important; color: black !important; }
-            .print-only { display: block !important; }
-            .print-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            .print-table th, .print-table td { border: 1px solid black; padding: 8px; text-align: left; color: black !important; }
+        .endereco-item.ok {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--endereco-ok);
         }
-        .print-only { display: none; }
+
+        .endereco-item.missing {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--endereco-missing);
+        }
+
+        .endereco-item .numero {
+            font-size: 1.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .endereco-item .rotulo {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .metric-card.vencido .value { color: var(--expired); }
+        .metric-card.critico .value { color: var(--danger); }
+        .metric-card.pendente .value { color: var(--warning); }
+        .metric-card.parado30 .value { color: var(--sem-mov-30); }
+        .metric-card.parado90 .value { color: var(--sem-mov-90); }
+
+        .top-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .top-card {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            box-shadow: var(--card-shadow);
+        }
+
+        .top-card h3 {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .top-card.criticos h3 { color: var(--danger); }
+        .top-card.parados h3 { color: var(--warning); }
+
+        .top-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .top-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .top-item:hover {
+            transform: translateX(5px);
+            background: var(--accent);
+            color: white;
+        }
+
+        .top-position {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .top-card.criticos .top-position {
+            background: var(--danger);
+            color: white;
+        }
+
+        .top-card.parados .top-position {
+            background: var(--warning);
+            color: white;
+        }
+
+        .top-item:hover .top-position {
+            background: white;
+            color: var(--accent);
+        }
+
+        .top-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .top-info h4 {
+            font-size: 0.85rem;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .top-info p {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .top-item:hover .top-info p {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .top-value {
+            font-weight: 800;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background: var(--border);
+            border-radius: 4px;
+            margin-top: 4px;
+            height: 4px;
+        }
+
+        .progress-fill {
+            background: var(--warning);
+            border-radius: 4px;
+            height: 4px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 30px;
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .modal-close:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .produto-lista-modal {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .produto-item-modal {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid;
+        }
+
+        .produto-item-modal:hover {
+            transform: translateX(5px);
+            background: var(--accent);
+            color: white;
+        }
+
+        .produto-item-modal.vencido { border-left-color: var(--expired); }
+        .produto-item-modal.critico { border-left-color: var(--danger); }
+        .produto-item-modal.pendente { border-left-color: var(--warning); }
+        .produto-item-modal.sem-vencimento { border-left-color: var(--info); }
+        .produto-item-modal.parado30 { border-left-color: var(--sem-mov-30); }
+        .produto-item-modal.parado90 { border-left-color: var(--sem-mov-90); }
+        .produto-item-modal.sem-endereco { border-left-color: var(--endereco-missing); }
+
+        .produto-item-modal h4 {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .produto-item-modal p {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .produto-item-modal:hover p {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .lote-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .historico-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--border);
+            font-size: 0.75rem;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-close {
+            width: 100%;
+            padding: 14px;
+            margin-top: 20px;
+            border: none;
+            background: var(--text-primary);
+            color: white;
+            border-radius: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-close:hover {
+            background: var(--accent);
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast-notification {
+            background: var(--bg-secondary);
+            border-left: 4px solid;
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 280px;
+            animation: slideIn 0.3s ease;
+            color: var(--text-primary);
+        }
+
+        .toast-notification.success { border-left-color: var(--success); }
+        .toast-notification.warning { border-left-color: var(--warning); }
+        .toast-notification.danger { border-left-color: var(--danger); }
+        .toast-notification.info { border-left-color: var(--accent); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .empty {
+            text-align: center;
+            padding: 25px;
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 1200px) {
+            .top-container { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 16px; }
+            header { flex-direction: column; align-items: flex-start; }
+            .header-actions { width: 100%; justify-content: space-between; }
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        }
     </style>
 </head>
-<body class="p-4 lg:p-8">
+<body>
 
-    <div id="notification-container" class="notification-container"></div>
+<div class="toast-container" id="toastContainer"></div>
 
-    <div id="print-area" class="print-only">
-        <h1 style="text-align:center; font-size: 24px; font-weight: 800; border-bottom: 2px solid black; padding-bottom: 10px;">LISTA DE REPOSIÇÃO - OPERA X</h1>
-        <p id="print-date" style="text-align:right; font-weight: bold; margin-top: 5px;"></p>
-        <table class="print-table">
-            <thead>
-                <tr>
-                    <th>Localização</th>
-                    <th>Código</th>
-                    <th>Descrição</th>
-                    <th>Físico</th>
-                    <th>Disponível</th>
-                    <th>Qtd</th>
-                </tr>
-            </thead>
-            <tbody id="print-table-body"></tbody>
-        </table>
-    </div>
+<div class="container">
+    <header>
+        <div class="logo">
+            <h1>Dashboard<span style="color: var(--accent);">Validades</span></h1>
+            <p id="display-date"></p>
+        </div>
+        <div class="header-actions">
+            <button class="refresh-btn" onclick="carregarDados()" title="Atualizar dados">
+                <i class="fas fa-sync-alt"></i>
+                <span class="hide-mobile">Atualizar</span>
+            </button>
+            <button class="pdf-btn" onclick="exportarPDF()" title="Exportar PDF">
+                <i class="fas fa-file-pdf"></i>
+                <span class="hide-mobile">PDF</span>
+            </button>
+            <button class="export-btn" onclick="exportarRelatorioCompleto()" title="Exportar CSV">
+                <i class="fas fa-download"></i>
+                <span class="hide-mobile">CSV</span>
+            </button>
+            <button class="theme-toggle" onclick="toggleDarkMode()" title="Alternar tema">
+                <i class="fas fa-moon"></i>
+            </button>
+            <div class="live-status">
+                <div class="dot"></div>
+                <span>DADOS REAIS</span>
+            </div>
+        </div>
+    </header>
 
-    <div id="loader" class="fixed inset-0 z-[100] bg-slate-950/90 flex items-center justify-center hidden">
-        <div class="flex flex-col items-center">
-            <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p class="text-blue-500 font-bold text-xs uppercase tracking-widest">Sincronizando Base...</p>
+    <div class="health-section">
+        <div class="health-header">
+            <div class="health-title">
+                <i class="fas fa-heartbeat" style="color: var(--accent); font-size: 2rem;"></i>
+                <h2>Saúde do Estoque</h2>
+            </div>
+            <div class="health-score-container">
+                <span class="health-score" id="healthScore">0</span>
+                <span class="health-score-label">%</span>
+            </div>
+        </div>
+        
+        <div class="health-bar-container">
+            <div class="health-segment excellent" id="healthExcellent" style="width: 0%">0%</div>
+            <div class="health-segment good" id="healthGood" style="width: 0%">0%</div>
+            <div class="health-segment fair" id="healthFair" style="width: 0%">0%</div>
+            <div class="health-segment poor" id="healthPoor" style="width: 0%">0%</div>
+            <div class="health-segment critical" id="healthCritical" style="width: 0%">0%</div>
+        </div>
+        
+        <div class="health-legend">
+            <div class="legend-item"><span class="legend-color excellent"></span> Excelente (>365d)</div>
+            <div class="legend-item"><span class="legend-color good"></span> Bom (180-365d)</div>
+            <div class="legend-item"><span class="legend-color fair"></span> Regular (90-180d)</div>
+            <div class="legend-item"><span class="legend-color poor"></span> Ruim (30-90d)</div>
+            <div class="legend-item"><span class="legend-color critical"></span> Crítico (0-30d / Vencido)</div>
         </div>
     </div>
 
-    <div class="max-w-[1100px] mx-auto space-y-6 no-print">
-        <header class="flex flex-col md:flex-row justify-between items-center bg-slate-900/40 p-5 rounded-2xl border border-white/5 gap-6 shadow-xl">
-            <div class="flex flex-col gap-3">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg"><i class="fa-solid fa-bolt text-white text-2xl"></i></div>
-                    <div>
-                        <h1 class="text-2xl font-black uppercase tracking-tighter">OPERA <span class="text-blue-500">X</span></h1>
-                        <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Dev: Benilson Amorim</p>
-                    </div>
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="label"><i class="fas fa-boxes"></i> Total em estoque</div>
+            <div class="value" id="total-estoque">0</div>
+            <div class="sub">unidades</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="label"><i class="fas fa-tags"></i> Produtos distintos</div>
+            <div class="value" id="total-produtos">0</div>
+            <div class="sub">SKUs</div>
+        </div>
+
+        <div class="metric-card">
+            <div class="endereco-header">
+                <div class="label"><i class="fas fa-map-marker-alt"></i> Endereçamento</div>
+                <div class="endereco-percent" id="total-endereco-percent">0%</div>
+            </div>
+            <div class="endereco-stats">
+                <div class="endereco-item ok" onclick="mostrarListaProdutos('com-endereco')">
+                    <div class="numero" id="total-com-endereco">0</div>
+                    <div class="rotulo">Com endereço</div>
                 </div>
-                <div class="dash-chip">
-                    <div class="flex flex-col">
-                        <span class="text-[8px] font-black text-slate-400 uppercase">Endereçamento</span>
-                        <div class="flex items-center gap-2">
-                            <div class="dash-bar"><div id="dash-fill" class="dash-fill" style="width: 0%"></div></div>
-                            <span id="dash-perc" class="text-[10px] font-black text-blue-400">0%</span>
-                        </div>
-                    </div>
+                <div class="endereco-item missing" onclick="mostrarListaProdutos('sem-endereco')">
+                    <div class="numero" id="total-sem-endereco">0</div>
+                    <div class="rotulo">Sem endereço</div>
                 </div>
             </div>
+        </div>
 
-            <nav class="nav-bar w-full md:w-auto md:min-w-[500px]">
-                <div onclick="App.ui.setMode('locate')" id="btn-locate" class="nav-item active"><i class="fa-solid fa-magnifying-glass"></i><span>Localizar</span></div>
-                <div onclick="App.ui.setMode('labels')" id="btn-labels" class="nav-item"><i class="fa-solid fa-barcode"></i><span>Etiquetas</span></div>
-                <div onclick="App.ui.setMode('picking')" id="btn-picking" class="nav-item"><i class="fa-solid fa-truck-ramp-box"></i><span>Reposição</span></div>
-                <div onclick="window.open('validade.html', '_blank')" id="btn-validade" class="nav-item"><i class="fa-solid fa-calendar-alt"></i><span>Validade</span></div>
-                <div onclick="window.open('dashbort.html', '_blank')" class="nav-item"><i class="fa-solid fa-chart-pie"></i><span>Status</span></div>
-            </nav>
+        <div class="metric-card clickable pendente" onclick="mostrarListaProdutos('pendente')">
+            <div class="label"><i class="fas fa-hourglass-half"></i> Pendentes</div>
+            <div class="value" id="total-pendentes">0</div>
+            <div class="sub">SKUs (sem validade)</div>
+        </div>
 
-            <label class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 rounded-xl text-[10px] font-black uppercase cursor-pointer border border-slate-800 transition-all">
-                <i class="fa-solid fa-file-excel text-emerald-500"></i> Atualizar Base
-                <input type="file" class="hidden" accept=".xlsx,.xls" onchange="App.logic.fileHandler.handleUpload(this)">
-            </label>
-        </header>
+        <div class="metric-card clickable parado30" onclick="mostrarListaProdutos('parado30')">
+            <div class="label"><i class="fas fa-hourglass-half"></i> Parados 30d+</div>
+            <div class="value" id="total-parados30">0</div>
+            <div class="sub">SKUs</div>
+        </div>
 
-        <main id="main-view" class="min-h-[60vh]"></main>
+        <div class="metric-card clickable parado90" onclick="mostrarListaProdutos('parado90')">
+            <div class="label"><i class="fas fa-fire"></i> Parados 90d+</div>
+            <div class="value" id="total-parados90">0</div>
+            <div class="sub">SKUs</div>
+        </div>
+
+        <div class="metric-card clickable vencido" onclick="mostrarListaProdutos('vencido')">
+            <div class="label"><i class="fas fa-skull-crossbones"></i> Vencidos</div>
+            <div class="value" id="total-vencidos">0</div>
+            <div class="sub">SKUs</div>
+        </div>
+
+        <div class="metric-card clickable critico" onclick="mostrarListaProdutos('critico')">
+            <div class="label"><i class="fas fa-exclamation-triangle"></i> Críticos (≤60d)</div>
+            <div class="value" id="total-criticos">0</div>
+            <div class="sub">SKUs</div>
+        </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    <div class="top-container">
+        <div class="top-card criticos">
+            <h3><i class="fas fa-fire"></i> Top 10 - Mais Críticos (≤60 dias para vencer)</h3>
+            <div id="topCriticos" class="top-list"></div>
+        </div>
+        
+        <div class="top-card parados">
+            <h3><i class="fas fa-hourglass-half"></i> Top 10 - Mais Parados</h3>
+            <div id="topParados" class="top-list"></div>
+        </div>
+    </div>
+</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCiy4DOVPYYr_UtglmnVWUdZ8SqM26Neo8",
-            authDomain: "zpl47-f751d.firebaseapp.com",
-            projectId: "zpl47-f751d",
-            databaseURL: "https://zpl47-f751d-default-rtdb.firebaseio.com"
-        };
+<div id="modalLista" class="modal" onclick="if(event.target === this) fecharModalLista()">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalListaTitulo">Carregando...</h2>
+            <div class="modal-close" onclick="fecharModalLista()">×</div>
+        </div>
+        <div id="modalListaBody" class="produto-lista-modal"></div>
+        <button class="btn-close" onclick="fecharModalLista()">Fechar</button>
+    </div>
+</div>
 
-        const fApp = initializeApp(firebaseConfig);
-        const db = getDatabase(fApp);
+<div id="modalProduto" class="modal" onclick="if(event.target === this) fecharModalProduto()">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalProdutoTitulo">Carregando...</h2>
+            <div class="modal-close" onclick="fecharModalProduto()">×</div>
+        </div>
+        <div id="modalProdutoBody"></div>
+        <button class="btn-close" onclick="fecharModalProduto()">Fechar Detalhes</button>
+    </div>
+</div>
 
-        const Utils = {
-            cleanId: (c) => String(c || '').replace(/\D/g, '').length === 13 ? String(c).substring(7, 12) : String(c).replace(/\D/g, ''),
-            formatCoord: (v) => String(v || '').replace(/^(rua|rack|rck|r|niv|col)\s*/gi, '').trim(),
-            sanitizeText: (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase()
-        };
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        const Notifications = {
-            show(msg, type = 'info') {
-                const container = document.getElementById('notification-container');
-                const n = document.createElement('div');
-                n.className = `notification ${type}`;
-                n.innerHTML = `<div class="notification-content font-bold text-slate-800">${msg}</div>`;
-                container.appendChild(n);
-                setTimeout(() => n.classList.add('show'), 10);
-                setTimeout(() => { n.classList.remove('show'); setTimeout(() => n.remove(), 300); }, 3000);
-            }
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyDr8Q2oJJ46ZANAjnV0_iSokdHnZ-YqGP4",
+        authDomain: "controle-validade-de623.firebaseapp.com",
+        projectId: "controle-validade-de623",
+        storageBucket: "controle-validade-de623.firebasestorage.app",
+        messagingSenderId: "788364390731",
+        appId: "1:788364390731:web:6c92c01576a3c64ed7b8ce"
+    };
 
-        window.App = {
-            state: { mode: 'locate', labelSubMode: 'single', inventory: [], activeListener: null, selectedExpiry: '' },
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    
+    let produtosComValidade = [];
+    let produtosPendentes = [];
+    let produtosSemVencimento = [];
+    let todosProdutos = [];
+    
+    document.getElementById('display-date').innerText = new Date().toLocaleDateString('pt-BR', { 
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    });
 
-            ui: {
-                setMode(mode) {
-                    App.state.mode = mode;
-                    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-                    document.getElementById(`btn-${mode}`)?.classList.add('active');
-                    if (mode === 'locate') this.renderLocate();
-                    else if (mode === 'labels') this.renderLabels();
-                    else if (mode === 'picking') this.renderPicking();
-                    this.syncQueues();
-                },
+    if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+        const icon = document.querySelector('.theme-toggle i');
+        if (icon) icon.classList.replace('fa-moon', 'fa-sun');
+    }
 
-                updateDash() {
-                    const total = App.state.inventory.length;
-                    if (total === 0) return;
-                    const addr = App.state.inventory.filter(p => p.RUA && p.RUA !== '-' && p.RCK && p.RCK !== '-').length;
-                    const perc = ((addr / total) * 100).toFixed(1);
-                    document.getElementById('dash-fill').style.width = `${perc}%`;
-                    document.getElementById('dash-perc').innerText = `${perc}%`;
-                },
+    window.toggleDarkMode = () => {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('darkMode', isDark);
+        const icon = document.querySelector('.theme-toggle i');
+        if (icon) {
+            if (isDark) icon.classList.replace('fa-moon', 'fa-sun');
+            else icon.classList.replace('fa-sun', 'fa-moon');
+        }
+    };
 
-                renderLocate() {
-                    document.getElementById('main-view').innerHTML = `
-                        <div class="max-w-2xl mx-auto glass p-8">
-                            <input type="text" id="main-in" class="input-pro w-full py-5 text-4xl font-bold mb-8" placeholder="BIPAR CÓDIGO">
-                            <div id="result-area" class="min-h-[260px] flex flex-col items-center justify-center text-center"></div>
-                            <div id="keyboard" class="grid grid-cols-3 gap-3 mt-8 border-t border-white/10 pt-8"></div>
-                        </div>`;
-                    this.initKeyboard();
-                },
+    function mostrarToast(mensagem, tipo = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${tipo}`;
+        toast.innerHTML = `<i class="fas fa-${tipo === 'success' ? 'check-circle' : (tipo === 'warning' ? 'exclamation-triangle' : 'info-circle')}"></i><div>${mensagem}</div>`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    }
 
-                initKeyboard() {
-                    const kb = document.getElementById('keyboard');
-                    [1,2,3,4,5,6,7,8,9,'⌫',0,'CLR'].forEach(k => {
-                        const b = document.createElement('div'); b.className = 'key'; b.textContent = k;
-                        b.onclick = () => {
-                            const i = document.getElementById('main-in');
-                            if(k === '⌫') i.value = i.value.slice(0,-1); else if(k === 'CLR') i.value = ''; else i.value += k;
-                            App.logic.processLocate(i.value);
-                        };
-                        kb.appendChild(b);
-                    });
-                },
+    function calcularDiasRestantes(validade) {
+        if (!validade || validade === '' || validade === 'SEM VENCIMENTO') return null;
+        const partes = validade.split('/');
+        if (partes.length !== 3) return null;
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const dataValidade = new Date(partes[2], partes[1] - 1, partes[0]);
+        return Math.ceil((dataValidade - hoje) / (1000 * 60 * 60 * 24));
+    }
 
-                renderLabels() {
-                    const isBatch = App.state.labelSubMode === 'batch';
-                    document.getElementById('main-view').innerHTML = `
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            <div class="lg:col-span-4 glass p-8 space-y-4 h-fit">
-                                <div class="flex gap-2 p-1 bg-black/40 rounded-xl mb-4">
-                                    <button onclick="App.logic.setLabelSubMode('single')" class="flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${!isBatch ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-white'}">Individual</button>
-                                    <button onclick="App.logic.setLabelSubMode('batch')" class="flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${isBatch ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-white'}">Lote</button>
-                                </div>
-
-                                <h3 class="text-blue-500 font-black uppercase text-xs">${isBatch ? 'Geração em Lote' : 'Etiqueta Individual'}</h3>
-                                
-                                ${!isBatch ? `
-                                    <input type="text" id="etq-in" class="input-pro w-full py-4 font-bold" placeholder="Código" oninput="App.logic.lookupProduct(this.value)">
-                                    <div id="etq-name" class="text-center font-bold text-blue-400 text-sm h-10 uppercase"></div>
-                                    <div id="expiry-selector-container"></div>
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <div><span class="text-[10px] text-slate-500 font-bold uppercase">Cópias</span><input type="number" id="etq-print-qty" class="input-pro w-full p-3 text-xs font-bold" value="1"></div>
-                                        <div><span class="text-[10px] text-slate-500 font-bold uppercase">Qtd Itens</span><input type="text" id="etq-items-qty" class="input-pro w-full p-3 text-xs font-bold" placeholder="Opcional"></div>
-                                    </div>
-                                    <button onclick="App.logic.addLabel()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black uppercase shadow-lg">Adicionar</button>
-                                ` : `
-                                    <div id="expiry-selector-container-batch"></div>
-                                    <textarea id="etq-batch" class="input-pro w-full h-48 p-3 text-left text-xs" placeholder="Código Qtd&#10;Ex:&#10;78945 3&#10;12345"></textarea>
-                                    <button onclick="App.logic.addLabelBatch()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black uppercase shadow-lg">Gerar Lote</button>
-                                `}
-
-                                <button onclick="App.logic.cleanQueue('print_queue')" class="w-full bg-rose-600/20 text-rose-500 py-3 rounded-xl font-bold uppercase text-[10px] mt-4">Limpar Fila</button>
-                                <div class="flex flex-col gap-2 mt-2">
-                                    <button onclick="App.logic.copyLabelsZPL()" class="w-full bg-white text-black py-3 rounded-xl font-black uppercase text-[10px] shadow-lg hover:bg-slate-200 transition-all">Copiar ZPL (2 por Etiqueta)</button>
-                                    <button onclick="App.logic.copyLabelsZPL4Vertical()" class="w-full bg-slate-200 text-black py-3 rounded-xl font-black uppercase text-[10px] shadow-lg hover:bg-white transition-all">Copiar ZPL (4 Produtos)</button>
-                                </div>
-                            </div>
-                            <div class="lg:col-span-8 glass p-8"><div id="queue-box"></div><div id="queue-foot" class="mt-6"></div></div>
-                        </div>`;
-                    
-                    this.renderExpirySelector();
-                },
-
-                renderExpirySelector() {
-                    const container = document.getElementById('expiry-selector-container');
-                    const containerBatch = document.getElementById('expiry-selector-container-batch');
-                    const months = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
-                    const currentYear = new Date().getFullYear();
-                    const years = [];
-                    for (let y = currentYear; y <= currentYear + 10; y++) {
-                        years.push(y);
-                    }
-                    
-                    const selectorHTML = `
-                        <div class="expiry-selector">
-                            <div class="expiry-header">
-                                <span><i class="fa-regular fa-calendar"></i> DATA DE VALIDADE</span>
-                                <span class="expiry-badge" id="expiry-display">---</span>
-                            </div>
-                            <div class="month-grid" id="month-grid">
-                                ${months.map(month => `<div class="month-btn" data-month="${month}">${month}</div>`).join('')}
-                            </div>
-                            <div class="year-grid" id="year-grid">
-                                ${years.map(year => `<div class="year-btn" data-year="${year}">${year}</div>`).join('')}
-                            </div>
-                            <div class="expiry-actions">
-                                <button class="expiry-clear" id="expiry-clear">LIMPAR</button>
-                            </div>
-                        </div>
-                    `;
-                    
-                    if (container) container.innerHTML = selectorHTML;
-                    if (containerBatch) containerBatch.innerHTML = selectorHTML;
-                    
-                    if (container) {
-                        this.attachExpiryEvents();
-                    }
-                    if (containerBatch) {
-                        this.attachExpiryEventsBatch();
-                    }
-                },
-                
-                attachExpiryEvents() {
-                    const monthBtns = document.querySelectorAll('#expiry-selector-container .month-btn');
-                    const yearBtns = document.querySelectorAll('#expiry-selector-container .year-btn');
-                    const clearBtn = document.querySelector('#expiry-selector-container .expiry-clear');
-                    const expiryDisplay = document.querySelector('#expiry-selector-container #expiry-display');
-                    
-                    let selectedMonth = null;
-                    let selectedYear = null;
-                    
-                    const updateDisplay = () => {
-                        if (selectedMonth && selectedYear) {
-                            const monthNumber = this.getMonthNumber(selectedMonth);
-                            const displayValue = `${monthNumber}/${selectedYear}`;
-                            if (expiryDisplay) expiryDisplay.textContent = displayValue;
-                            App.state.selectedExpiry = displayValue;
-                        } else {
-                            if (expiryDisplay) expiryDisplay.textContent = '---';
-                            App.state.selectedExpiry = '';
-                        }
-                    };
-                    
-                    monthBtns.forEach(btn => {
-                        btn.onclick = () => {
-                            monthBtns.forEach(b => b.classList.remove('active'));
-                            btn.classList.add('active');
-                            selectedMonth = btn.getAttribute('data-month');
-                            updateDisplay();
-                        };
-                    });
-                    
-                    yearBtns.forEach(btn => {
-                        btn.onclick = () => {
-                            yearBtns.forEach(b => b.classList.remove('active'));
-                            btn.classList.add('active');
-                            selectedYear = btn.getAttribute('data-year');
-                            updateDisplay();
-                        };
-                    });
-                    
-                    if (clearBtn) {
-                        clearBtn.onclick = () => {
-                            selectedMonth = null;
-                            selectedYear = null;
-                            monthBtns.forEach(b => b.classList.remove('active'));
-                            yearBtns.forEach(b => b.classList.remove('active'));
-                            updateDisplay();
-                        };
-                    }
-                },
-                
-                attachExpiryEventsBatch() {
-                    const monthBtns = document.querySelectorAll('#expiry-selector-container-batch .month-btn');
-                    const yearBtns = document.querySelectorAll('#expiry-selector-container-batch .year-btn');
-                    const clearBtn = document.querySelector('#expiry-selector-container-batch .expiry-clear');
-                    const expiryDisplay = document.querySelector('#expiry-selector-container-batch #expiry-display');
-                    
-                    let selectedMonth = null;
-                    let selectedYear = null;
-                    
-                    const updateDisplay = () => {
-                        if (selectedMonth && selectedYear) {
-                            const monthNumber = this.getMonthNumber(selectedMonth);
-                            const displayValue = `${monthNumber}/${selectedYear}`;
-                            if (expiryDisplay) expiryDisplay.textContent = displayValue;
-                            App.state.selectedExpiryBatch = displayValue;
-                        } else {
-                            if (expiryDisplay) expiryDisplay.textContent = '---';
-                            App.state.selectedExpiryBatch = '';
-                        }
-                    };
-                    
-                    monthBtns.forEach(btn => {
-                        btn.onclick = () => {
-                            monthBtns.forEach(b => b.classList.remove('active'));
-                            btn.classList.add('active');
-                            selectedMonth = btn.getAttribute('data-month');
-                            updateDisplay();
-                        };
-                    });
-                    
-                    yearBtns.forEach(btn => {
-                        btn.onclick = () => {
-                            yearBtns.forEach(b => b.classList.remove('active'));
-                            btn.classList.add('active');
-                            selectedYear = btn.getAttribute('data-year');
-                            updateDisplay();
-                        };
-                    });
-                    
-                    if (clearBtn) {
-                        clearBtn.onclick = () => {
-                            selectedMonth = null;
-                            selectedYear = null;
-                            monthBtns.forEach(b => b.classList.remove('active'));
-                            yearBtns.forEach(b => b.classList.remove('active'));
-                            updateDisplay();
-                        };
-                    }
-                },
-                
-                getMonthNumber(monthAbbr) {
-                    const months = { 'JAN': '01', 'FEV': '02', 'MAR': '03', 'ABR': '04', 'MAI': '05', 'JUN': '06', 'JUL': '07', 'AGO': '08', 'SET': '09', 'OUT': '10', 'NOV': '11', 'DEZ': '12' };
-                    return months[monthAbbr] || '01';
-                },
-
-                renderPicking() {
-                    document.getElementById('main-view').innerHTML = `
-                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                            <div class="lg:col-span-5 glass p-8 space-y-4 h-fit">
-                                <h3 class="text-emerald-500 font-black uppercase text-xs">Nova Reposição</h3>
-                                <textarea id="pick-text" class="input-pro w-full h-64 p-4 text-left text-sm" placeholder="Código Qtd (Ex: 87064 10)"></textarea>
-                                <button onclick="App.logic.addPicking()" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase shadow-xl">Processar</button>
-                                <button onclick="App.logic.cleanQueue('active_separation')" class="w-full bg-rose-600/20 text-rose-500 py-3 rounded-xl font-bold uppercase text-[10px]">Limpar</button>
-                            </div>
-                            <div class="lg:col-span-7 glass p-8">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-xs font-black uppercase text-slate-400">Itens</h3>
-                                    <button onclick="App.logic.printPickingList()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase">Imprimir Lista</button>
-                                </div>
-                                <div id="queue-box"></div>
-                            </div>
-                        </div>`;
-                },
-
-                syncQueues() {
-                    if (App.state.activeListener) App.state.activeListener();
-                    const path = App.state.mode === 'labels' ? 'print_queue' : 'active_separation';
-                    App.state.activeListener = onValue(ref(db, path), (s) => this.renderQueueList(s.val()));
-                },
-
-                renderQueueList(data) {
-                    const box = document.getElementById('queue-box');
-                    if (!box) return;
-                    if (!data) { box.innerHTML = '<p class="text-center text-slate-500 py-20 font-bold uppercase text-xs">Vazio</p>'; return; }
-                    const items = Object.entries(data).map(([id, val]) => ({ id, ...val }));
-                    items.sort((a,b) => String(a.rua + a.rck).localeCompare(String(b.rua + b.rck)));
-
-                    if (App.state.mode === 'picking') {
-                        box.innerHTML = items.map(i => `
-                            <div class="simple-list-item">
-                                <div>
-                                    <div class="simple-list-code">${i.codigo}</div>
-                                    <div class="text-[9px] text-slate-400 font-bold uppercase">${Utils.formatCoord(i.rua)}.${Utils.formatCoord(i.rck)}.${i.lin}/${i.col}</div>
-                                    <div class="text-[10px] text-slate-500 truncate w-40">${i.nome}</div>
-                                    <div class="text-[9px] text-slate-400">Físico: ${i.fisico || 0} | Disp: ${i.disponivel || 0}</div>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <div class="simple-list-qty">${i.qtyItems ? 'Q:'+i.qtyItems : i.qty+'x'}</div>
-                                    <button onclick="App.logic.deleteItem('${i.id}')" class="text-rose-500 p-2"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            </div>`).join('');
-                    } else {
-                        box.innerHTML = items.map(i => `
-                            <div class="simple-list-item">
-                                <div>
-                                    <div class="simple-list-code">${i.codigo}</div>
-                                    <div class="text-[9px] text-slate-400 font-bold uppercase">${Utils.formatCoord(i.rua)}.${Utils.formatCoord(i.rck)}.${i.lin}/${i.col}</div>
-                                    <div class="text-[10px] text-slate-500 truncate w-40">${i.nome}</div>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <div class="simple-list-qty">${i.qtyItems ? 'Q:'+i.qtyItems : i.qty+'x'}</div>
-                                    <button onclick="App.logic.deleteItem('${i.id}')" class="text-rose-500 p-2"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            </div>`).join('');
-                    }
-
-                    if (App.state.mode === 'labels' && document.getElementById('queue-foot')) {
-                        document.getElementById('queue-foot').innerHTML = '';
-                    }
-                }
-            },
-
-            logic: {
-                setLabelSubMode(mode) {
-                    App.state.labelSubMode = mode;
-                    App.ui.renderLabels();
-                    App.ui.syncQueues();
-                },
-
-                processLocate(code) {
-                    const search = Utils.cleanId(code);
-                    const p = App.state.inventory.find(i => Utils.cleanId(i.COD) === search);
-                    const res = document.getElementById('result-area');
-                    if (p && code.length >= 3) {
-                        res.innerHTML = `
-                            <div class="w-full space-y-6 animate-in zoom-in duration-300">
-                                <h2 class="text-xl font-black text-white uppercase">${p.NOM}</h2>
-                                <div class="loc-grid">
-                                    <div class="loc-card"><span class="loc-label">Rua</span><div class="loc-value">${Utils.formatCoord(p.RUA)}</div></div>
-                                    <div class="loc-card"><span class="loc-label">Rack</span><div class="loc-value">${Utils.formatCoord(p.RCK)}</div></div>
-                                    <div class="loc-card"><span class="loc-label">Nív</span><div class="loc-value">${p.LIN}</div></div>
-                                    <div class="loc-card"><span class="loc-label">Col</span><div class="loc-value">${p.COL}</div></div>
-                                </div>
-                                <div class="text-blue-500 font-black text-xs uppercase tracking-widest">Estoque: ${p.EST} UN</div>
-                            </div>`;
-                    } else if (code.length >= 3) {
-                        res.innerHTML = `<p class="text-rose-500 font-black text-xl">NÃO ENCONTRADO</p>`;
-                    }
-                },
-
-                lookupProduct(code) {
-                    const search = Utils.cleanId(code);
-                    const p = App.state.inventory.find(i => Utils.cleanId(i.COD) === search);
-                    document.getElementById('etq-name').innerText = p ? p.NOM : (code.length > 5 ? 'AVULSO' : '');
-                },
-
-                async addLabel() {
-                    const code = document.getElementById('etq-in').value;
-                    if (!code) {
-                        Notifications.show('Informe um código', 'info');
-                        return;
-                    }
-                    const p = App.state.inventory.find(i => Utils.cleanId(i.COD) === Utils.cleanId(code)) || { NOM: 'AVULSO' };
-                    const copies = parseInt(document.getElementById('etq-print-qty').value) || 1;
-                    const validity = App.state.selectedExpiry;
-                    
-                    for(let i=0; i<copies; i++) {
-                        await push(ref(db, 'print_queue'), {
-                            codigo: code, nome: p.NOM, val: validity,
-                            qty: 1, qtyItems: document.getElementById('etq-items-qty').value, 
-                            rua: Utils.formatCoord(p.RUA || '-'), rck: Utils.formatCoord(p.RCK || '-'),
-                            lin: p.LIN || '-', col: p.COL || '-'
-                        });
-                    }
-                    Notifications.show(`${copies} etiquetas adicionadas`, 'success');
-                    document.getElementById('etq-in').value = '';
-                    document.getElementById('etq-name').innerText = '';
-                },
-
-                async addLabelBatch() {
-                    const text = document.getElementById('etq-batch').value;
-                    const lines = text.split('\n').filter(l => l.trim());
-                    const validity = App.state.selectedExpiryBatch || '';
-
-                    for (let line of lines) {
-                        const parts = line.trim().split(/\s+/);
-                        const code = parts[0];
-                        const copies = parseInt(parts[1]) || 1;
-                        const search = Utils.cleanId(code);
-                        const p = App.state.inventory.find(i => Utils.cleanId(i.COD) === search) || { NOM: 'AVULSO' };
-
-                        for(let i = 0; i < copies; i++) {
-                            await push(ref(db, 'print_queue'), {
-                                codigo: code,
-                                nome: p.NOM,
-                                val: validity,
-                                qty: 1,
-                                qtyItems: '',
-                                rua: Utils.formatCoord(p.RUA || '-'),
-                                rck: Utils.formatCoord(p.RCK || '-'),
-                                lin: p.LIN || '-',
-                                col: p.COL || '-'
-                            });
-                        }
-                    }
-                    document.getElementById('etq-batch').value = '';
-                    Notifications.show('Lote de etiquetas gerado', 'success');
-                },
-
-                async copyLabelsZPL() {
-                    onValue(ref(db, 'print_queue'), (snap) => {
-                        if (!snap.exists()) return;
-                        const items = Object.values(snap.val());
-                        let zpl = "";
-                        for (let i = 0; i < items.length; i += 2) {
-                            zpl += "^XA^CI28^PW812^LL1218\n";
-                            [0, 600].forEach((yOffset, idx) => {
-                                const it = items[i + idx]; if (!it) return;
-                                const addr = `RUA: ${Utils.sanitizeText(it.rua)} RCK: ${Utils.sanitizeText(it.rck)}   ${it.lin}/ ${it.col}`;
-                                zpl += `^FO20,${yOffset + 20}^A0N,110,100^FD${Utils.cleanId(it.codigo)}^FS\n`;
-                                if (it.val) zpl += `^FO275,${yOffset+10}^GB550,70,100^FS^FO295,${yOffset+18}^A0N,100,95^FR^FDVAL: ${it.val}^FS\n`;
-                                zpl += `^FO20,${yOffset + 150}^A0N,60,60^FB770,2,0,L,0^FD${Utils.sanitizeText(it.nome)}^FS\n`;
-                                zpl += `^FO20,${yOffset + 320}^A0N,45,45^FD${addr}^FS\n`;
-                                if (it.qtyItems) zpl += `^FO580,${yOffset + 320}^A0N,80,80^FDQ:${it.qtyItems}^FS\n`;
-                                zpl += `^BY3,3,180^FO60,${yOffset + 380}^BCN,180,Y,N,N^FD${it.codigo}^FS\n`;
-                            });
-                            zpl += "^XZ\n";
-                        }
-                        navigator.clipboard.writeText(zpl).then(() => Notifications.show('ZPL 2-por-Etiqueta Copiado!', 'success'));
-                    }, { onlyOnce: true });
-                },
-
-                async copyLabelsZPL4Vertical() {
-                    onValue(ref(db, 'print_queue'), (snap) => {
-                        if (!snap.exists()) return;
-                        const items = Object.values(snap.val());
-                        let zpl = "";
-                        const yOffsets = [20, 300, 580, 860];
-
-                        for (let i = 0; i < items.length; i += 4) {
-                            zpl += "^XA^CI28^PW812^LL1218\n";
-                            
-                            yOffsets.forEach((y, idx) => {
-                                const it = items[i + idx];
-                                if (!it) return;
-
-                                const addr = `${Utils.sanitizeText(it.rua)}.${Utils.sanitizeText(it.rck)}.${it.lin}/${it.col}`;
-                                
-                                zpl += `^FO20,${y}^A0N,60,50^FD${Utils.cleanId(it.codigo)}^FS\n`;
-                                if (it.val) zpl += `^FO220,${y-5}^GB240,45,45^FS^FO230,${y}^A0N,40,35^FR^FD${it.val}^FS\n`;
-                                if (it.qtyItems) zpl += `^FO480,${y}^A0N,55,50^FDQ:${it.qtyItems}^FS\n`;
-                                
-                                zpl += `^FO20,${y + 65}^A0N,30,30^FB750,2,0,L,0^FD${Utils.sanitizeText(it.nome)}^FS\n`;
-                                zpl += `^FO20,${y + 130}^A0N,28,28^FD${addr}^FS\n`;
-                                
-                                zpl += `^BY2,3,80^FO60,${y + 170}^BCN,80,Y,N,N^FD${it.codigo}^FS\n`;
-                                
-                                zpl += `^FO10,${y + 275}^GB790,1,1^FS\n`;
-                            });
-
-                            zpl += "^XZ\n";
-                        }
-                        navigator.clipboard.writeText(zpl).then(() => Notifications.show('ZPL 4 produtos por etiqueta copiado!', 'success'));
-                    }, { onlyOnce: true });
-                },
-
-                async addPicking() {
-                    const lines = document.getElementById('pick-text').value.split('\n').filter(l => l.trim());
-                    for (let line of lines) {
-                        const parts = line.trim().split(/\s+/);
-                        const code = parts[0], qty = parts[1] || 1, search = Utils.cleanId(code);
-                        const p = App.state.inventory.find(i => Utils.cleanId(i.COD) === search) || { NOM: 'N/E' };
-                        await push(ref(db, 'active_separation'), { 
-                            codigo: code, nome: p.NOM, qty: qty, 
-                            rua: p.RUA || '-', rck: p.RCK || '-', lin: p.LIN || '-', col: p.COL || '-',
-                            fisico: p.FIS || '0', disponivel: p.EST || '0'
-                        });
-                    }
-                    document.getElementById('pick-text').value = '';
-                    Notifications.show('Lista gerada', 'success');
-                },
-
-                async deleteItem(id) {
-                    const path = App.state.mode === 'labels' ? 'print_queue' : 'active_separation';
-                    await remove(ref(db, `${path}/${id}`));
-                },
-
-                async cleanQueue(path) {
-                    if (confirm('Limpar lista inteira?')) await remove(ref(db, path));
-                },
-
-                printPickingList() {
-                    onValue(ref(db, 'active_separation'), (snap) => {
-                        const items = snap.exists() ? Object.values(snap.val()) : [];
-                        items.sort((a,b) => String(a.rua + a.rck).localeCompare(String(b.rua + b.rck)));
-                        const tbody = document.getElementById('print-table-body');
-                        tbody.innerHTML = items.map(i => `
-                            <tr>
-                                <td>${Utils.formatCoord(i.rua)}.${Utils.formatCoord(i.rck)}.${i.lin}/${i.col}</td>
-                                <td>${i.codigo}</td>
-                                <td>${i.nome}</td>
-                                <td>${i.fisico || 0}</td>
-                                <td>${i.disponivel || 0}</td>
-                                <td>${i.qty}</td>
-                            </tr>
-                        `).join('');
-                        document.getElementById('print-date').innerText = new Date().toLocaleString('pt-BR');
-                        window.print();
-                    }, { onlyOnce: true });
-                },
-
-                fileHandler: {
-                    handleUpload(input) {
-                        const file = input.files[0]; if (!file) return;
-                        const reader = new FileReader();
-                        document.getElementById('loader').classList.remove('hidden');
-                        reader.onload = async (e) => {
-                            const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-                            const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
-                            const data = {};
-                            for (let i = 1; i < rows.length; i++) {
-                                const r = rows[i];
-                                if (r[0]) {
-                                    data[r[0]] = { 
-                                        COD: r[0], NOM: r[1], RUA: Utils.formatCoord(r[4]), 
-                                        RCK: Utils.formatCoord(r[5]), LIN: r[6], COL: r[7], 
-                                        FIS: r[8],
-                                        EST: r[10]
-                                    };
-                                }
-                            }
-                            await set(ref(db, 'master_products'), data);
-                            document.getElementById('loader').classList.add('hidden');
-                            Notifications.show('Banco Atualizado em Tempo Real!', 'success');
-                        };
-                        reader.readAsArrayBuffer(file);
-                    }
-                }
-            }
-        };
-
-        window.addEventListener('DOMContentLoaded', () => {
-            onValue(ref(db, 'master_products'), (snap) => {
-                App.state.inventory = snap.exists() ? Object.values(snap.val()) : [];
-                App.ui.updateDash();
-            });
-            App.ui.setMode('locate');
+    function carregarDadosFirebase() {
+        const estoqueRef = ref(db, 'estoque/');
+        onValue(estoqueRef, (snapshot) => {
+            const dados = snapshot.val() || {};
+            processarDados(dados);
+            mostrarToast('Dashboard atualizado!', 'success');
         });
-    </script>
+    }
+
+    function processarDados(dados) {
+        const produtosPorCodigo = new Map();
+        const itensValidos = Object.entries(dados).filter(([_, item]) => item && item.qtde && item.qtde > 0);
+        
+        for (const [id, item] of itensValidos) {
+            const codigo = item.codigo;
+            if (!codigo) continue;
+            
+            if (!produtosPorCodigo.has(codigo)) {
+                produtosPorCodigo.set(codigo, {
+                    codigo: codigo,
+                    desc: item.desc || 'Sem descrição',
+                    endereco: item.endereco || 'S/E',
+                    temEndereco: item.endereco && item.endereco !== 'S/E' && item.endereco.trim() !== '',
+                    total: 0,
+                    lotes: [],
+                    temPendente: false,
+                    temValidade: false,
+                    temSemVencimento: false,
+                    menorDias: null,
+                    diasSemVenda: 999,
+                    ultimaVenda: null,
+                    historicoCompleto: []
+                });
+            }
+            
+            const prod = produtosPorCodigo.get(codigo);
+            const qtde = Math.round(item.qtde);
+            prod.total += qtde;
+            
+            const isSemVencimento = item.semVencimento === true;
+            const temValidade = !isSemVencimento && item.done === true && item.validade && item.validade !== '' && item.validade !== 'SEM VENCIMENTO';
+            const diasRestantes = temValidade ? calcularDiasRestantes(item.validade) : null;
+            
+            prod.lotes.push({ 
+                id, qtde, validade: item.validade, done: item.done === true,
+                semVencimento: isSemVencimento, diasRestantes, historico: item.historico || []
+            });
+            
+            if (isSemVencimento) {
+                prod.temSemVencimento = true;
+            } else if (temValidade && diasRestantes !== null) {
+                prod.temValidade = true;
+                if (prod.menorDias === null || diasRestantes < prod.menorDias) {
+                    prod.menorDias = diasRestantes;
+                }
+            } else if (!isSemVencimento && !temValidade) {
+                prod.temPendente = true;
+            }
+            
+            if (item.historico && Array.isArray(item.historico)) {
+                prod.historicoCompleto.push(...item.historico);
+            }
+        }
+        
+        for (const prod of produtosPorCodigo.values()) {
+            const vendas = prod.historicoCompleto.filter(h => h && h.tipo === 'venda');
+            if (vendas.length > 0) {
+                const ultimaVenda = Math.max(...vendas.map(v => v.data));
+                prod.ultimaVenda = ultimaVenda;
+                prod.diasSemVenda = Math.floor((Date.now() - ultimaVenda) / 86400000);
+                if (prod.diasSemVenda < 0) prod.diasSemVenda = 0;
+            } else {
+                const importacoes = prod.historicoCompleto.filter(h => h && h.tipo === 'importacao');
+                if (importacoes.length > 0) {
+                    const primeiraImportacao = Math.min(...importacoes.map(i => i.data));
+                    prod.diasSemVenda = Math.floor((Date.now() - primeiraImportacao) / 86400000);
+                }
+                prod.ultimaVenda = null;
+            }
+        }
+        
+        produtosComValidade = Array.from(produtosPorCodigo.values())
+            .filter(p => p.temValidade)
+            .sort((a, b) => {
+                if (a.menorDias === null) return 1;
+                if (b.menorDias === null) return -1;
+                return a.menorDias - b.menorDias;
+            });
+        
+        produtosPendentes = Array.from(produtosPorCodigo.values())
+            .filter(p => p.temPendente && !p.temValidade && !p.temSemVencimento);
+        
+        produtosSemVencimento = Array.from(produtosPorCodigo.values())
+            .filter(p => p.temSemVencimento);
+        
+        todosProdutos = Array.from(produtosPorCodigo.values());
+        
+        atualizarMetricas();
+        renderizarTopCriticos();
+        renderizarTopParados();
+        calcularSaudeEstoque();
+    }
+    
+    function atualizarMetricas() {
+        const totalUnidades = todosProdutos.reduce((acc, p) => acc + p.total, 0);
+        const totalProdutos = todosProdutos.length;
+        const produtosComEndereco = todosProdutos.filter(p => p.temEndereco).length;
+        const produtosSemEndereco = totalProdutos - produtosComEndereco;
+        const percentEndereco = totalProdutos > 0 ? Math.round((produtosComEndereco / totalProdutos) * 100) : 0;
+        const pendentes = produtosPendentes.length;
+        const parados30 = todosProdutos.filter(p => p.diasSemVenda >= 30 && p.diasSemVenda < 999).length;
+        const parados90 = todosProdutos.filter(p => p.diasSemVenda >= 90 && p.diasSemVenda < 999).length;
+        const vencidos = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias < 0).length;
+        const criticos = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 60).length;
+        
+        document.getElementById('total-estoque').innerText = Math.round(totalUnidades);
+        document.getElementById('total-produtos').innerText = totalProdutos;
+        document.getElementById('total-com-endereco').innerText = produtosComEndereco;
+        document.getElementById('total-sem-endereco').innerText = produtosSemEndereco;
+        document.getElementById('total-endereco-percent').innerText = percentEndereco + '%';
+        document.getElementById('total-pendentes').innerText = pendentes;
+        document.getElementById('total-parados30').innerText = parados30;
+        document.getElementById('total-parados90').innerText = parados90;
+        document.getElementById('total-vencidos').innerText = vencidos;
+        document.getElementById('total-criticos').innerText = criticos;
+    }
+    
+    function calcularSaudeEstoque() {
+        const categorias = { excellent: 0, good: 0, fair: 0, poor: 0, critical: 0 };
+        
+        for (const produto of produtosComValidade) {
+            const dias = produto.menorDias;
+            if (dias !== null) {
+                if (dias < 0) categorias.critical += produto.total;
+                else if (dias <= 30) categorias.critical += produto.total;
+                else if (dias <= 90) categorias.poor += produto.total;
+                else if (dias <= 180) categorias.fair += produto.total;
+                else if (dias <= 365) categorias.good += produto.total;
+                else categorias.excellent += produto.total;
+            }
+        }
+        
+        const total = categorias.excellent + categorias.good + categorias.fair + categorias.poor + categorias.critical;
+        
+        if (total > 0) {
+            const pctExc = (categorias.excellent / total * 100).toFixed(1);
+            const pctGood = (categorias.good / total * 100).toFixed(1);
+            const pctFair = (categorias.fair / total * 100).toFixed(1);
+            const pctPoor = (categorias.poor / total * 100).toFixed(1);
+            const pctCrit = (categorias.critical / total * 100).toFixed(1);
+            
+            document.getElementById('healthExcellent').style.width = pctExc + '%';
+            document.getElementById('healthExcellent').innerText = pctExc + '%';
+            document.getElementById('healthGood').style.width = pctGood + '%';
+            document.getElementById('healthGood').innerText = pctGood + '%';
+            document.getElementById('healthFair').style.width = pctFair + '%';
+            document.getElementById('healthFair').innerText = pctFair + '%';
+            document.getElementById('healthPoor').style.width = pctPoor + '%';
+            document.getElementById('healthPoor').innerText = pctPoor + '%';
+            document.getElementById('healthCritical').style.width = pctCrit + '%';
+            document.getElementById('healthCritical').innerText = pctCrit + '%';
+            
+            const score = (categorias.excellent * 100 + categorias.good * 80 + categorias.fair * 60 + categorias.poor * 30 + categorias.critical * 10) / total;
+            document.getElementById('healthScore').innerText = Math.round(score);
+        } else {
+            document.getElementById('healthScore').innerText = '0';
+        }
+    }
+    
+    function renderizarTopCriticos() {
+        const topList = document.getElementById('topCriticos');
+        const criticos = produtosComValidade
+            .filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 60)
+            .sort((a, b) => a.menorDias - b.menorDias)
+            .slice(0, 10);
+        
+        if (criticos.length > 0) {
+            topList.innerHTML = criticos.map((p, index) => {
+                const percent = ((60 - p.menorDias) / 60) * 100;
+                return `<div class="top-item" onclick="abrirModalProduto('${p.codigo}')">
+                    <div class="top-position">${index + 1}</div>
+                    <div class="top-info">
+                        <h4>${p.desc.substring(0, 40)}${p.desc.length > 40 ? '...' : ''}</h4>
+                        <p>Cód: ${p.codigo} • ${Math.round(p.total)} un • ${p.endereco}</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${percent}%; background: var(--danger);"></div>
+                        </div>
+                    </div>
+                    <div class="top-value">${p.menorDias} dias</div>
+                </div>`;
+            }).join('');
+        } else {
+            topList.innerHTML = '<div class="empty">Nenhum produto crítico</div>';
+        }
+    }
+    
+    function renderizarTopParados() {
+        const topList = document.getElementById('topParados');
+        const parados = todosProdutos
+            .filter(p => p.diasSemVenda >= 30 && p.diasSemVenda < 999)
+            .sort((a, b) => b.diasSemVenda - a.diasSemVenda)
+            .slice(0, 10);
+        
+        if (parados.length > 0) {
+            topList.innerHTML = parados.map((p, index) => {
+                let corStatus = '';
+                if (p.diasSemVenda >= 90) corStatus = 'var(--danger)';
+                else if (p.diasSemVenda >= 60) corStatus = 'var(--warning)';
+                else corStatus = 'var(--sem-mov-30)';
+                
+                const percent = Math.min(100, (p.diasSemVenda / 180) * 100);
+                return `<div class="top-item" onclick="abrirModalProduto('${p.codigo}')">
+                    <div class="top-position">${index + 1}</div>
+                    <div class="top-info">
+                        <h4>${p.desc.substring(0, 40)}${p.desc.length > 40 ? '...' : ''}</h4>
+                        <p>Cód: ${p.codigo} • ${Math.round(p.total)} un • ${p.endereco}</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${percent}%; background: ${corStatus};"></div>
+                        </div>
+                    </div>
+                    <div class="top-value" style="color: ${corStatus};">${p.diasSemVenda} dias</div>
+                </div>`;
+            }).join('');
+        } else {
+            topList.innerHTML = '<div class="empty">Nenhum produto parado há mais de 30 dias</div>';
+        }
+    }
+    
+    window.mostrarListaProdutos = (tipo) => {
+        let titulo = '', lista = [], classe = '';
+        switch(tipo) {
+            case 'vencido': 
+                titulo = 'Produtos Vencidos'; 
+                lista = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias < 0); 
+                classe = 'vencido'; 
+                break;
+            case 'critico': 
+                titulo = 'Produtos Críticos (≤60 dias para vencer)'; 
+                lista = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 60)
+                    .sort((a, b) => a.menorDias - b.menorDias); 
+                classe = 'critico'; 
+                break;
+            case 'pendente': 
+                titulo = 'Produtos Pendentes (sem validade)'; 
+                lista = produtosPendentes; 
+                classe = 'pendente'; 
+                break;
+            case 'parado30': 
+                titulo = 'Produtos Parados 30d+'; 
+                lista = todosProdutos.filter(p => p.diasSemVenda >= 30 && p.diasSemVenda < 999)
+                    .sort((a, b) => b.diasSemVenda - a.diasSemVenda); 
+                classe = 'parado30'; 
+                break;
+            case 'parado90': 
+                titulo = 'Produtos Parados 90d+'; 
+                lista = todosProdutos.filter(p => p.diasSemVenda >= 90 && p.diasSemVenda < 999)
+                    .sort((a, b) => b.diasSemVenda - a.diasSemVenda); 
+                classe = 'parado90'; 
+                break;
+            case 'com-endereco': 
+                titulo = 'Produtos com Endereço'; 
+                lista = todosProdutos.filter(p => p.temEndereco); 
+                classe = 'normal'; 
+                break;
+            case 'sem-endereco': 
+                titulo = 'Produtos sem Endereço'; 
+                lista = todosProdutos.filter(p => !p.temEndereco); 
+                classe = 'sem-endereco'; 
+                break;
+            default: return;
+        }
+        
+        document.getElementById('modalListaTitulo').innerText = titulo;
+        if (lista.length > 0) {
+            document.getElementById('modalListaBody').innerHTML = lista.map(p => {
+                let infoExtra = '';
+                if (p.menorDias !== null) {
+                    infoExtra = p.menorDias < 0 ? ' • VENCIDO' : ' • ' + p.menorDias + ' dias';
+                } else if (p.temSemVencimento) {
+                    infoExtra = ' • ♾️ SEM VENCIMENTO';
+                } else if (p.diasSemVenda < 999) {
+                    infoExtra = ' • ' + p.diasSemVenda + ' dias parado';
+                }
+                let classeItem = '';
+                if (p.menorDias !== null) {
+                    if (p.menorDias < 0) classeItem = 'vencido';
+                    else if (p.menorDias <= 60) classeItem = 'critico';
+                } else if (p.temSemVencimento) {
+                    classeItem = 'sem-vencimento';
+                } else {
+                    classeItem = classe;
+                }
+                return `<div class="produto-item-modal ${classeItem}" onclick="abrirModalProduto('${p.codigo}')">
+                    <h4>${p.desc.substring(0, 50)}${p.desc.length > 50 ? '...' : ''}</h4>
+                    <p>Cód: ${p.codigo} • ${Math.round(p.total)} un • ${p.endereco}${infoExtra}</p>
+                </div>`;
+            }).join('');
+        } else {
+            document.getElementById('modalListaBody').innerHTML = '<div class="empty">Nenhum produto encontrado</div>';
+        }
+        document.getElementById('modalLista').style.display = 'flex';
+    };
+    
+    window.fecharModalLista = () => { 
+        document.getElementById('modalLista').style.display = 'none'; 
+    };
+    
+    window.abrirModalProduto = (codigo) => {
+        let produto = todosProdutos.find(p => p.codigo === codigo);
+        if (!produto) produto = produtosComValidade.find(p => p.codigo === codigo);
+        if (!produto) produto = produtosPendentes.find(p => p.codigo === codigo);
+        if (!produto) produto = produtosSemVencimento.find(p => p.codigo === codigo);
+        if (!produto) { 
+            mostrarToast('Produto não encontrado', 'error'); 
+            return; 
+        }
+        
+        document.getElementById('modalProdutoTitulo').innerText = produto.desc;
+        
+        const hoje = new Date(); 
+        hoje.setHours(0, 0, 0, 0);
+        
+        const lotesComValidade = produto.lotes.filter(l => l.done && l.validade && !l.semVencimento);
+        const lotesSemVencimento = produto.lotes.filter(l => l.semVencimento === true);
+        
+        const lotesAgrupados = new Map();
+        for (const lote of lotesComValidade) {
+            if (!lotesAgrupados.has(lote.validade)) lotesAgrupados.set(lote.validade, { qtde: 0, semVencimento: false });
+            lotesAgrupados.get(lote.validade).qtde += lote.qtde;
+        }
+        
+        for (const lote of lotesSemVencimento) {
+            const key = "SEM VENCIMENTO";
+            if (!lotesAgrupados.has(key)) lotesAgrupados.set(key, { qtde: 0, semVencimento: true });
+            lotesAgrupados.get(key).qtde += lote.qtde;
+        }
+        
+        const historicoOrdenado = [...produto.historicoCompleto]
+            .sort((a, b) => b.data - a.data)
+            .slice(0, 20);
+        
+        let statusText = '', statusColor = '';
+        if (produto.menorDias !== null) {
+            if (produto.menorDias < 0) { 
+                statusText = 'VENCIDO'; 
+                statusColor = 'var(--expired)'; 
+            } else if (produto.menorDias <= 60) { 
+                statusText = `${produto.menorDias} dias restantes (CRÍTICO)`; 
+                statusColor = 'var(--danger)'; 
+            } else { 
+                statusText = `${produto.menorDias} dias restantes`; 
+                statusColor = 'var(--success)'; 
+            }
+        } else if (produto.temSemVencimento) { 
+            statusText = '♾️ SEM VENCIMENTO'; 
+            statusColor = 'var(--info)'; 
+        } else if (produto.temPendente) { 
+            statusText = 'PENDENTE (sem validade)'; 
+            statusColor = 'var(--warning)'; 
+        }
+        
+        const diasSemVendaText = produto.diasSemVenda >= 999 ? 'Nunca' : produto.diasSemVenda + ' dias';
+        
+        document.getElementById('modalProdutoBody').innerHTML = `
+            <div style="background: var(--bg-primary); border-radius: 16px; padding: 15px; margin-bottom: 20px;">
+                <p><strong>Código:</strong> ${produto.codigo}</p>
+                <p><strong>Localização:</strong> ${produto.endereco}</p>
+                <p><strong>Total em estoque:</strong> ${Math.round(produto.total)} unidades</p>
+                <p><strong>Status:</strong> <span style="color: ${statusColor};">${statusText}</span></p>
+                <p><strong>Dias sem venda:</strong> ${diasSemVendaText}</p>
+                ${produto.ultimaVenda ? `<p><strong>Última venda:</strong> ${new Date(produto.ultimaVenda).toLocaleDateString('pt-BR')}</p>` : ''}
+            </div>
+            
+            ${lotesAgrupados.size > 0 ? `
+                <div style="font-weight: 600; margin-bottom: 10px;">📦 Lotes:</div>
+                ${Array.from(lotesAgrupados.entries())
+                    .sort((a, b) => {
+                        if (a[0] === 'SEM VENCIMENTO') return 1;
+                        if (b[0] === 'SEM VENCIMENTO') return -1;
+                        const dataA = new Date(a[0].split('/').reverse().join('-'));
+                        const dataB = new Date(b[0].split('/').reverse().join('-'));
+                        return dataA - dataB;
+                    })
+                    .map(([validade, info]) => {
+                        let cor = '';
+                        let displayValidade = validade;
+                        if (!info.semVencimento) {
+                            const diff = calcularDiasRestantes(validade);
+                            if (diff !== null) { 
+                                if (diff < 0) cor = 'var(--expired)'; 
+                                else if (diff <= 60) cor = 'var(--danger)'; 
+                                else cor = 'var(--success)'; 
+                            }
+                            return `<div class="lote-row">
+                                <span style="font-weight: 700;">📅 ${displayValidade}</span>
+                                <span>${Math.round(info.qtde)} un</span>
+                                <span style="color: ${cor};">${diff} dias</span>
+                            </div>`;
+                        } else {
+                            return `<div class="lote-row">
+                                <span style="font-weight: 700;">♾️ SEM VENCIMENTO</span>
+                                <span>${Math.round(info.qtde)} un</span>
+                                <span style="color: var(--info);">Sem vencimento</span>
+                            </div>`;
+                        }
+                    }).join('')}
+            ` : (produto.temPendente ? `
+                <div style="background: var(--bg-primary); border-radius: 16px; padding: 15px; text-align: center;">
+                    <i class="fas fa-hourglass-half" style="color: var(--warning); font-size: 1.5rem;"></i>
+                    <p>Produto pendente de validade.</p>
+                </div>
+            ` : '<div style="text-align:center; padding:15px;">Nenhum lote encontrado</div>')}
+            
+            ${historicoOrdenado.length > 0 ? `
+                <div style="font-weight: 600; margin: 15px 0 10px;">📊 Histórico recente:</div>
+                ${historicoOrdenado.map(h => {
+                    const data = new Date(h.data).toLocaleDateString('pt-BR');
+                    const tipo = h.tipo === 'venda' ? 'Venda' : (h.tipo === 'reposicao' ? 'Reposição' : (h.tipo === 'validade_atribuida' ? 'Validade' : 'Importação'));
+                    const sinal = h.tipo === 'venda' ? '▼' : (h.tipo === 'reposicao' ? '▲' : '•');
+                    const classe = h.tipo === 'venda' ? 'negativo' : (h.tipo === 'reposicao' ? 'positivo' : '');
+                    return `<div class="historico-row">
+                        <span>${data}</span>
+                        <span>${tipo}</span>
+                        <span class="${classe}">${sinal} ${Math.abs(Math.round(h.quantidade || 0))} un</span>
+                    </div>`;
+                }).join('')}
+            ` : '<div style="text-align:center; padding:15px;">Sem histórico disponível</div>'}
+        `;
+        
+        document.getElementById('modalProduto').style.display = 'flex';
+    };
+    
+    window.fecharModalProduto = () => { 
+        document.getElementById('modalProduto').style.display = 'none'; 
+    };
+    
+    window.carregarDados = () => { 
+        mostrarToast('Recarregando dados...', 'info'); 
+        carregarDadosFirebase(); 
+    };
+    
+    window.exportarPDF = async () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(18); 
+        doc.text('Relatório de Estoque - Dashboard', 20, 20);
+        doc.setFontSize(10); 
+        doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 20, 30);
+        doc.setFontSize(12); 
+        doc.text('Resumo do Estoque:', 20, 45); 
+        doc.setFontSize(10);
+        
+        const totalEstoque = document.getElementById('total-estoque')?.innerText || 0;
+        const totalProdutos = document.getElementById('total-produtos')?.innerText || 0;
+        const totalComEndereco = document.getElementById('total-com-endereco')?.innerText || 0;
+        const totalSemEndereco = document.getElementById('total-sem-endereco')?.innerText || 0;
+        const totalPendentes = document.getElementById('total-pendentes')?.innerText || 0;
+        const totalVencidos = document.getElementById('total-vencidos')?.innerText || 0;
+        const totalCriticos = document.getElementById('total-criticos')?.innerText || 0;
+        const totalParados30 = document.getElementById('total-parados30')?.innerText || 0;
+        const totalParados90 = document.getElementById('total-parados90')?.innerText || 0;
+        
+        doc.text(`Total em estoque: ${totalEstoque} unidades`, 25, 55);
+        doc.text(`Produtos distintos: ${totalProdutos} SKUs`, 25, 62);
+        doc.text(`Com endereço: ${totalComEndereco} | Sem endereço: ${totalSemEndereco}`, 25, 69);
+        doc.text(`Pendentes: ${totalPendentes}`, 25, 76);
+        doc.text(`Vencidos: ${totalVencidos} | Críticos (≤60d): ${totalCriticos}`, 25, 83);
+        doc.text(`Parados 30d+: ${totalParados30} | Parados 90d+: ${totalParados90}`, 25, 90);
+        
+        let y = 110;
+        
+        const criticos = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 60).slice(0, 10);
+        if (criticos.length > 0) {
+            doc.setFontSize(11);
+            doc.text('Top 10 - Mais Críticos (≤60 dias):', 20, y);
+            y += 7;
+            criticos.forEach((p, i) => {
+                if (y > 270) { doc.addPage(); y = 20; }
+                doc.setFontSize(8);
+                doc.text(`${i+1}. ${p.desc.substring(0, 35)} - ${p.menorDias}d`, 25, y);
+                y += 5;
+            });
+            y += 5;
+        }
+        
+        const parados = todosProdutos.filter(p => p.diasSemVenda >= 30 && p.diasSemVenda < 999).slice(0, 10);
+        if (parados.length > 0) {
+            doc.setFontSize(11);
+            doc.text('Top 10 - Mais Parados:', 20, y);
+            y += 7;
+            parados.forEach((p, i) => {
+                if (y > 270) { doc.addPage(); y = 20; }
+                doc.setFontSize(8);
+                doc.text(`${i+1}. ${p.desc.substring(0, 35)} - ${p.diasSemVenda}d sem venda`, 25, y);
+                y += 5;
+            });
+        }
+        
+        doc.save('dashboard_estoque.pdf');
+        mostrarToast('PDF gerado com sucesso!', 'success');
+    };
+    
+    window.exportarRelatorioCompleto = () => {
+        let csv = "Categoria;Código;Descrição;Endereço;Quantidade;DiasRestantes;DiasSemVenda;UltimaVenda\n";
+        for (const produto of todosProdutos) {
+            let categoria = '';
+            if (produto.menorDias !== null) {
+                if (produto.menorDias < 0) categoria = 'Vencido';
+                else if (produto.menorDias <= 60) categoria = 'Crítico (≤60d)';
+                else if (produto.menorDias <= 180) categoria = '6 meses';
+                else if (produto.menorDias <= 365) categoria = 'Normal';
+                else categoria = 'Longa duração';
+            } else if (produto.temSemVencimento) {
+                categoria = 'Sem Vencimento';
+            } else if (produto.temPendente) {
+                categoria = 'Pendente';
+            } else {
+                categoria = 'Sem informação';
+            }
+            const diasRestantes = produto.menorDias !== null ? produto.menorDias : 'N/A';
+            const diasSemVenda = produto.diasSemVenda >= 999 ? 'Nunca' : produto.diasSemVenda;
+            const ultimaVenda = produto.ultimaVenda ? new Date(produto.ultimaVenda).toLocaleDateString('pt-BR') : 'Nunca';
+            csv += `${categoria};${produto.codigo};${produto.desc};${produto.endereco};${Math.round(produto.total)};${diasRestantes};${diasSemVenda};${ultimaVenda}\n`;
+        }
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `dashboard_completo_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        mostrarToast('CSV exportado!', 'success');
+    };
+    
+    carregarDadosFirebase();
+</script>
+
+<style>
+    .hide-mobile { display: inline; }
+    @media (max-width: 768px) { 
+        .hide-mobile { display: none; } 
+        .header-actions button { padding: 10px; } 
+    }
+    .negativo { color: var(--danger); font-weight: 600; }
+    .positivo { color: var(--success); font-weight: 600; }
+</style>
 </body>
 </html>
