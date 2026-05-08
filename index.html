@@ -2,15 +2,12 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gestão de Validades | Controle de Estoque</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Validades | Controle de Estoque</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         * {
@@ -34,6 +31,20 @@
             --info: #3b82f6;
             --border: #e5e7eb;
             --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --expired: #991b1b;
+            --critical: #dc2626;
+            --alerta: #f59e0b;
+            --attention: #d97706;
+            --six-months: #3b82f6;
+            --sem-mov-30: #fbbf24;
+            --sem-mov-90: #ef4444;
+            --health-excellent: #10b981;
+            --health-good: #34d399;
+            --health-fair: #fbbf24;
+            --health-poor: #f97316;
+            --health-critical: #ef4444;
+            --inconsistencia: #f97316;
+            --inconsistencia-bg: #fff7ed;
         }
 
         .dark-mode {
@@ -45,508 +56,482 @@
             --accent-hover: #4f46e5;
             --border: #374151;
             --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+            --inconsistencia-bg: #431407;
         }
 
         body {
             background: var(--bg-primary);
             color: var(--text-primary);
-            padding: 20px;
+            padding: 24px;
+            min-height: 100vh;
             transition: all 0.3s ease;
         }
 
         .container {
-            max-width: 700px;
+            max-width: 1800px;
             margin: 0 auto;
         }
 
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            pointer-events: none;
-        }
-
-        .toast {
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            padding: 16px 20px;
-            box-shadow: var(--card-shadow);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 280px;
-            max-width: 380px;
-            animation: slideIn 0.3s ease forwards;
-            border-left: 4px solid;
-            pointer-events: auto;
-            color: var(--text-primary);
-        }
-
-        .toast.success { border-left-color: var(--success); }
-        .toast.error { border-left-color: var(--danger); }
-        .toast.warning { border-left-color: var(--warning); }
-        .toast.info { border-left-color: var(--accent); }
-
-        .toast-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
-        .toast.success .toast-icon { background: var(--success); color: white; }
-        .toast.error .toast-icon { background: var(--danger); color: white; }
-        .toast.warning .toast-icon { background: var(--warning); color: white; }
-        .toast.info .toast-icon { background: var(--accent); color: white; }
-
-        .toast-content {
-            flex: 1;
-            font-size: 0.9rem;
-            font-weight: 500;
-            word-break: break-word;
-        }
-
-        .toast-close {
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-
-        .toast.fade-out {
-            animation: slideOut 0.3s ease forwards;
-        }
-
-        .header {
-            background: var(--bg-secondary);
-            border-radius: 24px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--card-shadow);
+        header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 30px;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 20px;
+            background: var(--bg-secondary);
+            padding: 20px 30px;
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
         }
 
-        .header h1 {
-            font-size: 1.4rem;
+        .logo h1 {
+            font-size: 1.8rem;
             font-weight: 800;
+            letter-spacing: -1px;
             background: linear-gradient(135deg, var(--accent), #7c3aed);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .header-actions {
-            display: flex;
-            gap: 10px;
+        .logo p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-top: 5px;
         }
 
-        .theme-toggle, .export-btn {
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .live-status {
+            background: var(--bg-primary);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .theme-toggle, .export-btn, .refresh-btn, .pdf-btn {
             background: var(--bg-primary);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 10px 14px;
+            padding: 10px 15px;
             cursor: pointer;
             color: var(--text-primary);
             transition: all 0.2s;
             font-size: 0.9rem;
-        }
-
-        .theme-toggle:hover, .export-btn:hover {
-            background: var(--accent);
-            color: white;
-        }
-
-        .upload-card {
-            background: var(--bg-secondary);
-            border-radius: 24px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: var(--card-shadow);
-        }
-
-        .upload-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .upload-area {
-            border: 2px dashed var(--border);
-            border-radius: 20px;
-            padding: 35px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-bottom: 20px;
-        }
-
-        .upload-area:hover {
-            border-color: var(--accent);
-            background: rgba(79, 70, 229, 0.05);
-        }
-
-        .upload-area i {
-            font-size: 2.5rem;
-            display: block;
-            margin-bottom: 10px;
-            color: var(--accent);
-        }
-
-        .upload-area span {
-            font-weight: 600;
-            color: var(--accent);
-        }
-
-        .upload-area small {
-            display: block;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            margin-top: 8px;
-        }
-
-        .upload-status {
-            font-size: 0.85rem;
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        .upload-status.success { color: var(--success); }
-        .upload-status.error { color: var(--danger); }
-        .upload-status.info { color: var(--accent); }
-
-        .upload-detalhes {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            text-align: center;
-            margin-top: 8px;
-        }
-
-        .search-box {
-            background: var(--bg-secondary);
-            border-radius: 20px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-        }
-
-        .search-label {
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .input-group input {
-            flex: 1;
-            min-width: 200px;
-            padding: 14px 16px;
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            font-size: 1rem;
-            outline: none;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            inputmode: numeric;
-            pattern: "[0-9]*";
-        }
-
-        .input-group input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        .btn-search {
+        .theme-toggle:hover, .export-btn:hover, .refresh-btn:hover, .pdf-btn:hover {
             background: var(--accent);
             color: white;
-            border: none;
-            padding: 0 24px;
-            border-radius: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            height: 50px;
+            border-color: var(--accent);
         }
 
-        .btn-search:hover {
-            background: var(--accent-hover);
-            transform: scale(1.02);
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
         }
 
-        .dica-enter {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            margin-top: 8px;
-            text-align: center;
-        }
-
-        .status-bar {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .status-card {
+        .health-section {
             background: var(--bg-secondary);
-            border-radius: 16px;
-            padding: 15px;
-            text-align: center;
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
+        }
+
+        .health-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .health-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .health-title h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .health-score-container {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+            background: var(--bg-primary);
+            padding: 10px 20px;
+            border-radius: 20px;
+        }
+
+        .health-score {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .health-score-label {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .health-bar-container {
+            height: 30px;
+            background: var(--bg-primary);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: flex;
+        }
+
+        .health-segment {
+            height: 100%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .health-segment.excellent { background: var(--health-excellent); }
+        .health-segment.good { background: var(--health-good); }
+        .health-segment.fair { background: var(--health-fair); }
+        .health-segment.poor { background: var(--health-poor); }
+        .health-segment.critical { background: var(--health-critical); }
+
+        .health-legend {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+        }
+
+        .legend-color.excellent { background: var(--health-excellent); }
+        .legend-color.good { background: var(--health-good); }
+        .legend-color.fair { background: var(--health-fair); }
+        .legend-color.poor { background: var(--health-poor); }
+        .legend-color.critical { background: var(--health-critical); }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
             border: 1px solid var(--border);
             transition: transform 0.2s;
         }
 
-        .status-card:hover {
-            transform: translateY(-2px);
+        .metric-card.clickable {
+            cursor: pointer;
         }
 
-        .status-card b {
-            display: block;
-            font-size: 1.6rem;
+        .metric-card.clickable:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -8px rgba(0,0,0,0.2);
+        }
+
+        .metric-card .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .metric-card .value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 5px;
+        }
+
+        .metric-card .sub {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        /* CARDS UNIFICADOS */
+        .unificado-card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .unificado-linha {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 10px;
+        }
+
+        .unificado-linha:hover {
+            transform: scale(1.02);
+        }
+
+        .unificado-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .unificado-valor {
+            font-size: 1.4rem;
             font-weight: 800;
             line-height: 1.2;
         }
 
-        .status-card small {
-            color: var(--text-secondary);
+        .unificado-rotulo {
             font-size: 0.7rem;
-            font-weight: 600;
             text-transform: uppercase;
-        }
-
-        .filter-section {
-            background: var(--bg-secondary);
-            border-radius: 16px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-        }
-
-        .filter-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .filter-info span {
             font-weight: 600;
-            color: var(--accent);
-        }
-
-        .filtros-rapidos {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .filtro-btn {
-            padding: 10px 20px;
-            border: 1px solid var(--border);
-            background: var(--bg-primary);
-            border-radius: 30px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            color: var(--text-primary);
-        }
-
-        .filtro-btn.active {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-
-        .filtro-btn.novo {
-            background: var(--info);
-            color: white;
-            border-color: var(--info);
-        }
-
-        .filtro-btn:hover {
-            background: var(--accent);
-            color: white;
-        }
-
-        .ordenar-select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            font-weight: 500;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-
-        .produtos-list {
-            margin-bottom: 20px;
-        }
-
-        .list-title {
-            font-weight: 700;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .list-title span {
             color: var(--text-secondary);
-            font-size: 0.85rem;
         }
 
-        .produto-item {
+        .unificado-icon {
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+
+        /* LINHAS DO CARD VALIDADE */
+        .unificado-linha.critico {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid var(--danger);
+        }
+        .unificado-linha.critico .unificado-valor { color: var(--danger); }
+        .unificado-linha.critico .unificado-icon { color: var(--danger); }
+
+        .unificado-linha.alerta {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 3px solid var(--alerta);
+        }
+        .unificado-linha.alerta .unificado-valor { color: var(--alerta); }
+        .unificado-linha.alerta .unificado-icon { color: var(--alerta); }
+
+        /* LINHAS DO CARD PARADOS */
+        .unificado-linha.parado30 {
+            background: rgba(251, 191, 36, 0.1);
+            border-left: 3px solid var(--sem-mov-30);
+        }
+        .unificado-linha.parado30 .unificado-valor { color: var(--sem-mov-30); }
+        .unificado-linha.parado30 .unificado-icon { color: var(--sem-mov-30); }
+
+        .unificado-linha.parado90 {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid var(--sem-mov-90);
+        }
+        .unificado-linha.parado90 .unificado-valor { color: var(--sem-mov-90); }
+        .unificado-linha.parado90 .unificado-icon { color: var(--sem-mov-90); }
+
+        /* LINHAS DO CARD PRODUTOS (Distintos + Pendentes) */
+        .unificado-linha.distintos {
+            background: rgba(79, 70, 229, 0.05);
+            border-left: 3px solid var(--accent);
+        }
+        .unificado-linha.distintos .unificado-valor { color: var(--accent); }
+        .unificado-linha.distintos .unificado-icon { color: var(--accent); }
+
+        .unificado-linha.pendente {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 3px solid var(--warning);
+        }
+        .unificado-linha.pendente .unificado-valor { color: var(--warning); }
+        .unificado-linha.pendente .unificado-icon { color: var(--warning); }
+
+        .metric-card.vencido .value { color: var(--expired); }
+        .metric-card.inconsistente .value { color: var(--inconsistencia); }
+
+        .top-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .top-card {
             background: var(--bg-secondary);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
+            border-radius: 24px;
+            padding: 20px;
             border: 1px solid var(--border);
-            cursor: pointer;
-            transition: all 0.2s;
-            border-left: 4px solid;
-        }
-
-        .produto-item:hover {
-            transform: translateY(-2px);
             box-shadow: var(--card-shadow);
         }
 
-        .produto-item.pendente { border-left-color: var(--warning); }
-        .produto-item.concluido { border-left-color: var(--success); opacity: 0.85; }
-        .produto-item.sem-vencimento { border-left-color: var(--info); }
-        .produto-item.novo { border-left-color: var(--info); background: rgba(59, 130, 246, 0.05); }
-
-        .produto-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .produto-codigo {
-            font-weight: 800;
-            font-size: 0.95rem;
+        .top-card h3 {
+            font-size: 1rem;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .produto-status {
-            font-size: 0.65rem;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 30px;
-            white-space: nowrap;
+        .top-card.criticos h3 { color: var(--danger); }
+        .top-card.parados h3 { color: var(--warning); }
+
+        .top-list {
+            display: grid;
+            gap: 10px;
         }
 
-        .status-pendente { background: #fef3c7; color: var(--warning); }
-        .status-concluido { background: #d1fae5; color: var(--success); }
-        .status-sem-vencimento { background: #dbeafe; color: var(--info); }
-        .status-novo { background: #dbeafe; color: var(--info); }
-
-        .produto-desc {
-            font-size: 0.85rem;
-            margin-bottom: 12px;
-            word-break: break-word;
-            color: var(--text-primary);
-        }
-
-        .produto-detalhes {
-            display: flex;
-            gap: 15px;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-        }
-
-        .produto-endereco {
+        .top-item {
             display: flex;
             align-items: center;
-            gap: 4px;
-            font-size: 0.7rem;
-            color: var(--accent);
-            font-weight: 600;
-            margin-bottom: 8px;
-            background: rgba(79, 70, 229, 0.1);
-            padding: 4px 8px;
-            border-radius: 8px;
-            display: inline-flex;
-            width: fit-content;
-            font-family: monospace;
-            letter-spacing: 0.5px;
-        }
-
-        .badge-novo {
-            background: var(--info);
-            color: white;
-            padding: 2px 8px;
+            gap: 12px;
+            padding: 10px;
+            background: var(--bg-primary);
             border-radius: 12px;
-            font-size: 0.65rem;
-            font-weight: 600;
-            margin-left: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .top-item:hover {
+            transform: translateX(5px);
+            background: var(--accent);
+            color: white;
+        }
+
+        .top-position {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .top-card.criticos .top-position { background: var(--danger); color: white; }
+        .top-card.parados .top-position { background: var(--warning); color: white; }
+
+        .top-item:hover .top-position {
+            background: white;
+            color: var(--accent);
+        }
+
+        .top-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .top-info h4 {
+            font-size: 0.85rem;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .top-info p {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .top-item:hover .top-info p {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .top-value {
+            font-weight: 800;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background: var(--border);
+            border-radius: 4px;
+            margin-top: 4px;
+            height: 4px;
+        }
+
+        .progress-fill {
+            border-radius: 4px;
+            height: 4px;
         }
 
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             background: rgba(0,0,0,0.5);
-            z-index: 2000;
+            backdrop-filter: blur(4px);
+            z-index: 1000;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(4px);
             padding: 20px;
         }
 
         .modal-content {
             background: var(--bg-secondary);
-            border-radius: 32px;
-            width: 100%;
+            width: 90%;
             max-width: 500px;
-            max-height: 90vh;
+            max-height: 80vh;
             overflow-y: auto;
-            padding: 25px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+            padding: 30px;
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
         }
 
         .modal-header {
@@ -560,8 +545,6 @@
         .modal-header h2 {
             font-size: 1.2rem;
             font-weight: 800;
-            word-break: break-word;
-            flex: 1;
         }
 
         .modal-close {
@@ -572,9 +555,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             cursor: pointer;
-            transition: all 0.2s;
             flex-shrink: 0;
         }
 
@@ -583,250 +565,157 @@
             color: white;
         }
 
-        .modal-info {
-            background: var(--bg-primary);
-            border-radius: 16px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .modal-info p {
-            margin: 8px 0;
+        .produto-lista-modal {
             display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
+            flex-direction: column;
             gap: 10px;
-            font-size: 0.85rem;
+            margin-top: 15px;
         }
 
-        .chart-container {
-            margin: 15px 0;
-            padding: 15px;
+        .produto-item-modal {
             background: var(--bg-primary);
-            border-radius: 16px;
-            height: 180px;
-            position: relative;
-        }
-
-        #graficoVendas {
-            width: 100%;
-            height: 100%;
-        }
-
-        .grafico-legend {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 12px;
-            font-size: 0.7rem;
-            flex-wrap: wrap;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 4px;
-        }
-
-        .lotes-list {
-            margin: 15px 0;
-            max-height: 180px;
-            overflow-y: auto;
-            border: 1px solid var(--border);
             border-radius: 12px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid;
         }
 
-        .lote-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            border-bottom: 1px solid var(--border);
-            gap: 10px;
+        .produto-item-modal:hover {
+            transform: translateX(5px);
+            background: var(--accent);
+            color: white;
         }
 
-        .lote-item:last-child {
-            border-bottom: none;
+        .produto-item-modal.vencido { border-left-color: var(--expired); }
+        .produto-item-modal.critico { border-left-color: var(--danger); }
+        .produto-item-modal.alerta { border-left-color: var(--alerta); }
+        .produto-item-modal.pendente { border-left-color: var(--warning); }
+        .produto-item-modal.parado30 { border-left-color: var(--sem-mov-30); }
+        .produto-item-modal.parado90 { border-left-color: var(--sem-mov-90); }
+        .produto-item-modal.inconsistente { 
+            border-left-color: var(--inconsistencia); 
+            background: var(--inconsistencia-bg);
         }
 
-        .lote-info {
-            flex: 1;
+        .produto-item-modal h4 {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
         }
 
-        .lote-validade {
-            font-weight: 700;
-            color: var(--success);
-            font-size: 0.85rem;
-        }
-
-        .lote-validade.sem-vencimento {
-            color: var(--info);
-        }
-
-        .lote-qtd {
+        .produto-item-modal p {
             font-size: 0.7rem;
             color: var(--text-secondary);
         }
 
-        .btn-remover {
-            background: var(--danger);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            transition: all 0.2s;
+        .produto-item-modal:hover p {
+            color: rgba(255,255,255,0.8);
         }
 
-        .btn-remover:hover {
-            background: var(--danger-dark);
-        }
-
-        .historico-list {
-            max-height: 180px;
-            overflow-y: auto;
-            background: var(--bg-primary);
-            border-radius: 12px;
-            padding: 8px;
-        }
-
-        .historico-item {
+        .lote-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
+            padding: 12px 0;
             border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .historico-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--border);
             font-size: 0.75rem;
             gap: 10px;
             flex-wrap: wrap;
         }
 
-        .historico-item:last-child {
-            border-bottom: none;
-        }
-
-        .historico-data {
-            color: var(--text-secondary);
-        }
-
-        .historico-qtd.positivo { color: var(--success); font-weight: 600; }
-        .historico-qtd.negativo { color: var(--danger); font-weight: 600; }
-
-        .modal-input {
+        .btn-close {
             width: 100%;
             padding: 14px;
-            border: 2px solid var(--border);
-            border-radius: 14px;
-            font-size: 1.1rem;
-            text-align: center;
-            font-weight: 600;
-            margin: 10px 0;
-            outline: none;
-            background: var(--bg-primary);
+            margin-top: 20px;
+            border: none;
+            background: var(--text-primary);
+            color: white;
+            border-radius: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-close:hover {
+            background: var(--accent);
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast-notification {
+            background: var(--bg-secondary);
+            border-left: 4px solid;
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 280px;
+            animation: slideIn 0.3s ease;
             color: var(--text-primary);
         }
 
-        .modal-input[type="number"] {
-            inputmode: numeric;
+        .toast-notification.success { border-left-color: var(--success); }
+        .toast-notification.warning { border-left-color: var(--warning); }
+        .toast-notification.danger { border-left-color: var(--danger); }
+        .toast-notification.info { border-left-color: var(--accent); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
 
-        .btn-salvar {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 16px;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            margin: 10px 0;
-            transition: all 0.2s;
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-salvar:hover {
-            background: #059669;
-        }
-
-        .btn-sem-vencimento {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 16px;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            margin: 10px 0;
-            transition: all 0.2s;
-            background: var(--info);
-            color: white;
-        }
-
-        .btn-sem-vencimento:hover {
-            background: #2563eb;
-        }
-
-        .btn-cancelar {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 16px;
-            font-weight: 700;
-            font-size: 1rem;
-            cursor: pointer;
-            margin: 5px 0;
-            transition: all 0.2s;
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-cancelar:hover {
-            background: var(--danger-dark);
-        }
-
-        .empty-state {
+        .empty {
             text-align: center;
-            padding: 40px;
-            background: var(--bg-secondary);
+            padding: 25px;
+            border: 2px dashed var(--border);
             border-radius: 16px;
             color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 500;
         }
 
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            opacity: 0.5;
+        .inconsistencia-alert-box {
+            background: var(--inconsistencia-bg);
+            border: 2px solid var(--inconsistencia);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 8px;
         }
 
-        .loading-spinner {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 2px solid var(--border);
-            border-radius: 50%;
-            border-top-color: var(--accent);
-            animation: spin 0.8s linear infinite;
+        .inconsistencia-alert-box p {
+            font-size: 0.75rem;
+            color: var(--inconsistencia);
+            margin: 0;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        @media (max-width: 1200px) {
+            .top-container { grid-template-columns: 1fr; }
         }
 
-        @media (max-width: 640px) {
-            body { padding: 12px; }
-            .input-group { flex-direction: column; }
-            .input-group input { width: 100%; }
-            .btn-search { width: 100%; }
-            .toast { min-width: 250px; max-width: 280px; }
-            .modal-content { padding: 20px; }
-            .chart-container { height: 150px; }
+        @media (max-width: 768px) {
+            body { padding: 16px; }
+            header { flex-direction: column; align-items: flex-start; }
+            .header-actions { width: 100%; justify-content: space-between; }
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
         }
     </style>
 </head>
@@ -835,117 +724,197 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <div class="container">
-    <div class="header">
-        <h1>📦 Gestão de Validades</h1>
+    <header>
+        <div class="logo">
+            <h1>Dashboard<span style="color: var(--accent);">Validades</span></h1>
+            <p id="display-date"></p>
+        </div>
         <div class="header-actions">
-            <button class="export-btn" onclick="exportarRelatorio()" title="Exportar relatório">
-                <i class="fas fa-download"></i> CSV
+            <button class="refresh-btn" onclick="carregarDados()" title="Atualizar dados">
+                <i class="fas fa-sync-alt"></i>
+                <span class="hide-mobile">Atualizar</span>
+            </button>
+            <button class="pdf-btn" onclick="exportarPDF()" title="Exportar PDF">
+                <i class="fas fa-file-pdf"></i>
+                <span class="hide-mobile">PDF</span>
+            </button>
+            <button class="export-btn" onclick="exportarRelatorioCompleto()" title="Exportar CSV">
+                <i class="fas fa-download"></i>
+                <span class="hide-mobile">CSV</span>
             </button>
             <button class="theme-toggle" onclick="toggleDarkMode()" title="Alternar tema">
                 <i class="fas fa-moon"></i>
             </button>
+            <div class="live-status">
+                <div class="dot"></div>
+                <span>DADOS REAIS</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="health-section">
+        <div class="health-header">
+            <div class="health-title">
+                <i class="fas fa-heartbeat" style="color: var(--accent); font-size: 2rem;"></i>
+                <h2>Saúde do Estoque</h2>
+            </div>
+            <div class="health-score-container">
+                <span class="health-score" id="healthScore">0</span>
+                <span class="health-score-label">%</span>
+            </div>
+        </div>
+        
+        <div class="health-bar-container">
+            <div class="health-segment excellent" id="healthExcellent" style="width: 0%">0%</div>
+            <div class="health-segment good" id="healthGood" style="width: 0%">0%</div>
+            <div class="health-segment fair" id="healthFair" style="width: 0%">0%</div>
+            <div class="health-segment poor" id="healthPoor" style="width: 0%">0%</div>
+            <div class="health-segment critical" id="healthCritical" style="width: 0%">0%</div>
+        </div>
+        
+        <div class="health-legend">
+            <div class="legend-item"><span class="legend-color excellent"></span> Excelente (>365d)</div>
+            <div class="legend-item"><span class="legend-color good"></span> Bom (180-365d)</div>
+            <div class="legend-item"><span class="legend-color fair"></span> Regular (90-180d)</div>
+            <div class="legend-item"><span class="legend-color poor"></span> Ruim (30-90d)</div>
+            <div class="legend-item"><span class="legend-color critical"></span> Crítico (0-30d / Vencido)</div>
         </div>
     </div>
 
-    <div class="upload-card">
-        <div class="upload-title">
-            <i class="fas fa-file-excel" style="color: var(--success);"></i>
-            Importar Planilha de Estoque
-        </div>
-        <label class="upload-area">
-            <i class="fas fa-upload"></i>
-            <span>SELECIONAR PLANILHA</span>
-            <small>Formatos: .xlsx, .xls, .csv</small>
-            <input type="file" id="estoqueInput" accept=".xlsx,.xls,.csv" style="display:none">
-        </label>
-        <div id="uploadStatus" class="upload-status"></div>
-        <div id="uploadDetalhes" class="upload-detalhes"></div>
-    </div>
-
-    <div class="search-box">
-        <div class="search-label">🔍 Buscar produto</div>
-        <div class="input-group">
-            <input type="text" id="manualCode" placeholder="Digite o código do produto..." autocomplete="off" inputmode="numeric" pattern="[0-9]*">
-            <button class="btn-search" onclick="buscarManual()">
-                <i class="fas fa-search"></i> Buscar
-            </button>
-        </div>
-        <div class="dica-enter">Digite o código e pressione ENTER</div>
-    </div>
-
-    <div class="status-bar">
-        <div class="status-card">
-            <b><span id="stat-lotes">0</span></b>
-            <small>LOTES</small>
-        </div>
-        <div class="status-card">
-            <b><span id="stat-pendentes">0</span></b>
-            <small>PENDENTES</small>
-        </div>
-    </div>
-
-    <div class="filter-section">
-        <div class="filter-info">
-            <i class="fas fa-filter"></i>
-            <span id="filterText">Mostrando: TODOS OS PRODUTOS</span>
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="label"><i class="fas fa-boxes"></i> Total em estoque</div>
+            <div class="value" id="total-estoque">0</div>
+            <div class="sub">unidades</div>
         </div>
 
-        <div class="filtros-rapidos">
-            <button class="filtro-btn active" data-filtro="todos" onclick="aplicarFiltro('todos')">📋 Todos</button>
-            <button class="filtro-btn" data-filtro="pendente" onclick="aplicarFiltro('pendente')">⏳ Pendentes</button>
-            <button class="filtro-btn" data-filtro="concluido" onclick="aplicarFiltro('concluido')">✅ Concluídos</button>
-            <button class="filtro-btn" data-filtro="sem-vencimento" onclick="aplicarFiltro('sem-vencimento')">♾️ Sem Vencimento</button>
-            <button class="filtro-btn novo" data-filtro="novos" onclick="aplicarFiltro('novos')">🆕 Novos Itens</button>
-        </div>
-
-        <select id="ordenarPor" class="ordenar-select" onchange="renderizarLista()">
-            <option value="quantidade">📦 Quantidade (maior)</option>
-            <option value="quantidade-menor">📦 Quantidade (menor)</option>
-            <option value="codigo">🔢 Código</option>
-            <option value="nome">📝 Nome</option>
-            <option value="data">📅 Data de criação (mais recente)</option>
-        </select>
-    </div>
-
-    <div class="produtos-list">
-        <div class="list-title">
-            <span>📋 Produtos</span>
-            <span id="result-count">0 itens</span>
-        </div>
-        <div id="lista-estoque"></div>
-    </div>
-</div>
-
-<div class="modal" id="modalData" onclick="if(event.target === this) fecharModal()">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="prodNome">Carregando...</h2>
-            <div class="modal-close" onclick="fecharModal()">×</div>
-        </div>
-
-        <div class="modal-info" id="modalInfo"></div>
-
-        <div class="chart-container">
-            <canvas id="graficoVendas"></canvas>
-            <div class="grafico-legend">
-                <div class="legend-item"><div class="legend-color" style="background: #ef4444;"></div><span>Vendas</span></div>
-                <div class="legend-item"><div class="legend-color" style="background: #10b981;"></div><span>Reposições</span></div>
+        <!-- CARD UNIFICADO: Produtos Distintos + Pendentes -->
+        <div class="metric-card">
+            <div class="label"><i class="fas fa-tags"></i> Produtos</div>
+            <div class="unificado-card">
+                <div class="unificado-linha distintos" onclick="mostrarListaProdutos('todos')">
+                    <div class="unificado-info">
+                        <span class="unificado-valor" id="total-produtos">0</span>
+                        <span class="unificado-rotulo">Distintos</span>
+                    </div>
+                    <div class="unificado-icon">
+                        <i class="fas fa-cubes"></i>
+                    </div>
+                </div>
+                <div class="unificado-linha pendente" onclick="mostrarListaProdutos('pendente')">
+                    <div class="unificado-info">
+                        <span class="unificado-valor" id="total-pendentes">0</span>
+                        <span class="unificado-rotulo">Pendentes</span>
+                    </div>
+                    <div class="unificado-icon">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div style="font-weight:600; margin-bottom:8px;">📦 Lotes com validade:</div>
-        <div id="lotesList" class="lotes-list"></div>
+        <!-- CARD: Validade (Crítico ≤3m + Alerta 3-6m) -->
+        <div class="metric-card">
+            <div class="label"><i class="fas fa-calendar-times"></i> Validade dos Produtos</div>
+            <div class="unificado-card">
+                <div class="unificado-linha critico" onclick="mostrarListaProdutos('critico')">
+                    <div class="unificado-info">
+                        <span class="unificado-valor" id="total-criticos">0</span>
+                        <span class="unificado-rotulo">Críticos (≤3 meses)</span>
+                    </div>
+                    <div class="unificado-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+                <div class="unificado-linha alerta" onclick="mostrarListaProdutos('alerta')">
+                    <div class="unificado-info">
+                        <span class="unificado-valor" id="total-alertas">0</span>
+                        <span class="unificado-rotulo">Alerta (3-6 meses)</span>
+                    </div>
+                    <div class="unificado-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <div style="font-weight:600; margin:15px 0 8px;">📊 Histórico de movimentação:</div>
-        <div id="historicoList" class="historico-list"></div>
+        <!-- CARD: Parados (+30d + +90d) -->
+        <div class="metric-card">
+            <div class="label"><i class="fas fa-clock"></i> Produtos Parados</div>
+            <div class="unificado-card">
+                <div class="unificado-linha parado30" onclick="mostrarListaProdutos('parado30')">
+                    <div class="unificado-info">
+                        <span class="unificado-valor" id="total-parados30">0</span>
+                        <span class="unificado-rotulo">+30 dias</span>
+                    </div>
+                    <div class="unificado-icon">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                </div>
+                <div class="unificado-linha parado90" onclick="mostrarListaProdutos('parado90')">
+                    <div class="unificado-info">
+                        <span class="unificado-valor" id="total-parados90">0</span>
+                        <span class="unificado-rotulo">+90 dias</span>
+                    </div>
+                    <div class="unificado-icon">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <div id="inputContainer"></div>
+        <div class="metric-card clickable inconsistente" onclick="mostrarListaProdutos('inconsistente')">
+            <div class="label"><i class="fas fa-exclamation-triangle"></i> Inconsistências</div>
+            <div class="value" id="total-inconsistencias">0</div>
+            <div class="sub">SKUs com divergência</div>
+        </div>
 
-        <button class="btn-cancelar" onclick="fecharModal()">FECHAR</button>
+        <div class="metric-card clickable vencido" onclick="mostrarListaProdutos('vencido')">
+            <div class="label"><i class="fas fa-skull-crossbones"></i> Vencidos</div>
+            <div class="value" id="total-vencidos">0</div>
+            <div class="sub">SKUs</div>
+        </div>
+    </div>
+
+    <div class="top-container">
+        <div class="top-card criticos">
+            <h3><i class="fas fa-fire"></i> Top 10 - Mais Críticos (≤3 meses para vencer)</h3>
+            <div id="topCriticos" class="top-list"></div>
+        </div>
+        
+        <div class="top-card parados">
+            <h3><i class="fas fa-hourglass-half"></i> Top 10 - Mais Parados</h3>
+            <div id="topParados" class="top-list"></div>
+        </div>
     </div>
 </div>
 
-<script>
+<div id="modalLista" class="modal" onclick="if(event.target === this) fecharModalLista()">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalListaTitulo">Carregando...</h2>
+            <div class="modal-close" onclick="fecharModalLista()">×</div>
+        </div>
+        <div id="modalListaBody" class="produto-lista-modal"></div>
+        <button class="btn-close" onclick="fecharModalLista()">Fechar</button>
+    </div>
+</div>
+
+<div id="modalProduto" class="modal" onclick="if(event.target === this) fecharModalProduto()">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalProdutoTitulo">Carregando...</h2>
+            <div class="modal-close" onclick="fecharModalProduto()">×</div>
+        </div>
+        <div id="modalProdutoBody"></div>
+        <button class="btn-close" onclick="fecharModalProduto()">Fechar Detalhes</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
     const firebaseConfig = {
         apiKey: "AIzaSyDr8Q2oJJ46ZANAjnV0_iSokdHnZ-YqGP4",
         authDomain: "controle-validade-de623.firebaseapp.com",
@@ -955,73 +924,18 @@
         appId: "1:788364390731:web:6c92c01576a3c64ed7b8ce"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    const estoqueRef = database.ref('estoque');
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
     
-    let inventario = {};
-    let codigoAtual = null;
-    let filtroAtual = 'todos';
-    let grafico = null;
+    let produtosComValidade = [];
+    let produtosPendentes = [];
+    let produtosSemVencimento = [];
+    let todosProdutos = [];
+    let inconsistenciasAtivas = [];
     
-    let ultimaImportacao = localStorage.getItem('ultimaImportacao') || 0;
-
-    // Função para formatar endereço no padrão R1.R1.1/A
-    function formatarEndereco(estacao, rack, linha, coluna) {
-        const partes = [];
-        
-        // Extrair número da estação (ex: "RUA 02" -> "2", "RUA P.V" -> "PV")
-        let estacaoNum = '';
-        if (estacao && estacao !== '') {
-            const matchEst = String(estacao).match(/\d+/) || String(estacao).match(/[A-Z]+\.?[A-Z]?/);
-            if (matchEst) {
-                estacaoNum = matchEst[0].replace(/^0+/, ''); // Remove zeros à esquerda
-                if (estacaoNum === '') estacaoNum = String(estacao).substring(0, 2);
-            } else {
-                estacaoNum = String(estacao).substring(0, 2);
-            }
-        } else {
-            estacaoNum = '?';
-        }
-        partes.push(estacaoNum);
-        
-        // Extrair número do rack
-        let rackNum = '';
-        if (rack && rack !== '') {
-            const matchRack = String(rack).match(/\d+/);
-            rackNum = matchRack ? matchRack[0] : String(rack);
-        } else {
-            rackNum = '?';
-        }
-        partes.push(rackNum);
-        
-        // Extrair número da linha
-        let linhaNum = '';
-        if (linha && linha !== '') {
-            const matchLinha = String(linha).match(/\d+/);
-            linhaNum = matchLinha ? matchLinha[0] : String(linha);
-        } else {
-            linhaNum = '?';
-        }
-        partes.push(linhaNum);
-        
-        // Coluna (letra)
-        let colunaLetra = '';
-        if (coluna && coluna !== '') {
-            const matchCol = String(coluna).match(/[A-Za-z]+/);
-            colunaLetra = matchCol ? matchCol[0] : String(coluna);
-        } else {
-            colunaLetra = '?';
-        }
-        
-        return `${partes.join('.')}/${colunaLetra}`;
-    }
-
-    function gerarIdValido(base, timestamp, random) {
-        let id = `${base}_${timestamp}_${random}`;
-        id = id.replace(/[\.\$#\[\]\/\s]/g, '_');
-        return id;
-    }
+    document.getElementById('display-date').innerText = new Date().toLocaleDateString('pt-BR', { 
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    });
 
     if (localStorage.getItem('darkMode') === 'true') {
         document.body.classList.add('dark-mode');
@@ -1042,861 +956,515 @@
 
     function mostrarToast(mensagem, tipo = 'info') {
         const container = document.getElementById('toastContainer');
-        const id = Date.now() + '_' + Math.random();
-        const iconMap = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
-        
         const toast = document.createElement('div');
-        toast.className = `toast ${tipo}`;
-        toast.id = id;
-        toast.innerHTML = `
-            <div class="toast-icon">${iconMap[tipo] || 'ℹ'}</div>
-            <div class="toast-content">${mensagem}</div>
-            <div class="toast-close" onclick="fecharToast('${id}')">×</div>
-        `;
+        toast.className = `toast-notification ${tipo}`;
+        toast.innerHTML = `<i class="fas fa-${tipo === 'success' ? 'check-circle' : (tipo === 'warning' ? 'exclamation-triangle' : 'info-circle')}"></i><div>${mensagem}</div>`;
         container.appendChild(toast);
-        
-        setTimeout(() => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.classList.add('fade-out');
-                setTimeout(() => el.remove(), 300);
-            }
-        }, 5000);
+        setTimeout(() => toast.remove(), 5000);
     }
 
-    window.fecharToast = (id) => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.classList.add('fade-out');
-            setTimeout(() => el.remove(), 300);
-        }
-    };
+    function calcularDiasRestantes(validade) {
+        if (!validade || validade === '' || validade === 'SEM VENCIMENTO') return null;
+        const partes = validade.split('/');
+        if (partes.length !== 3) return null;
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const dataValidade = new Date(partes[2], partes[1] - 1, partes[0]);
+        return Math.ceil((dataValidade - hoje) / (1000 * 60 * 60 * 24));
+    }
 
-    estoqueRef.on('value', (snapshot) => {
-        const dados = snapshot.val() || {};
-        inventario = {};
-        Object.entries(dados).forEach(([id, item]) => {
-            if (item && item.qtde && item.qtde > 0) {
-                if (item.qtde) item.qtde = Math.round(item.qtde);
-                inventario[id] = item;
-            }
+    function carregarDadosFirebase() {
+        const estoqueRef = ref(db, 'estoque/');
+        const inconsistenciasRef = ref(db, 'inconsistencias/');
+        
+        onValue(estoqueRef, (snapshot) => {
+            const dados = snapshot.val() || {};
+            processarDados(dados);
         });
-        atualizarStatus();
-        renderizarLista();
-    });
-
-    // ===== LEITURA DA PLANILHA COM NOVO FORMATO DE ENDEREÇO =====
-    document.getElementById('estoqueInput').addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const statusDiv = document.getElementById('uploadStatus');
-        const detalhesDiv = document.getElementById('uploadDetalhes');
         
-        statusDiv.innerHTML = '<span class="loading-spinner"></span> Processando planilha...';
-        statusDiv.className = 'upload-status info';
-        detalhesDiv.innerHTML = '';
+        onValue(inconsistenciasRef, (snapshot) => {
+            const dadosInc = snapshot.val() || {};
+            processarInconsistencias(dadosInc);
+        });
         
-        try {
-            const data = await file.arrayBuffer();
-            const workbook = XLSX.read(data);
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+        mostrarToast('Dashboard atualizado!', 'success');
+    }
+
+    function processarInconsistencias(dadosInc) {
+        inconsistenciasAtivas = Object.values(dadosInc)
+            .filter(inc => inc && inc.resolvido !== true)
+            .map(inc => ({
+                ...inc,
+                dataRegistroFormatada: inc.dataRegistro ? new Date(inc.dataRegistro).toLocaleDateString('pt-BR') : 'N/A'
+            }));
+        atualizarMetricas();
+    }
+
+    function processarDados(dados) {
+        const produtosPorCodigo = new Map();
+        const itensValidos = Object.entries(dados).filter(([_, item]) => item && item.qtde && item.qtde > 0);
+        
+        for (const [id, item] of itensValidos) {
+            const codigo = item.codigo;
+            if (!codigo) continue;
             
-            if (!rows || rows.length < 2) throw new Error('Planilha vazia');
-            
-            const headers = rows[0].map(h => String(h || '').toLowerCase().trim());
-            
-            let colCodigo = -1, colDesc = -1, colQtde = -1;
-            let colEstacao = -1, colRack = -1, colLinha = -1, colColuna = -1;
-            
-            for (let i = 0; i < headers.length; i++) {
-                const h = headers[i];
-                if (h === 'cod material' || h.includes('cod material')) colCodigo = i;
-                else if (h === 'desc material' || h.includes('desc material')) colDesc = i;
-                else if (h === 'total físico' || h.includes('total físico')) colQtde = i;
-                else if (h === 'estacao' || h.includes('estacao')) colEstacao = i;
-                else if (h === 'rack' || h.includes('rack')) colRack = i;
-                else if (h === 'linha prod alocado' || h.includes('linha prod')) colLinha = i;
-                else if (h === 'coluna prod alocado' || h.includes('coluna prod')) colColuna = i;
+            if (!produtosPorCodigo.has(codigo)) {
+                produtosPorCodigo.set(codigo, {
+                    codigo: codigo,
+                    desc: item.desc || 'Sem descrição',
+                    endereco: item.endereco || 'S/E',
+                    total: 0,
+                    lotes: [],
+                    temPendente: false,
+                    temValidade: false,
+                    temSemVencimento: false,
+                    menorDias: null,
+                    diasSemVenda: 999,
+                    ultimaVenda: null,
+                    historicoCompleto: []
+                });
             }
             
-            if (colCodigo === -1) colCodigo = 0;
-            if (colDesc === -1) colDesc = 1;
-            if (colQtde === -1) colQtde = 8;
+            const prod = produtosPorCodigo.get(codigo);
+            const qtde = Math.round(item.qtde);
+            prod.total += qtde;
             
-            // Mapear produtos da planilha (SOMA todas as linhas por código)
-            const produtosPlanilha = new Map();
+            const isSemVencimento = item.semVencimento === true;
+            const temValidade = !isSemVencimento && item.done === true && item.validade && item.validade !== '' && item.validade !== 'SEM VENCIMENTO';
+            const diasRestantes = temValidade ? calcularDiasRestantes(item.validade) : null;
             
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                if (!row || row.length === 0) continue;
-                
-                let codigo = String(row[colCodigo] || '').trim();
-                if (!codigo || codigo === '' || codigo === 'undefined') continue;
-                codigo = codigo.replace(/[^\w\-\/]/g, '');
-                if (codigo === '') continue;
-                
-                let desc = colDesc < row.length ? String(row[colDesc] || '').trim() : codigo;
-                if (desc === '' || desc === 'undefined') desc = codigo;
-                
-                let qtde = 0;
-                if (colQtde < row.length) {
-                    const valor = String(row[colQtde] || '0').replace(',', '.').replace(/[^\d.-]/g, '');
-                    qtde = parseFloat(valor);
-                    if (isNaN(qtde)) qtde = 0;
-                }
-                qtde = Math.round(qtde);
-                
-                if (qtde <= 0) continue;
-                
-                // Capturar dados do endereço
-                let estacao = (colEstacao !== -1 && colEstacao < row.length) ? String(row[colEstacao] || '').trim() : '';
-                let rack = (colRack !== -1 && colRack < row.length) ? String(row[colRack] || '').trim() : '';
-                let linha = (colLinha !== -1 && colLinha < row.length) ? String(row[colLinha] || '').trim() : '';
-                let coluna = (colColuna !== -1 && colColuna < row.length) ? String(row[colColuna] || '').trim() : '';
-                
-                // Fallback para colunas alternativas
-                if (!estacao && row[4]) estacao = String(row[4]).trim();
-                if (!rack && row[5]) rack = String(row[5]).trim();
-                
-                // Formatar endereço no padrão R1.R1.1/A
-                let enderecoFormatado = 'S/E';
-                if ((estacao && estacao !== '') || (rack && rack !== '') || (linha && linha !== '') || (coluna && coluna !== '')) {
-                    enderecoFormatado = formatarEndereco(estacao, rack, linha, coluna);
-                } else if (row[4] && row[4] !== '') {
-                    enderecoFormatado = String(row[4]).trim();
-                }
-                
-                let estoqueMinimo = 0;
-                if (row[11]) {
-                    const minVal = String(row[11]).replace(',', '.');
-                    estoqueMinimo = parseFloat(minVal);
-                    if (isNaN(estoqueMinimo)) estoqueMinimo = 0;
-                }
-                estoqueMinimo = Math.round(estoqueMinimo);
-                
-                // SOMA as quantidades de todas as linhas do mesmo código
-                if (produtosPlanilha.has(codigo)) {
-                    const existing = produtosPlanilha.get(codigo);
-                    existing.qtde += qtde;
-                    if (desc && desc !== codigo && (!existing.desc || existing.desc === existing.codigo)) {
-                        existing.desc = desc.substring(0, 100);
-                    }
-                    // Mantém o primeiro endereço encontrado (prioriza o que não é S/E)
-                    if (enderecoFormatado !== 'S/E' && (existing.endereco === 'S/E' || !existing.endereco)) {
-                        existing.endereco = enderecoFormatado;
-                    }
-                } else {
-                    produtosPlanilha.set(codigo, {
-                        codigo, 
-                        desc: desc.substring(0, 100), 
-                        qtde: qtde, 
-                        endereco: enderecoFormatado, 
-                        estoqueMinimo: estoqueMinimo
-                    });
-                }
-            }
-            
-            if (produtosPlanilha.size === 0) {
-                throw new Error('Nenhum produto com quantidade > 0 encontrado');
-            }
-            
-            // Buscar dados existentes no Firebase
-            const snapshot = await estoqueRef.once('value');
-            const existentes = snapshot.val() || {};
-            
-            // Separar itens existentes por tipo
-            const itensComValidade = [];
-            const itensSemVencimento = [];
-            const itensPendentes = [];
-            
-            Object.entries(existentes).forEach(([id, item]) => {
-                if (!item || !item.codigo) return;
-                if (item.qtde) item.qtde = Math.round(item.qtde);
-                if (item.semVencimento === true) {
-                    itensSemVencimento.push({ id, ...item });
-                } else if (item.done === true && item.validade && item.validade !== '') {
-                    itensComValidade.push({ id, ...item });
-                } else if (item.done !== true && !item.semVencimento && item.qtde > 0) {
-                    itensPendentes.push({ id, ...item });
-                }
+            prod.lotes.push({ 
+                id, qtde, validade: item.validade, done: item.done === true,
+                semVencimento: isSemVencimento, diasRestantes, historico: item.historico || []
             });
             
-            let updates = {};
-            const now = Date.now();
-            let produtosPreservados = 0;
-            let produtosSubstituidos = 0;
-            let novosProdutos = 0;
-            let produtosRemovidos = 0;
-            
-            // Agrupar itens validados por código
-            const validadosPorCodigo = new Map();
-            const semVencimentoPorCodigo = new Map();
-            
-            for (let item of itensComValidade) {
-                const qtdeAtual = validadosPorCodigo.get(item.codigo) || 0;
-                validadosPorCodigo.set(item.codigo, qtdeAtual + (item.qtde || 0));
-            }
-            
-            for (let item of itensSemVencimento) {
-                const qtdeAtual = semVencimentoPorCodigo.get(item.codigo) || 0;
-                semVencimentoPorCodigo.set(item.codigo, qtdeAtual + (item.qtde || 0));
-            }
-            
-            // Processar cada produto da planilha
-            for (let [codigo, planilha] of produtosPlanilha) {
-                const qtdeValidada = validadosPorCodigo.get(codigo) || 0;
-                const qtdeSemVenc = semVencimentoPorCodigo.get(codigo) || 0;
-                const totalValidado = qtdeValidada + qtdeSemVenc;
-                const qtdePlanilha = planilha.qtde;
-                
-                const itensExistentes = [
-                    ...itensComValidade.filter(i => i.codigo === codigo),
-                    ...itensSemVencimento.filter(i => i.codigo === codigo),
-                    ...itensPendentes.filter(i => i.codigo === codigo)
-                ];
-                
-                if (totalValidado >= qtdePlanilha) {
-                    // Caso 1: Planilha tem MENOS ou IGUAL quantidade que já está validada
-                    if (totalValidado > qtdePlanilha) {
-                        let excesso = totalValidado - qtdePlanilha;
-                        const itensParaReduzir = [...itensComValidade.filter(i => i.codigo === codigo)]
-                            .sort((a, b) => (b.dataCriacao || 0) - (a.dataCriacao || 0));
-                        
-                        for (let item of itensParaReduzir) {
-                            if (excesso <= 0) break;
-                            const qtdItem = item.qtde || 0;
-                            if (qtdItem <= excesso) {
-                                updates[item.id] = null;
-                                excesso -= qtdItem;
-                                produtosRemovidos++;
-                            } else {
-                                updates[item.id] = {
-                                    ...item,
-                                    qtde: qtdItem - excesso
-                                };
-                                excesso = 0;
-                            }
-                        }
-                    }
-                    
-                    // Preservar itens validados restantes
-                    for (let item of itensExistentes) {
-                        if (item.done === true || item.semVencimento === true) {
-                            if (updates[item.id] !== null) {
-                                updates[item.id] = {
-                                    ...item,
-                                    desc: planilha.desc,
-                                    endereco: planilha.endereco,
-                                    estoqueMinimo: planilha.estoqueMinimo
-                                };
-                                produtosPreservados++;
-                            }
-                        }
-                    }
-                    
-                    // Remover pendentes existentes
-                    for (let item of itensPendentes.filter(i => i.codigo === codigo)) {
-                        updates[item.id] = null;
-                        produtosSubstituidos++;
-                    }
-                    
-                } else {
-                    // Caso 2: Planilha tem MAIS quantidade que o já validado
-                    const qtdeNecPendente = qtdePlanilha - totalValidado;
-                    
-                    // Preservar itens validados
-                    for (let item of itensExistentes) {
-                        if (item.done === true || item.semVencimento === true) {
-                            updates[item.id] = {
-                                ...item,
-                                desc: planilha.desc,
-                                endereco: planilha.endereco,
-                                estoqueMinimo: planilha.estoqueMinimo
-                            };
-                            produtosPreservados++;
-                        } else if (item.done !== true && !item.semVencimento) {
-                            updates[item.id] = null;
-                            produtosSubstituidos++;
-                        }
-                    }
-                    
-                    // Criar novo pendente com a quantidade necessária
-                    if (qtdeNecPendente > 0) {
-                        const novoId = gerarIdValido(`PEND_${codigo}`, now, Math.random().toString(36).substring(2, 8));
-                        updates[novoId] = {
-                            codigo: planilha.codigo,
-                            desc: planilha.desc,
-                            qtde: Math.round(qtdeNecPendente),
-                            endereco: planilha.endereco,
-                            estoqueMinimo: planilha.estoqueMinimo,
-                            origem: 'estoque',
-                            done: false,
-                            validade: '',
-                            semVencimento: false,
-                            dataCriacao: now,
-                            historico: [{
-                                data: now,
-                                tipo: 'importacao',
-                                quantidade: Math.round(qtdeNecPendente),
-                                origem: 'planilha'
-                            }]
-                        };
-                        novosProdutos++;
-                    }
+            if (isSemVencimento) {
+                prod.temSemVencimento = true;
+            } else if (temValidade && diasRestantes !== null) {
+                prod.temValidade = true;
+                if (prod.menorDias === null || diasRestantes < prod.menorDias) {
+                    prod.menorDias = diasRestantes;
                 }
+            } else if (!isSemVencimento && !temValidade) {
+                prod.temPendente = true;
             }
             
-            // Processar produtos que estão no sistema mas NÃO estão mais na planilha
-            const todosCodigosSistema = new Set();
-            [...itensComValidade, ...itensSemVencimento, ...itensPendentes].forEach(item => {
-                todosCodigosSistema.add(item.codigo);
-            });
-            
-            for (let codigo of todosCodigosSistema) {
-                if (!produtosPlanilha.has(codigo)) {
-                    const itensParaRemover = [
-                        ...itensComValidade.filter(i => i.codigo === codigo),
-                        ...itensSemVencimento.filter(i => i.codigo === codigo),
-                        ...itensPendentes.filter(i => i.codigo === codigo)
-                    ];
-                    for (let item of itensParaRemover) {
-                        updates[item.id] = null;
-                        produtosRemovidos++;
-                    }
-                }
+            if (item.historico && Array.isArray(item.historico)) {
+                prod.historicoCompleto.push(...item.historico);
             }
-            
-            if (Object.keys(updates).length > 0) {
-                await estoqueRef.update(updates);
-                ultimaImportacao = now;
-                localStorage.setItem('ultimaImportacao', ultimaImportacao);
-                
-                statusDiv.innerHTML = `✅ Concluído!`;
-                statusDiv.className = 'upload-status success';
-                detalhesDiv.innerHTML = `📦 Preservados: ${produtosPreservados} | 🆕 Novos pendentes: ${novosProdutos} | 🔄 Substituídos: ${produtosSubstituidos} | 🗑️ Removidos: ${produtosRemovidos}`;
-                mostrarToast(`Estoque atualizado: ${novosProdutos} novos itens pendentes adicionados`, 'success');
+        }
+        
+        for (const prod of produtosPorCodigo.values()) {
+            const vendas = prod.historicoCompleto.filter(h => h && h.tipo === 'venda');
+            if (vendas.length > 0) {
+                const ultimaVenda = Math.max(...vendas.map(v => v.data));
+                prod.ultimaVenda = ultimaVenda;
+                prod.diasSemVenda = Math.floor((Date.now() - ultimaVenda) / 86400000);
+                if (prod.diasSemVenda < 0) prod.diasSemVenda = 0;
             } else {
-                statusDiv.innerHTML = `⚠️ Nenhuma alteração detectada`;
-                statusDiv.className = 'upload-status warning';
-                detalhesDiv.innerHTML = `✅ ${produtosPreservados} produtos preservados`;
-                mostrarToast('Estoque já está atualizado', 'info');
+                const importacoes = prod.historicoCompleto.filter(h => h && h.tipo === 'importacao');
+                if (importacoes.length > 0) {
+                    const primeiraImportacao = Math.min(...importacoes.map(i => i.data));
+                    prod.diasSemVenda = Math.floor((Date.now() - primeiraImportacao) / 86400000);
+                }
+                prod.ultimaVenda = null;
             }
+        }
+        
+        produtosComValidade = Array.from(produtosPorCodigo.values())
+            .filter(p => p.temValidade)
+            .sort((a, b) => {
+                if (a.menorDias === null) return 1;
+                if (b.menorDias === null) return -1;
+                return a.menorDias - b.menorDias;
+            });
+        
+        produtosPendentes = Array.from(produtosPorCodigo.values())
+            .filter(p => p.temPendente && !p.temValidade && !p.temSemVencimento);
+        
+        produtosSemVencimento = Array.from(produtosPorCodigo.values())
+            .filter(p => p.temSemVencimento);
+        
+        todosProdutos = Array.from(produtosPorCodigo.values());
+        
+        atualizarMetricas();
+        renderizarTopCriticos();
+        renderizarTopParados();
+        calcularSaudeEstoque();
+    }
+    
+    function atualizarMetricas() {
+        const totalUnidades = todosProdutos.reduce((acc, p) => acc + p.total, 0);
+        const totalProdutos = todosProdutos.length;
+        const pendentes = produtosPendentes.length;
+        
+        const criticos = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 90).length;
+        const alertas = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias > 90 && p.menorDias <= 180).length;
+        
+        const parados90 = todosProdutos.filter(p => p.diasSemVenda >= 90 && p.diasSemVenda < 999).length;
+        const parados30 = todosProdutos.filter(p => p.diasSemVenda >= 30 && p.diasSemVenda < 90 && p.diasSemVenda < 999).length;
+        
+        const totalInconsistencias = inconsistenciasAtivas.length;
+        const vencidos = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias < 0).length;
+        
+        document.getElementById('total-estoque').innerText = Math.round(totalUnidades);
+        document.getElementById('total-produtos').innerText = totalProdutos;
+        document.getElementById('total-pendentes').innerText = pendentes;
+        document.getElementById('total-criticos').innerText = criticos;
+        document.getElementById('total-alertas').innerText = alertas;
+        document.getElementById('total-parados30').innerText = parados30;
+        document.getElementById('total-parados90').innerText = parados90;
+        document.getElementById('total-inconsistencias').innerText = totalInconsistencias;
+        document.getElementById('total-vencidos').innerText = vencidos;
+    }
+    
+    function calcularSaudeEstoque() {
+        const categorias = { excellent: 0, good: 0, fair: 0, poor: 0, critical: 0 };
+        
+        for (const produto of produtosComValidade) {
+            const dias = produto.menorDias;
+            if (dias !== null) {
+                if (dias < 0) categorias.critical += produto.total;
+                else if (dias <= 30) categorias.critical += produto.total;
+                else if (dias <= 90) categorias.poor += produto.total;
+                else if (dias <= 180) categorias.fair += produto.total;
+                else if (dias <= 365) categorias.good += produto.total;
+                else categorias.excellent += produto.total;
+            }
+        }
+        
+        const total = categorias.excellent + categorias.good + categorias.fair + categorias.poor + categorias.critical;
+        
+        if (total > 0) {
+            const pctExc = (categorias.excellent / total * 100).toFixed(1);
+            const pctGood = (categorias.good / total * 100).toFixed(1);
+            const pctFair = (categorias.fair / total * 100).toFixed(1);
+            const pctPoor = (categorias.poor / total * 100).toFixed(1);
+            const pctCrit = (categorias.critical / total * 100).toFixed(1);
             
-        } catch (error) {
-            console.error(error);
-            statusDiv.innerHTML = `❌ Erro: ${error.message}`;
-            statusDiv.className = 'upload-status error';
-            mostrarToast('Erro: ' + error.message, 'error');
-        }
-        
-        e.target.value = '';
-    });
-
-    window.buscarManual = () => {
-        const termo = document.getElementById('manualCode').value.trim();
-        if (termo) {
-            abrirModal(termo);
+            document.getElementById('healthExcellent').style.width = pctExc + '%';
+            document.getElementById('healthExcellent').innerText = pctExc + '%';
+            document.getElementById('healthGood').style.width = pctGood + '%';
+            document.getElementById('healthGood').innerText = pctGood + '%';
+            document.getElementById('healthFair').style.width = pctFair + '%';
+            document.getElementById('healthFair').innerText = pctFair + '%';
+            document.getElementById('healthPoor').style.width = pctPoor + '%';
+            document.getElementById('healthPoor').innerText = pctPoor + '%';
+            document.getElementById('healthCritical').style.width = pctCrit + '%';
+            document.getElementById('healthCritical').innerText = pctCrit + '%';
+            
+            const score = (categorias.excellent * 100 + categorias.good * 80 + categorias.fair * 60 + categorias.poor * 30 + categorias.critical * 10) / total;
+            document.getElementById('healthScore').innerText = Math.round(score);
         } else {
-            mostrarToast('Digite um código para buscar', 'warning');
+            document.getElementById('healthScore').innerText = '0';
         }
-    };
-
-    document.getElementById('manualCode').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') buscarManual();
-    });
-
-    window.abrirModal = (codigo) => {
-        const lotes = Object.values(inventario).filter(i => i.codigo === codigo);
-        if (lotes.length === 0) {
-            mostrarToast('Produto não encontrado', 'error');
-            return;
-        }
-
-        codigoAtual = codigo;
-        const primeiroLote = lotes[0];
+    }
+    
+    function renderizarTopCriticos() {
+        const topList = document.getElementById('topCriticos');
+        const criticos = produtosComValidade
+            .filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 90)
+            .sort((a, b) => a.menorDias - b.menorDias)
+            .slice(0, 10);
         
-        const pendentes = lotes.filter(l => !l.done && !l.semVencimento);
-        const totalPendente = pendentes.reduce((acc, l) => acc + (l.qtde || 0), 0);
-        
-        const todasVendas = lotes.flatMap(l => l.historico || []).filter(h => h && h.tipo === 'venda');
-        const ultimaVenda = todasVendas.length > 0 ? Math.max(...todasVendas.map(v => v.data)) : null;
-        const diasSemVenda = ultimaVenda ? Math.floor((Date.now() - ultimaVenda) / 86400000) : 999;
-        const vendas30dias = todasVendas.filter(v => (Date.now() - v.data) < 30 * 86400000).reduce((acc, v) => acc + Math.abs(v.quantidade), 0);
-        
-        document.getElementById('prodNome').innerHTML = primeiroLote.desc || 'Sem descrição';
-        
-        const enderecoCompleto = primeiroLote.endereco && primeiroLote.endereco !== 'S/E' ? primeiroLote.endereco : 
-            (primeiroLote.lotes && primeiroLote.lotes[0]?.endereco) || 'S/E';
-        
-        document.getElementById('modalInfo').innerHTML = `
-            <p><strong>Código:</strong> ${codigo}</p>
-            ${enderecoCompleto !== 'S/E' ? `<p><strong>📍 Endereço:</strong> ${enderecoCompleto}</p>` : ''}
-            <p><strong>📦 Total em estoque:</strong> ${Math.round(lotes.reduce((acc, l) => acc + (l.qtde || 0), 0))} un</p>
-            <p><strong>🕐 Última venda:</strong> ${ultimaVenda ? new Date(ultimaVenda).toLocaleDateString('pt-BR') : 'Nunca'}</p>
-            <p><strong>⏱️ Dias sem vender:</strong> ${diasSemVenda >= 999 ? 'Nunca' : diasSemVenda + ' dias'}</p>
-            <p><strong>📊 Vendas (30d):</strong> ${Math.round(vendas30dias)} un</p>
-            ${primeiroLote.dataCriacao && (Date.now() - primeiroLote.dataCriacao) < 7 * 86400000 ? `<p><strong>🆕 Item novo!</strong> Adicionado recentemente</p>` : ''}
-        `;
-        
-        setTimeout(() => {
-            renderizarGrafico(lotes.flatMap(l => l.historico || []));
-        }, 100);
-        
-        const comValidade = lotes.filter(l => l.done && l.validade && !l.semVencimento);
-        const comSemVencimento = lotes.filter(l => l.semVencimento === true);
-        
-        const lotesPorValidade = new Map();
-        comValidade.forEach(l => {
-            const key = l.validade;
-            if (!lotesPorValidade.has(key)) lotesPorValidade.set(key, { validade: key, qtde: 0, ids: [], semVencimento: false });
-            const grupo = lotesPorValidade.get(key);
-            grupo.qtde += l.qtde || 0;
-            grupo.ids.push(Object.keys(inventario).find(k => inventario[k] === l));
-        });
-        
-        comSemVencimento.forEach(l => {
-            const key = "SEM VENCIMENTO";
-            if (!lotesPorValidade.has(key)) lotesPorValidade.set(key, { validade: "♾️ SEM VENCIMENTO", qtde: 0, ids: [], semVencimento: true });
-            const grupo = lotesPorValidade.get(key);
-            grupo.qtde += l.qtde || 0;
-            grupo.ids.push(Object.keys(inventario).find(k => inventario[k] === l));
-        });
-        
-        const lotesList = document.getElementById('lotesList');
-        if (lotesPorValidade.size > 0) {
-            lotesList.innerHTML = Array.from(lotesPorValidade.values()).map(grupo => `
-                <div class="lote-item">
-                    <div class="lote-info">
-                        <div class="lote-validade ${grupo.semVencimento ? 'sem-vencimento' : ''}">${grupo.validade}</div>
-                        <div class="lote-qtd">${Math.round(grupo.qtde)} unidades</div>
+        if (criticos.length > 0) {
+            topList.innerHTML = criticos.map((p, index) => {
+                const percent = ((90 - p.menorDias) / 90) * 100;
+                let corBarra = p.menorDias <= 30 ? 'var(--danger)' : 'var(--alerta)';
+                return `<div class="top-item" onclick="abrirModalProduto('${p.codigo}')">
+                    <div class="top-position">${index + 1}</div>
+                    <div class="top-info">
+                        <h4>${p.desc.substring(0, 40)}${p.desc.length > 40 ? '...' : ''}</h4>
+                        <p>Cód: ${p.codigo} • ${Math.round(p.total)} un • ${p.endereco}</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${percent}%; background: ${corBarra};"></div>
+                        </div>
                     </div>
-                    <button class="btn-remover" onclick="removerLotes('${grupo.ids.join(',')}')">✕</button>
-                </div>
-            `).join('');
-        } else {
-            lotesList.innerHTML = '<div style="text-align:center; padding:15px;">Nenhum lote com validade</div>';
-        }
-        
-        const historicoList = document.getElementById('historicoList');
-        const todosHistoricos = lotes.flatMap(l => (l.historico || []).map(h => ({ ...h, desc: l.desc })))
-            .sort((a, b) => b.data - a.data).slice(0, 15);
-        
-        if (todosHistoricos.length > 0) {
-            historicoList.innerHTML = todosHistoricos.map(h => {
-                const data = new Date(h.data).toLocaleDateString('pt-BR');
-                const tipo = h.tipo === 'venda' ? 'Venda' : (h.tipo === 'reposicao' ? 'Reposição' : (h.tipo === 'validade_atribuida' ? 'Validade' : 'Importação'));
-                const sinal = h.tipo === 'venda' ? '▼' : (h.tipo === 'reposicao' ? '▲' : '•');
-                const classe = h.tipo === 'venda' ? 'negativo' : (h.tipo === 'reposicao' ? 'positivo' : '');
-                return `<div class="historico-item">
-                    <span class="historico-data">${data}</span>
-                    <span>${tipo}</span>
-                    <span class="historico-qtd ${classe}">${sinal} ${Math.abs(Math.round(h.quantidade || 0))} un</span>
+                    <div class="top-value" style="color: ${corBarra};">${p.menorDias} dias</div>
                 </div>`;
             }).join('');
         } else {
-            historicoList.innerHTML = '<div style="text-align:center; padding:15px;">Sem histórico</div>';
+            topList.innerHTML = '<div class="empty">Nenhum produto crítico (≤3 meses)</div>';
         }
+    }
+    
+    function renderizarTopParados() {
+        const topList = document.getElementById('topParados');
+        const parados = todosProdutos
+            .filter(p => p.diasSemVenda >= 30 && p.diasSemVenda < 999)
+            .sort((a, b) => b.diasSemVenda - a.diasSemVenda)
+            .slice(0, 10);
         
-        if (totalPendente > 0) {
-            document.getElementById('inputContainer').innerHTML = `
-                <div style="margin:15px 0;">
-                    <label style="font-weight:600;">📦 Quantidade a validar (disponível: ${Math.round(totalPendente)}):</label>
-                    <input type="number" id="inputQuantidade" class="modal-input" placeholder="Quantidade" min="1" max="${Math.round(totalPendente)}" value="${Math.round(totalPendente)}" inputmode="numeric">
-                </div>
-                <div style="margin:15px 0;">
-                    <label style="font-weight:600;">📅 Data de validade (MM/AAAA):</label>
-                    <input type="text" id="inputMesAno" class="modal-input" placeholder="MM/AAAA" maxlength="7" inputmode="numeric">
-                </div>
-                <div class="dica-enter">Digite a data e clique em ADICIONAR</div>
-                <button class="btn-salvar" onclick="salvarValidade()">ADICIONAR VALIDADE</button>
-                <button class="btn-sem-vencimento" onclick="salvarSemVencimento()">♾️ SEM VENCIMENTO</button>
-            `;
+        if (parados.length > 0) {
+            topList.innerHTML = parados.map((p, index) => {
+                let corStatus = p.diasSemVenda >= 90 ? 'var(--sem-mov-90)' : 'var(--sem-mov-30)';
+                const percent = Math.min(100, (p.diasSemVenda / 180) * 100);
+                return `<div class="top-item" onclick="abrirModalProduto('${p.codigo}')">
+                    <div class="top-position">${index + 1}</div>
+                    <div class="top-info">
+                        <h4>${p.desc.substring(0, 40)}${p.desc.length > 40 ? '...' : ''}</h4>
+                        <p>Cód: ${p.codigo} • ${Math.round(p.total)} un • ${p.endereco}</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${percent}%; background: ${corStatus};"></div>
+                        </div>
+                    </div>
+                    <div class="top-value" style="color: ${corStatus};">${p.diasSemVenda} dias</div>
+                </div>`;
+            }).join('');
         } else {
-            document.getElementById('inputContainer').innerHTML = `<div style="text-align:center; padding:15px; background:var(--bg-primary); border-radius:12px; margin-top:15px;"><i class="fas fa-check-circle" style="color:var(--success);"></i> Todos os lotes já possuem validade ou são sem vencimento!</div>`;
+            topList.innerHTML = '<div class="empty">Nenhum produto parado há mais de 30 dias</div>';
         }
-        
-        document.getElementById('modalData').style.display = 'flex';
-        
-        const inputData = document.getElementById('inputMesAno');
-        if (inputData) {
-            inputData.addEventListener('input', function(e) {
-                let v = e.target.value.replace(/\D/g, "");
-                if (v.length >= 2) v = v.substring(0,2) + "/" + v.substring(2,6);
-                e.target.value = v;
-            });
-        }
-    };
-    
-    window.salvarValidade = async () => {
-        const quantidade = parseInt(document.getElementById('inputQuantidade')?.value);
-        const data = document.getElementById('inputMesAno')?.value;
-        
-        if (!quantidade || quantidade <= 0) {
-            mostrarToast('Digite uma quantidade válida', 'warning');
-            return;
-        }
-        if (!data || data.length < 7 || !/^\d{2}\/\d{4}$/.test(data)) {
-            mostrarToast('Digite a validade no formato MM/AAAA', 'warning');
-            return;
-        }
-        
-        const dataSalvar = "01/" + data;
-        
-        const itensPendentes = Object.entries(inventario)
-            .filter(([_, item]) => item.codigo === codigoAtual && !item.done && !item.semVencimento && item.qtde > 0)
-            .sort((a, b) => (a[1].dataCriacao || 0) - (b[1].dataCriacao || 0));
-        
-        if (itensPendentes.length === 0) {
-            mostrarToast('Todos os lotes já têm validade', 'info');
-            fecharModal();
-            return;
-        }
-        
-        const totalPendente = itensPendentes.reduce((acc, [_, item]) => acc + (item.qtde || 0), 0);
-        if (quantidade > totalPendente) {
-            mostrarToast(`Quantidade indisponível. Total pendente: ${Math.round(totalPendente)}`, 'warning');
-            return;
-        }
-        
-        let updates = {};
-        let quantidadeRestante = quantidade;
-        const now = Date.now();
-        
-        const primeiroPendente = itensPendentes[0][1];
-        
-        const novoId = gerarIdValido(`${codigoAtual}_VAL`, now, Math.random().toString(36).substring(2, 8));
-        
-        const historicoNovo = [
-            ...(primeiroPendente.historico || []),
-            { 
-                data: now, 
-                tipo: 'validade_atribuida', 
-                quantidade: quantidade, 
-                validade: dataSalvar 
-            }
-        ];
-        
-        updates[novoId] = {
-            codigo: codigoAtual,
-            desc: primeiroPendente.desc,
-            qtde: quantidade,
-            endereco: primeiroPendente.endereco,
-            estoqueMinimo: primeiroPendente.estoqueMinimo || 0,
-            origem: 'estoque',
-            done: true,
-            validade: dataSalvar,
-            semVencimento: false,
-            dataCriacao: primeiroPendente.dataCriacao || now,
-            historico: historicoNovo
-        };
-        
-        for (let [id, item] of itensPendentes) {
-            if (quantidadeRestante <= 0) break;
-            
-            const qtdDisponivel = item.qtde || 0;
-            
-            if (qtdDisponivel <= quantidadeRestante) {
-                updates[id] = null;
-                quantidadeRestante -= qtdDisponivel;
-            } else {
-                updates[id] = {
-                    ...item,
-                    qtde: qtdDisponivel - quantidadeRestante
-                };
-                quantidadeRestante = 0;
-            }
-        }
-        
-        await estoqueRef.update(updates);
-        mostrarToast(`${quantidade} unidades com validade ${data} adicionadas!`, 'success');
-        fecharModal();
-    };
-    
-    window.salvarSemVencimento = async () => {
-        const quantidade = parseInt(document.getElementById('inputQuantidade')?.value);
-        
-        if (!quantidade || quantidade <= 0) {
-            mostrarToast('Digite uma quantidade válida', 'warning');
-            return;
-        }
-        
-        const itensPendentes = Object.entries(inventario)
-            .filter(([_, item]) => item.codigo === codigoAtual && !item.done && !item.semVencimento && item.qtde > 0)
-            .sort((a, b) => (a[1].dataCriacao || 0) - (b[1].dataCriacao || 0));
-        
-        if (itensPendentes.length === 0) {
-            mostrarToast('Todos os lotes já têm validade', 'info');
-            fecharModal();
-            return;
-        }
-        
-        const totalPendente = itensPendentes.reduce((acc, [_, item]) => acc + (item.qtde || 0), 0);
-        if (quantidade > totalPendente) {
-            mostrarToast(`Quantidade indisponível. Total pendente: ${Math.round(totalPendente)}`, 'warning');
-            return;
-        }
-        
-        let updates = {};
-        let quantidadeRestante = quantidade;
-        const now = Date.now();
-        
-        const primeiroPendente = itensPendentes[0][1];
-        
-        const novoId = gerarIdValido(`${codigoAtual}_SEM_VAL`, now, Math.random().toString(36).substring(2, 8));
-        
-        const historicoNovo = [
-            ...(primeiroPendente.historico || []),
-            { 
-                data: now, 
-                tipo: 'validade_atribuida', 
-                quantidade: quantidade, 
-                validade: 'SEM VENCIMENTO' 
-            }
-        ];
-        
-        updates[novoId] = {
-            codigo: codigoAtual,
-            desc: primeiroPendente.desc,
-            qtde: quantidade,
-            endereco: primeiroPendente.endereco,
-            estoqueMinimo: primeiroPendente.estoqueMinimo || 0,
-            origem: 'estoque',
-            done: true,
-            validade: 'SEM VENCIMENTO',
-            semVencimento: true,
-            dataCriacao: primeiroPendente.dataCriacao || now,
-            historico: historicoNovo
-        };
-        
-        for (let [id, item] of itensPendentes) {
-            if (quantidadeRestante <= 0) break;
-            
-            const qtdDisponivel = item.qtde || 0;
-            
-            if (qtdDisponivel <= quantidadeRestante) {
-                updates[id] = null;
-                quantidadeRestante -= qtdDisponivel;
-            } else {
-                updates[id] = {
-                    ...item,
-                    qtde: qtdDisponivel - quantidadeRestante
-                };
-                quantidadeRestante = 0;
-            }
-        }
-        
-        await estoqueRef.update(updates);
-        mostrarToast(`${quantidade} unidades marcadas como SEM VENCIMENTO!`, 'success');
-        fecharModal();
-    };
-    
-    window.removerLotes = async (idsString) => {
-        if (!confirm('Remover estes lotes? Os registros serão perdidos.')) return;
-        const ids = idsString.split(',');
-        let updates = {};
-        ids.forEach(id => { updates[id] = null; });
-        await estoqueRef.update(updates);
-        mostrarToast(`${ids.length} lote(s) removidos`, 'success');
-        fecharModal();
-    };
-    
-    window.fecharModal = () => {
-        document.getElementById('modalData').style.display = 'none';
-        if (grafico) { grafico.destroy(); grafico = null; }
-        codigoAtual = null;
-    };
-    
-    function renderizarGrafico(historico) {
-        const canvas = document.getElementById('graficoVendas');
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        const ultimos6meses = [];
-        const hoje = new Date();
-        for (let i = 5; i >= 0; i--) {
-            const data = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
-            const mes = data.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
-            ultimos6meses.push({ mes, vendas: 0, reposicoes: 0 });
-        }
-        historico.forEach(h => {
-            if (!h) return;
-            const dataH = new Date(h.data);
-            const diffMeses = (hoje.getFullYear() - dataH.getFullYear()) * 12 + (hoje.getMonth() - dataH.getMonth());
-            if (diffMeses >= 0 && diffMeses < 6) {
-                const index = 5 - diffMeses;
-                if (h.tipo === 'venda') ultimos6meses[index].vendas += Math.abs(h.quantidade || 0);
-                else if (h.tipo === 'reposicao') ultimos6meses[index].reposicoes += h.quantidade || 0;
-            }
-        });
-        if (grafico) grafico.destroy();
-        grafico = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ultimos6meses.map(m => m.mes),
-                datasets: [
-                    { label: 'Vendas', data: ultimos6meses.map(m => m.vendas), backgroundColor: '#ef4444', borderRadius: 4 },
-                    { label: 'Reposições', data: ultimos6meses.map(m => m.reposicoes), backgroundColor: '#10b981', borderRadius: 4 }
-                ]
-            },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { mode: 'index' } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } } }
-        });
     }
     
-    window.aplicarFiltro = (filtro) => {
-        filtroAtual = filtro;
-        document.querySelectorAll('.filtro-btn').forEach(btn => btn.classList.remove('active'));
-        const btnAtivo = document.querySelector(`.filtro-btn[data-filtro="${filtro}"]`);
-        if (btnAtivo) btnAtivo.classList.add('active');
+    window.mostrarDetalheInconsistencia = (codigo) => {
+        const inc = inconsistenciasAtivas.find(i => i.codigo === codigo);
+        if (!inc) { mostrarToast('Inconsistência não encontrada', 'warning'); return; }
         
-        const texts = { 
-            todos: 'TODOS OS PRODUTOS', 
-            pendente: 'APENAS PENDENTES', 
-            concluido: 'APENAS CONCLUÍDOS',
-            'sem-vencimento': 'SEM VENCIMENTO',
-            novos: '🆕 NOVOS ITENS (última importação)'
-        };
-        document.getElementById('filterText').innerHTML = `Mostrando: ${texts[filtro] || 'TODOS'}`;
-        renderizarLista();
+        document.getElementById('modalProdutoTitulo').innerText = `⚠️ Inconsistência: ${inc.codigo}`;
+        const tipoTexto = inc.tipoInconsistencia === 'ausente_no_sistema' ? 'Ausente no sistema' : 'Quantidade divergente';
+        
+        document.getElementById('modalProdutoBody').innerHTML = `
+            <div class="inconsistencia-alert-box" style="margin-bottom:15px;padding:15px;">
+                <p style="font-size:1rem;font-weight:700;margin-bottom:10px;"><i class="fas fa-exclamation-triangle"></i> ${tipoTexto}</p>
+            </div>
+            <div style="background:var(--bg-primary);border-radius:16px;padding:15px;margin-bottom:15px;">
+                <p><strong>Código:</strong> ${inc.codigo}</p>
+                <p><strong>Descrição:</strong> ${inc.desc || 'Não informada'}</p>
+                <p><strong>Sistema:</strong> <span style="color:var(--inconsistencia);font-weight:700;">${inc.qtdeSistema || 0} un</span></p>
+                <p><strong>Físico:</strong> <span style="color:var(--info);font-weight:700;">${inc.qtdeFisico || 0} un</span></p>
+                <p><strong>Diferença:</strong> <span style="color:var(--danger);font-weight:700;">${Math.abs((inc.qtdeSistema||0)-(inc.qtdeFisico||0))} un</span></p>
+                <p><strong>Registrado:</strong> ${inc.dataRegistroFormatada}</p>
+            </div>
+        `;
+        document.getElementById('modalProduto').style.display = 'flex';
     };
     
-    function atualizarStatus() {
-        const lotes = Object.values(inventario);
-        const pendentes = lotes.filter(l => !l.done && !l.semVencimento).length;
+    window.mostrarListaProdutos = (tipo) => {
+        let titulo = '', lista = [], classe = '';
+        switch(tipo) {
+            case 'vencido': 
+                titulo = 'Produtos Vencidos'; 
+                lista = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias < 0); 
+                classe = 'vencido'; break;
+            case 'critico': 
+                titulo = 'Críticos (≤3 meses / ≤90 dias)'; 
+                lista = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias >= 0 && p.menorDias <= 90)
+                    .sort((a, b) => a.menorDias - b.menorDias); 
+                classe = 'critico'; break;
+            case 'alerta': 
+                titulo = 'Alerta (3-6 meses / 91-180 dias)'; 
+                lista = produtosComValidade.filter(p => p.menorDias !== null && p.menorDias > 90 && p.menorDias <= 180)
+                    .sort((a, b) => a.menorDias - b.menorDias); 
+                classe = 'alerta'; break;
+            case 'pendente': 
+                titulo = 'Produtos Pendentes (sem validade)'; 
+                lista = produtosPendentes; 
+                classe = 'pendente'; break;
+            case 'todos': 
+                titulo = 'Todos os Produtos'; 
+                lista = todosProdutos.sort((a, b) => (b.total||0) - (a.total||0)); 
+                classe = ''; break;
+            case 'parado30': 
+                titulo = 'Parados +30 dias (30-89 dias)'; 
+                lista = todosProdutos.filter(p => p.diasSemVenda >= 30 && p.diasSemVenda < 90 && p.diasSemVenda < 999)
+                    .sort((a, b) => b.diasSemVenda - a.diasSemVenda); 
+                classe = 'parado30'; break;
+            case 'parado90': 
+                titulo = 'Parados +90 dias'; 
+                lista = todosProdutos.filter(p => p.diasSemVenda >= 90 && p.diasSemVenda < 999)
+                    .sort((a, b) => b.diasSemVenda - a.diasSemVenda); 
+                classe = 'parado90'; break;
+            case 'inconsistente':
+                titulo = 'Itens com Inconsistência';
+                lista = inconsistenciasAtivas;
+                classe = 'inconsistente'; break;
+            default: return;
+        }
         
-        document.getElementById('stat-lotes').innerText = lotes.length;
-        document.getElementById('stat-pendentes').innerText = pendentes;
-    }
-    
-    // ===== FUNÇÃO RENDERIZAR LISTA =====
-    function renderizarLista() {
-        const container = document.getElementById('lista-estoque');
-        const ordenarPor = document.getElementById('ordenarPor').value;
+        document.getElementById('modalListaTitulo').innerText = titulo;
         
-        const grupos = new Map();
-        Object.values(inventario).forEach(item => {
-            if (!grupos.has(item.codigo)) {
-                grupos.set(item.codigo, { ...item, lotes: [item], qtde: item.qtde || 0 });
+        if (tipo === 'inconsistente') {
+            if (lista.length > 0) {
+                document.getElementById('modalListaBody').innerHTML = lista.map(inc => {
+                    const diff = Math.abs((inc.qtdeSistema||0)-(inc.qtdeFisico||0));
+                    return `<div class="produto-item-modal ${classe}" onclick="mostrarDetalheInconsistencia('${inc.codigo}')">
+                        <h4>⚠️ ${inc.codigo} - ${inc.desc || 'Sem descrição'}</h4>
+                        <p>Sistema: ${inc.qtdeSistema||0} un • Físico: ${inc.qtdeFisico||0} un (dif: ${diff} un) • ${inc.dataRegistroFormatada}</p>
+                    </div>`;
+                }).join('');
             } else {
-                const ex = grupos.get(item.codigo);
-                ex.lotes.push(item);
-                ex.qtde += item.qtde || 0;
+                document.getElementById('modalListaBody').innerHTML = '<div class="empty">✅ Nenhuma inconsistência</div>';
             }
-        });
+        } else {
+            if (lista.length > 0) {
+                document.getElementById('modalListaBody').innerHTML = lista.map(p => {
+                    let infoExtra = '';
+                    if (p.menorDias !== null) {
+                        infoExtra = p.menorDias < 0 ? ' • VENCIDO' : ' • ' + p.menorDias + ' dias';
+                    } else if (p.temSemVencimento) {
+                        infoExtra = ' • ♾️ SEM VENCIMENTO';
+                    } else if (p.diasSemVenda < 999) {
+                        infoExtra = ' • ' + p.diasSemVenda + ' dias parado';
+                    }
+                    let classeItem = classe;
+                    if (p.menorDias !== null) {
+                        if (p.menorDias < 0) classeItem = 'vencido';
+                        else if (p.menorDias <= 90) classeItem = 'critico';
+                        else if (p.menorDias <= 180) classeItem = 'alerta';
+                    }
+                    return `<div class="produto-item-modal ${classeItem}" onclick="abrirModalProduto('${p.codigo}')">
+                        <h4>${p.desc.substring(0,50)}${p.desc.length>50?'...':''}</h4>
+                        <p>Cód: ${p.codigo} • ${Math.round(p.total)} un • ${p.endereco}${infoExtra}</p>
+                    </div>`;
+                }).join('');
+            } else {
+                document.getElementById('modalListaBody').innerHTML = '<div class="empty">Nenhum produto encontrado</div>';
+            }
+        }
+        document.getElementById('modalLista').style.display = 'flex';
+    };
+    
+    window.fecharModalLista = () => { document.getElementById('modalLista').style.display = 'none'; };
+    
+    window.abrirModalProduto = (codigo) => {
+        let produto = todosProdutos.find(p => p.codigo === codigo);
+        if (!produto) produto = produtosComValidade.find(p => p.codigo === codigo);
+        if (!produto) produto = produtosPendentes.find(p => p.codigo === codigo);
+        if (!produto) produto = produtosSemVencimento.find(p => p.codigo === codigo);
+        if (!produto) { mostrarToast('Produto não encontrado', 'error'); return; }
         
-        let produtos = Array.from(grupos.values());
+        document.getElementById('modalProdutoTitulo').innerText = produto.desc;
         
-        produtos.forEach(prod => {
-            prod.temPendente = prod.lotes.some(l => !l.done && !l.semVencimento);
-            prod.temConcluido = prod.lotes.some(l => l.done && !l.semVencimento);
-            prod.temSemVencimento = prod.lotes.some(l => l.semVencimento === true);
-            prod.ehNovo = prod.dataCriacao && prod.dataCriacao >= ultimaImportacao && ultimaImportacao > 0 && prod.temPendente;
-            const loteComEndereco = prod.lotes.find(l => l.endereco && l.endereco !== 'S/E' && l.endereco !== '');
-            prod.enderecoExibir = loteComEndereco?.endereco || prod.endereco || 'S/E';
-            prod.qtde = Math.round(prod.qtde);
-        });
+        const lotesComValidade = produto.lotes.filter(l => l.done && l.validade && !l.semVencimento);
+        const lotesSemVencimento = produto.lotes.filter(l => l.semVencimento === true);
         
-        if (filtroAtual !== 'todos') {
-            produtos = produtos.filter(prod => {
-                if (filtroAtual === 'pendente') return prod.temPendente && !prod.temConcluido && !prod.temSemVencimento;
-                if (filtroAtual === 'concluido') return prod.temConcluido && !prod.temPendente && !prod.temSemVencimento;
-                if (filtroAtual === 'sem-vencimento') return prod.temSemVencimento && !prod.temPendente;
-                if (filtroAtual === 'novos') return prod.ehNovo;
-                return true;
-            });
+        const lotesAgrupados = new Map();
+        for (const lote of lotesComValidade) {
+            if (!lotesAgrupados.has(lote.validade)) lotesAgrupados.set(lote.validade, { qtde: 0, semVencimento: false });
+            lotesAgrupados.get(lote.validade).qtde += lote.qtde;
+        }
+        for (const lote of lotesSemVencimento) {
+            const key = "SEM VENCIMENTO";
+            if (!lotesAgrupados.has(key)) lotesAgrupados.set(key, { qtde: 0, semVencimento: true });
+            lotesAgrupados.get(key).qtde += lote.qtde;
         }
         
-        produtos.sort((a, b) => {
-            switch(ordenarPor) {
-                case 'quantidade': return (b.qtde || 0) - (a.qtde || 0);
-                case 'quantidade-menor': return (a.qtde || 0) - (b.qtde || 0);
-                case 'codigo': return (a.codigo || '').localeCompare(b.codigo || '');
-                case 'nome': return (a.desc || '').localeCompare(b.desc || '');
-                case 'data': return (b.dataCriacao || 0) - (a.dataCriacao || 0);
-                default: return (b.qtde || 0) - (a.qtde || 0);
-            }
-        });
+        const historicoOrdenado = [...produto.historicoCompleto].sort((a,b) => b.data - a.data).slice(0,20);
         
-        document.getElementById('result-count').innerText = `${produtos.length} itens`;
-        if (produtos.length === 0) { 
-            container.innerHTML = `<div class="empty-state"><i class="fas fa-box-open"></i><p>Nenhum produto encontrado</p></div>`; 
-            return; 
-        }
+        let statusText = '', statusColor = '';
+        if (produto.menorDias !== null) {
+            if (produto.menorDias < 0) { statusText = 'VENCIDO'; statusColor = 'var(--expired)'; }
+            else if (produto.menorDias <= 90) { statusText = `${produto.menorDias} dias (CRÍTICO ≤3m)`; statusColor = 'var(--danger)'; }
+            else if (produto.menorDias <= 180) { statusText = `${produto.menorDias} dias (ALERTA 3-6m)`; statusColor = 'var(--alerta)'; }
+            else { statusText = `${produto.menorDias} dias`; statusColor = 'var(--success)'; }
+        } else if (produto.temSemVencimento) { statusText = '♾️ SEM VENCIMENTO'; statusColor = 'var(--info)'; }
+        else if (produto.temPendente) { statusText = 'PENDENTE'; statusColor = 'var(--warning)'; }
         
-        container.innerHTML = produtos.map(prod => {
-            let status = 'pendente';
-            let statusText = 'Pendente';
-            let statusClass = 'status-pendente';
-            
-            if (prod.ehNovo) {
-                status = 'novo';
-                statusText = '🆕 Novo';
-                statusClass = 'status-novo';
-            } else if (prod.temSemVencimento && !prod.temPendente) {
-                status = 'sem-vencimento';
-                statusText = '♾️ Sem Vencimento';
-                statusClass = 'status-sem-vencimento';
-            } else if (prod.temConcluido && !prod.temPendente && !prod.temSemVencimento) {
-                status = 'concluido';
-                statusText = 'Concluído';
-                statusClass = 'status-concluido';
-            }
-            
-            const badgeNovo = prod.ehNovo ? '<span class="badge-novo">🆕 NOVO</span>' : '';
-            
-            return `<div class="produto-item ${status}" onclick="abrirModal('${prod.codigo}')">
-                <div class="produto-header">
-                    <span class="produto-codigo">📦 ${prod.codigo} ${badgeNovo}</span>
-                    <span class="produto-status ${statusClass}">${statusText}</span>
-                </div>
-                <div class="produto-desc">${(prod.desc || 'Sem descrição').substring(0, 60)}${prod.desc?.length > 60 ? '...' : ''}</div>
-                <div class="produto-detalhes">
-                    <span><i class="fas fa-box"></i> ${Math.round(prod.qtde)} un</span>
-                </div>
-                ${prod.enderecoExibir && prod.enderecoExibir !== 'S/E' ? `<div class="produto-endereco"><i class="fas fa-map-marker-alt"></i> ${prod.enderecoExibir}</div>` : ''}
-                ${prod.estoqueMinimo > 0 ? `<div class="produto-detalhes"><span><i class="fas fa-chart-line"></i> Mínimo: ${Math.round(prod.estoqueMinimo)}</span></div>` : ''}
+        const diasSemVendaText = produto.diasSemVenda >= 999 ? 'Nunca' : produto.diasSemVenda + ' dias';
+        
+        const incAtiva = inconsistenciasAtivas.find(inc => inc.codigo === produto.codigo);
+        let alertaInc = '';
+        if (incAtiva) {
+            const diff = Math.abs((incAtiva.qtdeSistema||0)-(incAtiva.qtdeFisico||0));
+            alertaInc = `<div class="inconsistencia-alert-box" style="margin-bottom:15px;padding:12px;">
+                <p style="font-weight:700;margin-bottom:5px;"><i class="fas fa-exclamation-triangle"></i> INCONSISTÊNCIA ATIVA</p>
+                <p>Sistema: ${incAtiva.qtdeSistema||0} un • Físico: ${incAtiva.qtdeFisico||0} un • Dif: ${diff} un</p>
             </div>`;
-        }).join('');
-    }
+        }
+        
+        document.getElementById('modalProdutoBody').innerHTML = `
+            ${alertaInc}
+            <div style="background:var(--bg-primary);border-radius:16px;padding:15px;margin-bottom:20px;">
+                <p><strong>Código:</strong> ${produto.codigo}</p>
+                <p><strong>Localização:</strong> ${produto.endereco}</p>
+                <p><strong>Total:</strong> ${Math.round(produto.total)} un</p>
+                <p><strong>Status:</strong> <span style="color:${statusColor};">${statusText}</span></p>
+                <p><strong>Dias sem venda:</strong> ${diasSemVendaText}</p>
+                ${produto.ultimaVenda ? `<p><strong>Última venda:</strong> ${new Date(produto.ultimaVenda).toLocaleDateString('pt-BR')}</p>` : ''}
+            </div>
+            ${lotesAgrupados.size > 0 ? `
+                <div style="font-weight:600;margin-bottom:10px;">📦 Lotes:</div>
+                ${Array.from(lotesAgrupados.entries()).sort((a,b) => {
+                    if (a[0]==='SEM VENCIMENTO') return 1;
+                    if (b[0]==='SEM VENCIMENTO') return -1;
+                    return new Date(a[0].split('/').reverse().join('-')) - new Date(b[0].split('/').reverse().join('-'));
+                }).map(([validade, info]) => {
+                    if (!info.semVencimento) {
+                        const diff = calcularDiasRestantes(validade);
+                        let cor = diff < 0 ? 'var(--expired)' : (diff <= 90 ? 'var(--danger)' : (diff <= 180 ? 'var(--alerta)' : 'var(--success)'));
+                        return `<div class="lote-row"><span style="font-weight:700;">📅 ${validade}</span><span>${Math.round(info.qtde)} un</span><span style="color:${cor};">${diff} dias</span></div>`;
+                    }
+                    return `<div class="lote-row"><span style="font-weight:700;">♾️ SEM VENCIMENTO</span><span>${Math.round(info.qtde)} un</span><span style="color:var(--info);">-</span></div>`;
+                }).join('')}
+            ` : (produto.temPendente ? `<div style="text-align:center;padding:15px;"><i class="fas fa-hourglass-half" style="color:var(--warning);font-size:1.5rem;"></i><p>Pendente de validade.</p></div>` : '<div style="text-align:center;padding:15px;">Nenhum lote</div>')}
+            ${historicoOrdenado.length > 0 ? `
+                <div style="font-weight:600;margin:15px 0 10px;">📊 Histórico:</div>
+                ${historicoOrdenado.map(h => {
+                    const data = new Date(h.data).toLocaleDateString('pt-BR');
+                    const tipo = h.tipo === 'venda' ? 'Venda' : (h.tipo === 'reposicao' ? 'Reposição' : (h.tipo === 'validade_atribuida' ? 'Validade' : (h.tipo === 'inconsistencia' ? '⚠️ Inconsist.' : 'Importação')));
+                    const sinal = h.tipo === 'venda' ? '▼' : (h.tipo === 'reposicao' ? '▲' : (h.tipo === 'inconsistencia' ? '⚠️' : '•'));
+                    const classe = h.tipo === 'venda' ? 'negativo' : (h.tipo === 'reposicao' ? 'positivo' : (h.tipo === 'inconsistencia' ? 'negativo' : ''));
+                    return `<div class="historico-row"><span>${data}</span><span>${tipo}</span><span class="${classe}">${sinal} ${Math.abs(Math.round(h.quantidade||0))} un</span></div>`;
+                }).join('')}
+            ` : '<div style="text-align:center;padding:15px;">Sem histórico</div>'}
+        `;
+        document.getElementById('modalProduto').style.display = 'flex';
+    };
     
-    window.exportarRelatorio = () => {
-        const grupos = new Map();
-        Object.values(inventario).forEach(item => {
-            if (!grupos.has(item.codigo)) {
-                grupos.set(item.codigo, { ...item, quantidade: item.qtde || 0 });
-            } else {
-                grupos.get(item.codigo).quantidade += item.qtde || 0;
-            }
-        });
-        
-        const produtos = Array.from(grupos.values());
-        let csv = "Código;Descrição;Endereço;Quantidade;Status;Validade;NovoItem\n";
-        produtos.forEach(p => {
-            let status = 'Pendente';
-            let validade = '';
-            let novoItem = 'Não';
-            if (p.semVencimento) {
-                status = 'Sem Vencimento';
-                validade = 'SEM VENCIMENTO';
-            } else if (p.done && p.validade) {
-                status = 'Concluído';
-                validade = p.validade;
-            }
-            if (p.dataCriacao && p.dataCriacao >= ultimaImportacao && ultimaImportacao > 0 && !p.done && !p.semVencimento) {
-                novoItem = 'Sim';
-            }
-            const endereco = p.lotes && p.lotes.length > 0 && p.lotes[0].endereco ? p.lotes[0].endereco : (p.endereco || 'S/E');
-            csv += `${p.codigo};${p.desc || ''};${endereco};${Math.round(p.quantidade)};${status};${validade};${novoItem}\n`;
-        });
-        
-        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8' });
+    window.fecharModalProduto = () => { document.getElementById('modalProduto').style.display = 'none'; };
+    window.carregarDados = () => { mostrarToast('Recarregando...', 'info'); carregarDadosFirebase(); };
+    
+    window.exportarPDF = async () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(18); doc.text('Relatório de Estoque', 20, 20);
+        doc.setFontSize(10); doc.text(`Gerado: ${new Date().toLocaleDateString('pt-BR')}`, 20, 30);
+        doc.setFontSize(10);
+        doc.text(`Estoque: ${document.getElementById('total-estoque')?.innerText||0} un | Produtos: ${document.getElementById('total-produtos')?.innerText||0} SKUs`, 20, 45);
+        doc.text(`Pendentes: ${document.getElementById('total-pendentes')?.innerText||0} | Vencidos: ${document.getElementById('total-vencidos')?.innerText||0}`, 20, 52);
+        doc.text(`Críticos (≤3m): ${document.getElementById('total-criticos')?.innerText||0} | Alerta (3-6m): ${document.getElementById('total-alertas')?.innerText||0}`, 20, 59);
+        doc.text(`Parados +30d: ${document.getElementById('total-parados30')?.innerText||0} | +90d: ${document.getElementById('total-parados90')?.innerText||0}`, 20, 66);
+        doc.text(`Inconsistências: ${document.getElementById('total-inconsistencias')?.innerText||0}`, 20, 73);
+        doc.save('dashboard_estoque.pdf');
+        mostrarToast('PDF gerado!', 'success');
+    };
+    
+    window.exportarRelatorioCompleto = () => {
+        let csv = "Categoria;Código;Descrição;Endereço;Quantidade;DiasValidade;DiasSemVenda;UltimaVenda;Inconsistencia\n";
+        for (const produto of todosProdutos) {
+            let categoria = '';
+            if (produto.menorDias !== null) {
+                if (produto.menorDias < 0) categoria = 'Vencido';
+                else if (produto.menorDias <= 90) categoria = 'Crítico (≤3m)';
+                else if (produto.menorDias <= 180) categoria = 'Alerta (3-6m)';
+                else if (produto.menorDias <= 365) categoria = 'Normal';
+                else categoria = 'Longa duração';
+            } else if (produto.temSemVencimento) categoria = 'Sem Vencimento';
+            else if (produto.temPendente) categoria = 'Pendente';
+            else categoria = 'S/I';
+            const diasRestantes = produto.menorDias !== null ? produto.menorDias : 'N/A';
+            const diasSemVenda = produto.diasSemVenda >= 999 ? 'Nunca' : produto.diasSemVenda;
+            const ultimaVenda = produto.ultimaVenda ? new Date(produto.ultimaVenda).toLocaleDateString('pt-BR') : 'Nunca';
+            const incAtiva = inconsistenciasAtivas.find(inc => inc.codigo === produto.codigo);
+            const incTexto = incAtiva ? 'Sim' : 'Não';
+            csv += `${categoria};${produto.codigo};${produto.desc};${produto.endereco};${Math.round(produto.total)};${diasRestantes};${diasSemVenda};${ultimaVenda};${incTexto}\n`;
+        }
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `produtos_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
+        link.download = `dashboard_${new Date().toISOString().split('T')[0]}.csv`;
         link.click();
-        URL.revokeObjectURL(link.href);
-        mostrarToast('Relatório exportado com sucesso!', 'success');
+        mostrarToast('CSV exportado!', 'success');
     };
+    
+    carregarDadosFirebase();
 </script>
+
+<style>
+    .hide-mobile { display: inline; }
+    @media (max-width: 768px) { .hide-mobile { display: none; } .header-actions button { padding: 10px; } }
+    .negativo { color: var(--danger); font-weight: 600; }
+    .positivo { color: var(--success); font-weight: 600; }
+</style>
 </body>
 </html>
